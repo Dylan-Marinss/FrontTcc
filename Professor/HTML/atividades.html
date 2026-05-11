@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Professor - Criar Atividade</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/themes.css">
+    <link rel="stylesheet" href="../CSS/atividadeProfessor.css">
+
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <section class="user-dashboard">
+        <!-- SIDEBAR (Menu Lateral) - VERSÃO PROFESSOR -->
+        <div class="sidebar professor-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="professorPerfil.html" class="nav-item"><i class="fas fa-user"></i>
+                            <span>Perfil</span></a></li>
+                    <li><a href="atividades.html" class="nav-item active"><i class="fas fa-tasks"></i>
+                            <span>Atividades</span></a></li>
+                    <li><a href="professorTurma.html" class="nav-item"><i class="fas fa-users"></i>
+                            <span>Turmas</span></a></li>
+                </ul>
+            </nav>
+
+            
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="atividade-container">
+
+                <!-- Cabeçalho da página -->
+                <div class="atividade-card header-card">
+                    <h1 class="page-title">
+                        <i class="fas fa-plus-circle"></i> Criar Nova Atividade
+                    </h1>
+                    <p class="page-subtitle">
+                        Preencha os dados abaixo para criar uma atividade para seus alunos
+                    </p>
+                </div>
+
+                <!-- Card Principal - Criar Atividade -->
+                <div class="atividade-card create-card">
+
+                    <!-- Informações Básicas da Atividade -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-info-circle"></i> Informações Básicas
+                        </h2>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tipoAtividade"><i class="fas fa-tag"></i> Tipo de Atividade *</label>
+                                <select id="tipoAtividade" class="form-control" required>
+                                    <option value="">Selecione o tipo de atividade</option>
+                                    <option value="redacao">📝 Redação</option>
+                                    <option value="questao">❓ Questão</option>
+                                    <option value="simulado">📊 Simulado</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="dificuldadeQuestao"><i class="fas fa-chart-line"></i> Dificuldade</label>
+                                <select id="dificuldadeQuestao" class="form-control">
+                                    <option value="facil">Fácil</option>
+                                    <option value="medio" selected>Médio</option>
+                                    <option value="dificil">Difícil</option>
+                                </select>
+                            </div>
+
+                            
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="serie"><i class="fas fa-users"></i> Turma *</label>
+                                <select id="serie" class="form-control" required>
+                                    <option value="">Carregando turmas...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="disciplina"><i class="fas fa-book"></i> Disciplina *</label>
+                                <select id="disciplina" class="form-control" required>
+                                    <option value="">Selecione a disciplina</option>
+                                    <option value="matematica">Matemática</option>
+                                    <option value="portugues">Português</option>
+                                    <option value="historia">História</option>
+                                    <option value="geografia">Geografia</option>
+                                    <option value="ciencias">Ciências</option>
+                                    <option value="fisica">Física</option>
+                                    <option value="quimica">Química</option>
+                                    <option value="biologia">Biologia</option>
+                                    <option value="ingles">Inglês</option>
+                                    <option value="redacao">Redação</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+            
+
+                    <!-- Botões de Ação -->
+                    <div class="form-actions">
+                        <button type="button" id="btnConsultarAtividade" class="btn-primary">
+                            <i class="fas fa-save"></i> Minhas Atividades
+                        </button>
+                        <button type="button" class="btn-secondary"
+                            onclick="window.location.href='professor-atividades.html'">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="button" onclick="window.location.href='atividadeCriar.html'" id="btnSalvarAtividade" class="btn-primary">
+                            <i class="fas fa-save"></i> Criar Atividade
+                        </button>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="../JS/atividadeProfessor.js"></script>
+
+    
+</body>
+
+</html>

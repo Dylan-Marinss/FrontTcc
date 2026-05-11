@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Central do ENEM</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/enem.css">
+</head>
+<body>
+
+<section class="user-dashboard">
+    <!-- SIDEBAR (Menu Lateral) - MESMO PADRÃO DAS ATIVIDADES -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span class="logo-text">EstudeX</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item active" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="dashboard-content">
+        <!-- CABEÇALHO -->
+        <div class="header-top">
+            <h1 class="page-title"><i class="fas fa-graduation-cap"></i> Central do ENEM</h1>
+            <div class="notifications-icon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+        </div>
+
+        <!-- CARD PRINCIPAL DE INTRODUÇÃO -->
+        <div class="intro-card">
+            <div class="intro-content">
+                <h2 class="intro-title">Bem-vindo(a) à Central do ENEM!</h2>
+                <p class="intro-description">
+                    Aqui você encontra tudo o que precisa para se preparar para o ENEM.
+                    Treine redações, resolva questões, acompanhe seu progresso e acesse informações essenciais sobre o exame.
+                </p>
+                <a href="../HTML/como-funciona-enem.html" class="btn-primary-large">
+                    <i class="fas fa-info-circle"></i> Como funciona o ENEM?
+                </a>
+            </div>
+            <div class="intro-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+        </div>
+
+        <!-- GRID PRINCIPAL -->
+        <div class="enem-grid-main">
+            <!-- CARD: TREINAR REDAÇÃO -->
+            <div class="enem-card essay-card clickable-card">
+                <h3 class="card-title-light">
+                    <i class="fas fa-pen-fancy"></i> Treinar Redação
+                </h3>
+                <p class="card-description">
+                    Envie redações, acompanhe suas notas, receba correções detalhadas e veja sugestões de melhoria.
+                </p>
+                <div class="card-buttons">
+                    <a href="../HTML/enviar-redacao.html" class="btn-secondary">
+                        <i class="fas fa-upload"></i> Enviar Redação
+                    </a>
+                    <a href="tema-semana.html" class="btn-secondary">
+                        <i class="fas fa-lightbulb"></i> Ver Tema da Semana
+                    </a>
+                    <a href="../HTML/historico-enem.html" class="btn-secondary">
+                        <i class="fas fa-history"></i> Histórico
+                    </a>
+                </div>
+            </div>
+
+            <!-- CARD: INFORMAÇÕES ÚTEIS -->
+            <div class="enem-card info-card">
+                <h3 class="card-title-light"><i class="fas fa-info-circle"></i> Informações Úteis para o ENEM</h3>
+                <ul class="info-list">
+                    <li><i class="fas fa-file-alt"></i> <span>Estrutura da prova</span></li>
+                    <li><i class="fas fa-calculator"></i> <span>Como funciona a TRI</span></li>
+                    <li><i class="fas fa-backpack"></i> <span>O que levar no dia</span></li>
+                    <li><i class="fas fa-chart-pie"></i> <span>Como é calculada a nota</span></li>
+                    <li><i class="fas fa-star"></i> <span>Dicas rápidas</span></li>
+                </ul>
+                <a href="../HTML/como-funciona-enem.html" class="btn-secondary-full">
+                    <i class="fas fa-book"></i> Ler todas as informações
+                </a>
+            </div>
+        </div>
+
+        <!-- GRID SECUNDÁRIA -->
+        <div class="enem-grid-secondary">
+            <!-- CARD: SIMULADOS E QUESTÕES -->
+            <div class="enem-card simulados-card">
+                <h3 class="card-title-light"><i class="fas fa-flask"></i> Simulados e Questões</h3>
+                <ul class="simulados-list">
+                    <li><i class="fas fa-layer-group"></i> <span>Simulados por área</span></li>
+                    <li><i class="fas fa-puzzle-piece"></i> <span>Questões por matéria</span></li>
+                    <li><i class="fas fa-archive"></i> <span>Banco de provas anteriores</span></li>
+                </ul>
+                <div class="card-buttons">
+                    <a href="simulado.html" class="btn-secondary">
+                        <i class="fas fa-play"></i> Iniciar Simulado
+                    </a>
+                    <a href="questoes.html" class="btn-secondary">
+                        <i class="fas fa-pencil-alt"></i> Resolver Questões
+                    </a>
+                </div>
+            </div>
+
+            <!-- CARD: CRONOGRAMA ENEM -->
+            <div class="enem-card schedule-card">
+                <h3 class="card-title-light"><i class="fas fa-calendar-alt"></i> Cronograma ENEM</h3>
+                <div class="schedule-items">
+                    <div class="schedule-item">
+                        <span class="schedule-label">Inscrições</span>
+                        <span class="schedule-date">15 de Maio - 26 de Maio</span>
+                    </div>
+                    <div class="schedule-item">
+                        <span class="schedule-label">Provas</span>
+                        <span class="schedule-date">3 e 10 de Novembro</span>
+                    </div>
+                    <div class="schedule-item">
+                        <span class="schedule-label">Cartão de Confirmação</span>
+                        <span class="schedule-date">20 de Outubro</span>
+                    </div>
+                </div>
+                <a href="../HTML/enem-cronograma.html" class="btn-secondary-full">
+                    <i class="fas fa-calendar"></i> Ver Cronograma Completo
+                </a>
+            </div>
+        </div>
+        
+    </main>
+</section>
+
+<!-- Scripts -->
+<script src="../JS/menuSideBar.js"></script>
+<script src="../JS/enem.js"></script>
+
+</body>
+</html>

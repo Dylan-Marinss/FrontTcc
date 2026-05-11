@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Meu Perfil</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/perfil.css">
+</head>
+<body>
+
+<section class="user-dashboard">
+    <!-- SIDEBAR (Menu Lateral) - PADRONIZADA -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span class="logo-text">EstudeX</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item active" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="dashboard-content">
+        <!-- Header do Perfil -->
+        <div class="profile-header">
+            <div class="profile-avatar-area">
+                <div class="avatar-wrapper">
+                    <img src="https://ui-avatars.com/api/?background=BB86FC&color=121212&bold=true&size=120&name=U" alt="Avatar" class="avatar-profile" id="avatarImg">
+                    <button class="edit-avatar-btn" id="editAvatarBtn">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                </div>
+                <div class="profile-info">
+                    <h1 id="nomeAluno">Carregando...</h1>
+                    <p class="instituicao"><i class="fas fa-graduation-cap"></i> <span id="serieAluno">Carregando...</span></p>
+                    <p class="xp-info"><i class="fas fa-star"></i> XP Total: <strong id="xpTotal">0</strong></p>
+                    <div class="profile-level">
+                        <span>Nível</span>
+                        <div class="level-bar">
+                            <div class="level-fill" id="levelFill" style="width: 0%"></div>
+                        </div>
+                        <span class="level-text" id="nivelAtual">Iniciante</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid de Conteúdo -->
+        <div class="profile-grid">
+            <!-- Seção Sobre Mim (Editável) -->
+            <div class="card about-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-astronaut"></i> Sobre Mim</h3>
+                    <button class="edit-bio-btn" id="editBioBtn">
+                        <i class="fas fa-pencil-alt"></i> Editar
+                    </button>
+                </div>
+                <div class="bio-content">
+                    <p id="bioTexto" class="bio-text">Clique em editar para adicionar uma bio sobre você, seus objetivos e conquistas!</p>
+                    <div class="bio-edit-area" id="bioEditArea" style="display: none;">
+                        <textarea id="bioTextarea" rows="4" placeholder="Escreva sua bio aqui..."></textarea>
+                        <div class="bio-actions">
+                            <button class="btn-save-bio" id="saveBioBtn">Salvar</button>
+                            <button class="btn-cancel-bio" id="cancelBioBtn">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tags-container" id="tagsContainer">
+                    <span class="tag"><i class="fas fa-hashtag"></i> Estudante</span>
+                    <span class="tag"><i class="fas fa-hashtag"></i> Aprendiz</span>
+                </div>
+            </div>
+
+            <!-- Selos e Conquistas -->
+            <div class="card achievements-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-medal"></i> Selos e Conquistas</h3>
+                    <button class="view-all-btn" id="viewAchievementsBtn">
+                        Ver Todos <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid">
+                    <div class="achievement-item locked">
+                        <i class="fas fa-star"></i>
+                        <span>Iniciante</span>
+                    </div>
+                    <div class="achievement-item locked">
+                        <i class="fas fa-trophy"></i>
+                        <span>Dedicado</span>
+                    </div>
+                    <div class="achievement-item locked">
+                        <i class="fas fa-rocket"></i>
+                        <span>Explorador</span>
+                    </div>
+                    <div class="achievement-item locked">
+                        <i class="fas fa-brain"></i>
+                        <span>Mestre</span>
+                    </div>
+                    <div class="achievement-item locked">
+                        <i class="fas fa-fire"></i>
+                        <span>Em Chamas</span>
+                    </div>
+                    <div class="achievement-item locked">
+                        <i class="fas fa-crown"></i>
+                        <span>Lendário</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ranking Global -->
+            <div class="card ranking-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Ranking Global</h3>
+                    <button class="view-all-btn" id="viewRankingBtn">
+                        Ver Completo <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="ranking-stats">
+                    <div class="ranking-item">
+                        <span class="ranking-label">Sua Posição</span>
+                        <span class="ranking-value" id="posicaoRanking">#--</span>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="ranking-label">Total de Alunos</span>
+                        <span class="ranking-value" id="totalAlunos">0</span>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="ranking-label">Percentil</span>
+                        <span class="ranking-value" id="percentilRanking">0%</span>
+                    </div>
+                </div>
+                <div class="progresso-ranking">
+                    <div class="progress-bar-ranking">
+                        <div class="progress-fill-ranking" id="progressFillRanking" style="width: 0%"></div>
+                    </div>
+                    <p class="proximo-nivel" id="proximoNivelTexto">Faltam 500 XP para o próximo nível</p>
+                </div>
+            </div>
+
+            <!-- Estatísticas Rápidas -->
+            <div class="card stats-quick-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-pie"></i> Estatísticas Rápidas</h3>
+                </div>
+                <div class="stats-list">
+                    <div class="stat-item">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="stat-details">
+                            <span class="stat-label">Atividades Concluídas</span>
+                            <strong class="stat-number" id="atividadesConcluidas">0</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-percent"></i>
+                        <div class="stat-details">
+                            <span class="stat-label">Taxa de Acerto</span>
+                            <strong class="stat-number" id="taxaAcerto">0%</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-details">
+                            <span class="stat-label">Total de Pontos</span>
+                            <strong class="stat-number" id="totalPontos">0</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-trophy"></i>
+                        <div class="stat-details">
+                            <span class="stat-label">Melhor Sequência</span>
+                            <strong class="stat-number" id="melhorSequencia">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</section>
+
+<!-- Modal de Selos/Conquistas -->
+<div id="achievementsModal" class="modal">
+    <div class="modal-content modal-achievements">
+        <div class="modal-header">
+            <h2><i class="fas fa-medal"></i> Todas as Conquistas</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="achievements-full-grid" id="achievementsFullGrid">
+            <!-- Conteúdo via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="../JS/perfil.js"></script>
+<script src="../JS/menuSideBar.js"></script>
+
+</body>
+</html>

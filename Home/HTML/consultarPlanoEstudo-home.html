@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Plano de Estudo</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/consultarPlanoEstudo-home.css">
+</head>
+<body>
+
+<section class="user-dashboard">
+    <!-- SIDEBAR (Menu Lateral) - PADRONIZADA -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span class="logo-text">EstudeX</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="dashboard-content">
+        <!-- CABEÇALHO -->
+        <div class="header-top">
+            <h1 class="page-title"><i class="fas fa-book-open"></i> Meu Plano de Estudo</h1>
+            <div class="notifications-icon" id="notificationsIcon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+        </div>
+
+        <!-- CARD: VISÃO GERAL DO PLANO -->
+        <div class="progress-summary-card">
+            <h3 class="card-title-light"><i class="fas fa-chart-line"></i> Visão Geral do Plano</h3>
+            <div class="progress-indicators">
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="conclusaoSemana">0%</span>
+                    </div>
+                    <span class="indicator-label">Conclusão da Semana</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="metasDiarias">0/0</span>
+                    </div>
+                    <span class="indicator-label">Metas Diárias Batidas</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="totalAtividades">0</span>
+                    </div>
+                    <span class="indicator-label">Atividades Recomendadas</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: INFORMAÇÕES DO ALUNO -->
+        <div class="student-info-card">
+            <h3 class="card-title-light"><i class="fas fa-user-graduate"></i> Perfil do Aluno</h3>
+            <div class="student-details">
+                <div class="info-row">
+                    <span class="info-label">Nome:</span>
+                    <span class="info-value" id="nomeAluno">Carregando...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Série:</span>
+                    <span class="info-value" id="serieAluno">Carregando...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">XP Total:</span>
+                    <span class="info-value" id="xpAluno">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Nível:</span>
+                    <span class="info-value" id="nivelAluno">Iniciante</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID: ATIVIDADES RECOMENDADAS + AGENDA -->
+        <div class="home-grid">
+            <!-- ATIVIDADES RECOMENDADAS -->
+            <div class="next-actions-card">
+                <h3 class="card-title-light"><i class="fas fa-tasks"></i> Atividades Recomendadas</h3>
+                <div id="atividadesRecomendadas" class="atividades-list">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                        <p>Carregando atividades...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENDA SEMANAL -->
+            <div class="weekly-schedule-card">
+                <h3 class="card-title-light"><i class="fas fa-calendar-week"></i> Agenda Sugerida</h3>
+                <div id="agendaContainer">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                        <p>Gerando agenda personalizada...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: RECOMENDAÇÕES PERSONALIZADAS -->
+        <div class="recommendations-card">
+            <h3 class="card-title-light"><i class="fas fa-lightbulb"></i> Recomendações Personalizadas</h3>
+            <div id="recomendacoes" class="recommendations-list">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Gerando recomendações...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</section>
+
+<!-- Scripts -->
+<script src="../JS/consultarPlanoEstudo-home.js"></script>
+<script src="../JS/menuSideBar.js"></script>
+
+</body>
+</html>

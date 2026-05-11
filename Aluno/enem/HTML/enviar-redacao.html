@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Redação</title>
+
+    <link rel="stylesheet" href="../CSS/enviar.redacao.css">
+    <link rel="stylesheet" href="css/enem.css">
+    <link rel="stylesheet" href="css/themes.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+ <section class="user-dashboard">
+        <!-- SIDEBAR (Menu Lateral) -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                    <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                    <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                    <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+     <div class="main-content">
+
+        <div class="enem-container">
+            <div class="enem-card redacao-card">
+
+                <h2 class="card-title-light">
+                    <i class="fas fa-pen-fancy"></i> Tema da Semana
+                </h2>
+
+                <h3 class="tema-titulo">
+                    Os impactos das redes sociais na saúde mental dos jovens brasileiros
+                </h3>
+
+                <p class="texto-motivador">
+                    A sociedade contemporânea enfrenta desafios relacionados ao uso excessivo das
+                    plataformas digitais. Nesse contexto, torna-se fundamental analisar os efeitos
+                    psicológicos e sociais causados pelas redes sociais.
+                </p>
+
+                <textarea id="redacaoTexto" placeholder="Escreva sua redação aqui..."></textarea>
+
+                <div class="redacao-footer">
+                    <span id="contador">0 caracteres</span>
+                    <button class="btn-secondary" id="btnEnviar">
+                        <i class="fas fa-paper-plane"></i> Enviar para Correção
+                    </button>
+                </div>
+
+                <p class="aviso-minimo">
+                    Mínimo recomendado: 800 caracteres
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Seus scripts - COLOQUE NESTA ORDEM -->
+<script src="js/redacao-storage.js"></script>  <!-- PRIMEIRO: o storage -->
+<script src="../JS/enviar-redacao.js"></script>   <!-- DEPOIS: o script da redação -->
+<script src="../JS/menuSideBar.js"></script>
+
+</body>
+</html>

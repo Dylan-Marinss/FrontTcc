@@ -1,0 +1,218 @@
+:root {
+    --primary-color: #BB86FC; /* Light Purple/Violet Neon */
+    --secondary-color: #a21fa2; 
+    --accent-color: #FF3D00; /* Neon Orange for alerts/highlights */
+    --bg-dark: #121212; /* Fundo principal escuro */
+    --bg-card: #1E1E1E; /* Fundo dos cards dark */
+    --bg-light-card: #1E1E1E; /* Fundo escuro para cards principais */
+    --text-light: #E0E0E0; /* Texto principal claro */
+    --text-dark: #E0E0E0; /* Texto claro para cards escuros */
+    --text-muted: #9E9E9E; /* Texto secundário */
+    --border-color: rgba(187, 134, 252, 0.2); /* Borda sutil neon roxo */
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --font-futuristic: 'Orbitron', sans-serif;
+    --font-main: 'Poppins', sans-serif;
+
+    /* Cores de Status */
+    --status-completed: #00E676; /* Neon Green */
+    --status-pending: #FFC107; /* Neon Yellow */
+}
+
+/* Reset Básico e Tipografia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    line-height: 1.6;
+    color: var(--text-light);
+    background-color: var(--bg-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Estrutura Principal do Dashboard (Full Screen) */
+.user-dashboard {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Sidebar (Menu Lateral) */
+.sidebar {
+    width: 250px;
+    background-color: #0D0D0D;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 5px 0 20px var(--shadow-color);
+    transition: width 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .sidebar-footer span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    height: 40px;
+}
+
+.logo-text {
+    font-family: var(--font-futuristic);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-left: 10px;
+    transition: opacity 0.3s ease;
+}
+
+.menu-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+}
+
+.menu-icon:hover {
+    color: var(--primary-color);
+}
+
+.sidebar-nav ul {
+    list-style: none;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    margin-right: 15px;
+    color: var(--secondary-color);
+}
+
+.nav-item:hover {
+    background-color: #1A1A1A;
+    color: var(--primary-color);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+    color: var(--bg-dark);
+    border-left: 5px solid var(--secondary-color);
+}
+
+.nav-item.active i {
+    color: var(--bg-dark);
+}
+
+.sidebar-footer {
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ===== PÁGINA ENVIAR REDAÇÃO ===== */
+
+.redacao-card {
+    max-width: 900px;
+    margin: 60px auto;
+    background-color: var(--bg-card);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(187, 134, 252, 0.1);
+}
+
+.tema-titulo {
+    margin: 15px 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.texto-motivador {
+    margin-bottom: 25px;
+    color: var(--text-muted);
+}
+
+/* TEXTAREA DARK PADRÃO DO SEU TEMA */
+
+#redacaoTexto {
+    width: 100%;
+    min-height: 320px;
+    resize: vertical;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background-color: #151515;
+    color: var(--text-light);
+    font-size: 15px;
+    font-family: var(--font-main);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+#redacaoTexto::placeholder {
+    color: var(--text-muted);
+}
+
+#redacaoTexto:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(187, 134, 252, 0.4);
+    outline: none;
+}
+
+.redacao-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#contador {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.aviso-minimo {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+}
+
+.user-dashboard {
+    display: flex;
+}
+
+@media (max-width: 1100px) {
+    .enem-container {
+        grid-template-columns: 1fr;
+    }
+}

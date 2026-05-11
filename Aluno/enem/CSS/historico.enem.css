@@ -1,0 +1,466 @@
+:root {
+    --primary-color: #BB86FC; /* Light Purple/Violet Neon */
+    --secondary-color: #a21fa2; 
+    --accent-color: #FF3D00; /* Neon Orange for alerts/highlights */
+    --bg-dark: #121212; /* Fundo principal escuro */
+    --bg-card: #1E1E1E; /* Fundo dos cards dark */
+    --bg-light-card: #1E1E1E; /* Fundo escuro para cards principais */
+    --text-light: #E0E0E0; /* Texto principal claro */
+    --text-dark: #E0E0E0; /* Texto claro para cards escuros */
+    --text-muted: #9E9E9E; /* Texto secundário */
+    --border-color: rgba(187, 134, 252, 0.2); /* Borda sutil neon roxo */
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --font-futuristic: 'Orbitron', sans-serif;
+    --font-main: 'Poppins', sans-serif;
+    --chart-gradient-1: rgba(187, 134, 252, 0.8);
+    --chart-gradient-2: rgba(162, 31, 162, 0.4);
+
+    /* Cores de Status */
+    --status-completed: #00E676; /* Neon Green */
+    --status-pending: #FFC107; /* Neon Yellow */
+}
+
+/* Reset Básico e Tipografia */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    line-height: 1.6;
+    color: var(--text-light);
+    background-color: var(--bg-dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Estrutura Principal do Dashboard (Full Screen) */
+.user-dashboard {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Sidebar (Menu Lateral) */
+.sidebar {
+    width: 250px;
+    background-color: #0D0D0D;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 5px 0 20px var(--shadow-color);
+    transition: width 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item span,
+.sidebar.collapsed .sidebar-footer span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    height: 40px;
+}
+
+.logo-text {
+    font-family: var(--font-futuristic);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-left: 10px;
+    transition: opacity 0.3s ease;
+}
+
+.menu-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-color);
+    transition: color 0.3s ease;
+}
+
+.menu-icon:hover {
+    color: var(--primary-color);
+}
+
+.sidebar-nav ul {
+    list-style: none;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    margin-right: 15px;
+    color: var(--secondary-color);
+}
+
+.nav-item:hover {
+    background-color: #1A1A1A;
+    color: var(--primary-color);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+    color: var(--bg-dark);
+    border-left: 5px solid var(--secondary-color);
+}
+
+.nav-item.active i {
+    color: var(--bg-dark);
+}
+
+.sidebar-footer {
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+/* MAIN CONTENT - Ajuste principal para ocupar toda a tela */
+.main-content {
+    flex: 1;
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+}
+
+/* Container ENEM - Agora com grid de 3 linhas */
+.enem-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+    padding: 30px;
+    min-height: 100vh;
+}
+
+/* Cards - Agora ocupam toda a largura disponível */
+.enem-card {
+    width: 100%;
+    padding: 30px;
+    border-radius: 16px;
+    background-color: var(--bg-card);
+    box-shadow: 0 6px 20px var(--shadow-color);
+}
+
+/* Card de estatísticas */
+.card-stat {
+    min-height: auto;
+}
+
+/* Card de gráfico */
+.card-chart {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Card de histórico */
+.card-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estatísticas em grid */
+.card-stat {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.card-stat h2 {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+}
+
+.card-stat p {
+    background-color: #151515;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.3s ease;
+}
+
+.card-stat p:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(187, 134, 252, 0.2);
+}
+
+.card-stat p span {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Títulos */
+.card-title-light {
+    font-size: 1.6rem;
+    margin-bottom: 0;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Lista de histórico */
+.historico-card ul {
+    list-style: none;
+    padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 800px);
+    min-height: 200px;
+    margin-top: 20px;
+}
+
+.historico-card li {
+    padding: 20px;
+    margin-bottom: 12px;
+    background-color: #151515;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-color);
+    font-size: 1rem;
+    transition: 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.historico-card li:hover {
+    background-color: #1c1c1c;
+    transform: translateX(5px);
+    border-left: 4px solid var(--secondary-color);
+}
+
+/* Estado vazio */
+.historico-card li.empty-state {
+    justify-content: center;
+    border-left: 4px solid var(--text-muted);
+    color: var(--text-muted);
+    cursor: default;
+}
+
+.historico-card li.empty-state:hover {
+    background-color: #151515;
+    transform: none;
+    border-left: 4px solid var(--text-muted);
+}
+
+/* Filtros do gráfico */
+.chart-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: #151515;
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-dark);
+    border-color: var(--primary-color);
+}
+
+.filter-btn.active {
+    background-color: var(--primary-color);
+    color: var(--bg-dark);
+    border-color: var(--primary-color);
+}
+
+/* Estatísticas rápidas do gráfico */
+.chart-stats {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.stat-value small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--bg-card);
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-modal:hover {
+    color: var(--primary-color);
+}
+
+/* Responsivo */
+@media (max-width: 1100px) {
+    .sidebar {
+        width: 80px;
+    }
+    
+    .sidebar .logo-text,
+    .sidebar .nav-item span,
+    .sidebar .sidebar-footer span {
+        display: none;
+    }
+    
+    .sidebar .nav-item {
+        justify-content: center;
+    }
+    
+    .sidebar .nav-item i {
+        margin-right: 0;
+    }
+    
+    .main-content {
+        margin-left: 80px;
+        width: calc(100% - 80px);
+    }
+    
+    .enem-container {
+        padding: 20px;
+    }
+    
+    .card-stat {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-stats {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .enem-container {
+        padding: 15px;
+    }
+    
+    .card-chart {
+        min-height: 350px;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
