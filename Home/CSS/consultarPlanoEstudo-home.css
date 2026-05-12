@@ -1,360 +1,68 @@
-/* ========== PLANO-ESTUDO.CSS - MESMO PADRÃO DAS DEMAIS PÁGINAS ========== */
+/* ========== PLANO-ESTUDO.CSS - ESTILOS ESPECÍFICOS ========== */
 
-/* ========== VARIÁVEIS ========== */
-:root {
-    --primary-color: #BB86FC;
-    --secondary-color: #a21fa2;
-    --accent-color: #FF3D00;
-    --bg-dark: #121212;
-    --bg-card: #1E1E1E;
-    --text-light: #E0E0E0;
-    --text-muted: #9E9E9E;
-    --border-color: #bb86fc33;
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --font-futuristic: 'Orbitron', sans-serif;
-    --font-main: 'Poppins', sans-serif;
-    --status-completed: #00E676;
-    --status-pending: #FFC107;
-}
-
-/* ========== RESET E BASE ========== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: var(--font-main);
-    line-height: 1.6;
-    color: var(--text-light);
-    background-color: var(--bg-dark);
-    min-height: 100vh;
-    overflow-x: hidden;
-}
-
-.user-dashboard {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-}
-
-/* ========== SIDEBAR (PADRONIZADA) ========== */
-.sidebar {
-    width: 250px;
-    background-color: #0D0D0D;
-    padding: 20px 0;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 5px 0 20px var(--shadow-color);
-    z-index: 1000;
-    transition: width 0.3s ease;
-}
-
-.sidebar.collapsed {
-    width: 70px;
-}
-
-.sidebar.collapsed .logo-text,
-.sidebar.collapsed .nav-item span,
-.sidebar.collapsed .sidebar-footer span {
-    display: none;
-}
-
-.sidebar.collapsed .nav-item {
-    justify-content: center;
-    padding: 12px 0;
-}
-
-.sidebar.collapsed .nav-item i {
-    margin-right: 0;
-    font-size: 1.3rem;
-}
-
-.sidebar.collapsed .sidebar-header {
-    justify-content: center;
-    padding: 0;
-}
-
-.sidebar-header {
-    display: flex;
+/* Botão Voltar */
+.btn-back {
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin-bottom: 30px;
-    height: 40px;
-}
-
-.logo-text {
-    font-family: var(--font-futuristic);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-left: 10px;
-}
-
-.menu-icon {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--secondary-color);
-    transition: color 0.3s ease;
-}
-
-.menu-icon:hover {
-    color: var(--primary-color);
-}
-
-.sidebar-nav ul {
-    list-style: none;
-}
-
-.sidebar-nav li {
-    margin-bottom: 5px;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: var(--text-light);
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    margin: 0 10px;
-}
-
-.nav-item i {
-    font-size: 1.2rem;
-    margin-right: 15px;
-    color: var(--secondary-color);
-    width: 24px;
-    text-align: center;
-}
-
-.nav-item:hover {
-    background-color: #1A1A1A;
-    color: var(--primary-color);
-}
-
-.nav-item.active {
-    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    color: var(--bg-dark);
-}
-
-.nav-item.active i {
-    color: var(--bg-dark);
-}
-
-.sidebar-footer {
-    padding: 20px 0;
-    border-top: 1px solid var(--border-color);
-}
-
-/* ========== CONTEÚDO PRINCIPAL ========== */
-.dashboard-content {
-    flex: 1;
-    margin-left: 250px;
-    padding: 30px;
-    transition: margin-left 0.3s ease;
-    width: calc(100% - 250px);
-}
-
-.sidebar.collapsed ~ .dashboard-content {
-    margin-left: 70px;
-    width: calc(100% - 70px);
-}
-
-/* ========== CABEÇALHO ========== */
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-.page-title {
-    font-family: var(--font-futuristic);
-    font-size: 2rem;
-    margin-bottom: 0;
-    border-bottom: none;
-    padding-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    color: var(--secondary-color);
-}
-
-.page-title i {
-    color: var(--primary-color);
-    font-size: 2rem;
-}
-
-.notifications-icon {
-    position: relative;
-    font-size: 1.5rem;
-    color: var(--primary-color);
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.notifications-icon:hover {
-    color: var(--secondary-color);
-}
-
-.notification-badge {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: var(--accent-color);
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 50%;
-    min-width: 18px;
-    text-align: center;
-}
-
-/* ========== CARDS ========== */
-.progress-summary-card,
-.student-info-card,
-.next-actions-card,
-.weekly-schedule-card,
-.recommendations-card {
-    background-color: var(--bg-card);
+    gap: 8px;
+    background: rgba(187, 134, 252, 0.1);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 25px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 25px;
-}
-
-.progress-summary-card:hover,
-.student-info-card:hover,
-.next-actions-card:hover,
-.weekly-schedule-card:hover,
-.recommendations-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(187, 134, 252, 0.15);
-}
-
-.card-title-light {
-    font-family: var(--font-futuristic);
-    font-size: 1.1rem;
+    padding: 10px 20px;
+    border-radius: 30px;
     color: var(--primary-color);
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 10px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
 }
 
-.card-title-light i {
-    color: var(--secondary-color);
-}
-
-/* ========== PROGRESSO ========== */
-.progress-indicators {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-    margin-top: 10px;
-}
-
-.indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.indicator-circle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(187, 134, 252, 0.1), rgba(187, 134, 252, 0.2));
-    border: 2px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.3s ease;
-}
-
-.indicator-circle:hover {
-    transform: scale(1.05);
+.btn-back:hover {
+    background: rgba(187, 134, 252, 0.2);
+    transform: translateX(-5px);
     border-color: var(--primary-color);
 }
 
-.indicator-value {
-    font-family: var(--font-futuristic);
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.indicator-label {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    text-align: center;
-}
-
-/* ========== INFORMAÇÕES DO ALUNO ========== */
-.student-details {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
+/* Informações do Aluno */
 .info-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px 15px;
-    background-color: rgba(187, 134, 252, 0.05);
-    border-radius: 10px;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .info-label {
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    min-width: 80px;
 }
 
 .info-value {
     color: var(--primary-color);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
-/* ========== GRID ========== */
-.home-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 25px;
-    margin-bottom: 25px;
-}
-
-/* ========== LISTA DE ATIVIDADES ========== */
+/* Lista de Atividades */
 .atividades-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 350px;
+    overflow-y: auto;
 }
 
 .atividade-item {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     padding: 15px;
     background-color: rgba(187, 134, 252, 0.05);
     border-radius: 12px;
-    transition: all 0.3s ease;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .atividade-item:hover {
@@ -384,8 +92,8 @@ body {
     color: var(--secondary-color);
 }
 
-.atividade-dificuldade {
-    padding: 4px 10px;
+.dificuldade-badge {
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.7rem;
     font-weight: 600;
@@ -406,11 +114,36 @@ body {
     color: #FF3D00;
 }
 
-/* ========== AGENDA ========== */
-.agenda-dias {
+/* Card Footer */
+.card-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.btn-view-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-view-all:hover {
+    color: var(--secondary-color);
+    gap: 12px;
+}
+
+/* Agenda Container */
+.agenda-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    max-height: 350px;
+    overflow-y: auto;
 }
 
 .agenda-dia {
@@ -421,17 +154,11 @@ body {
 
 .dia-nome {
     font-family: var(--font-futuristic);
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--primary-color);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.agenda-atividades {
-    display: flex;
-    flex-direction: column;
     gap: 8px;
 }
 
@@ -442,6 +169,7 @@ body {
     padding: 8px 12px;
     background-color: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
+    margin-bottom: 8px;
 }
 
 .agenda-atividade i {
@@ -460,14 +188,14 @@ body {
     color: var(--text-muted);
 }
 
-/* ========== RECOMENDAÇÕES ========== */
-.recommendations-list {
+/* Recomendações */
+.recomendacoes-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.recommendation-item {
+.recomendacao-item {
     display: flex;
     align-items: flex-start;
     gap: 15px;
@@ -477,32 +205,50 @@ body {
     transition: all 0.3s ease;
 }
 
-.recommendation-item:hover {
+.recomendacao-item:hover {
     background-color: rgba(187, 134, 252, 0.1);
 }
 
-.recommendation-item i {
+.recomendacao-item i {
     font-size: 1.3rem;
     color: var(--primary-color);
     margin-top: 2px;
 }
 
-.recommendation-text {
+.recomendacao-text {
     flex: 1;
 }
 
-.recommendation-text strong {
+.recomendacao-text strong {
     display: block;
     color: var(--text-light);
     margin-bottom: 5px;
 }
 
-.recommendation-text p {
+.recomendacao-text p {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
 
-/* ========== LOADING ========== */
+/* Scrollbar personalizada */
+.atividades-list::-webkit-scrollbar,
+.agenda-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+.atividades-list::-webkit-scrollbar-track,
+.agenda-container::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+    border-radius: 10px;
+}
+
+.atividades-list::-webkit-scrollbar-thumb,
+.agenda-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+/* Loading e Empty States */
 .loading-state {
     text-align: center;
     padding: 40px;
@@ -515,71 +261,14 @@ body {
     color: var(--primary-color);
 }
 
-/* ========== RESPONSIVIDADE ========== */
-@media (max-width: 1024px) {
-    .home-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .progress-indicators {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-    }
-    
-    .indicator-circle {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .indicator-value {
-        font-size: 1rem;
-    }
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        transform: translateX(-250px);
-    }
-    
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    
-    .dashboard-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px;
-    }
-    
-    .page-title {
-        font-size: 1.5rem;
-    }
-    
-    .student-details {
-        grid-template-columns: 1fr;
-    }
-    
-    .progress-indicators {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-}
-
-/* ========== SCROLLBAR ========== */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary-color);
-}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--text-muted);
+} 

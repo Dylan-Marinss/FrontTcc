@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<!--teste menezes-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EstudeX | Plano de Estudo</title>
+    <title>EstudeX | Meu Plano de Estudo</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,12 +12,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/homeEstudeX.css">
     <link rel="stylesheet" href="../CSS/consultarPlanoEstudo-home.css">
 </head>
 <body>
 
 <section class="user-dashboard">
-    <!-- SIDEBAR (Menu Lateral) - PADRONIZADA -->
+    <!-- SIDEBAR (Menu Lateral) - MESMA DA HOME -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
@@ -27,12 +27,12 @@
         
         <nav class="sidebar-nav">
             <ul>
-                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
-                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
-                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+                <li><a href="../HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                <li><a href="../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                <li><a href="../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
             </ul>
         </nav>
         
@@ -55,39 +55,15 @@
             </div>
         </div>
 
-        <!-- CARD: VISÃO GERAL DO PLANO -->
-        <div class="progress-summary-card">
-            <h3 class="card-title-light"><i class="fas fa-chart-line"></i> Visão Geral do Plano</h3>
-            <div class="progress-indicators">
-                <div class="indicator">
-                    <div class="indicator-circle">
-                        <span class="indicator-value" id="conclusaoSemana">0%</span>
-                    </div>
-                    <span class="indicator-label">Conclusão da Semana</span>
-                </div>
-                <div class="indicator">
-                    <div class="indicator-circle">
-                        <span class="indicator-value" id="metasDiarias">0/0</span>
-                    </div>
-                    <span class="indicator-label">Metas Diárias Batidas</span>
-                </div>
-                <div class="indicator">
-                    <div class="indicator-circle">
-                        <span class="indicator-value" id="totalAtividades">0</span>
-                    </div>
-                    <span class="indicator-label">Atividades Recomendadas</span>
-                </div>
-            </div>
-        </div>
+        <!-- Botão Voltar -->
+        <a href="home-Estudex.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Voltar para Home
+        </a>
 
-        <!-- CARD: INFORMAÇÕES DO ALUNO -->
-        <div class="student-info-card">
-            <h3 class="card-title-light"><i class="fas fa-user-graduate"></i> Perfil do Aluno</h3>
-            <div class="student-details">
-                <div class="info-row">
-                    <span class="info-label">Nome:</span>
-                    <span class="info-value" id="nomeAluno">Carregando...</span>
-                </div>
+        <!-- Card: Informações do Aluno -->
+        <div class="welcome-card">
+            <div class="welcome-content">
+                <h2 class="welcome-title">Olá, <span id="nomeAluno">Carregando...</span>!</h2>
                 <div class="info-row">
                     <span class="info-label">Série:</span>
                     <span class="info-value" id="serieAluno">Carregando...</span>
@@ -101,37 +77,70 @@
                     <span class="info-value" id="nivelAluno">Iniciante</span>
                 </div>
             </div>
+            <div class="welcome-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
         </div>
 
-        <!-- GRID: ATIVIDADES RECOMENDADAS + AGENDA -->
+        <!-- Card: Visão Geral do Plano -->
+        <div class="progress-summary-card">
+            <h3 class="card-title-light"><i class="fas fa-chart-line"></i> Visão Geral do Plano</h3>
+            <div class="progress-indicators">
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="totalAtividades">0</span>
+                    </div>
+                    <span class="indicator-label">Atividades Disponíveis</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="atividadesConcluidas">0</span>
+                    </div>
+                    <span class="indicator-label">Atividades Concluídas</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-circle">
+                        <span class="indicator-value" id="progressoGeral">0%</span>
+                    </div>
+                    <span class="indicator-label">Progresso Geral</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid: Atividades Recomendadas + Agenda -->
         <div class="home-grid">
-            <!-- ATIVIDADES RECOMENDADAS -->
+            <!-- Atividades Recomendadas -->
             <div class="next-actions-card">
                 <h3 class="card-title-light"><i class="fas fa-tasks"></i> Atividades Recomendadas</h3>
-                <div id="atividadesRecomendadas" class="atividades-list">
+                <div id="atividadesList" class="atividades-list">
                     <div class="loading-state">
                         <i class="fas fa-spinner fa-pulse"></i>
                         <p>Carregando atividades...</p>
                     </div>
                 </div>
+                <div class="card-footer">
+                    <a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="btn-view-all">
+                        Ver todas as atividades <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
 
-            <!-- AGENDA SEMANAL -->
-            <div class="weekly-schedule-card">
+            <!-- Agenda Semanal Sugerida -->
+            <div class="recent-activities-card">
                 <h3 class="card-title-light"><i class="fas fa-calendar-week"></i> Agenda Sugerida</h3>
-                <div id="agendaContainer">
+                <div id="agendaList" class="agenda-container">
                     <div class="loading-state">
                         <i class="fas fa-spinner fa-pulse"></i>
-                        <p>Gerando agenda personalizada...</p>
+                        <p>Carregando agenda...</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- CARD: RECOMENDAÇÕES PERSONALIZADAS -->
-        <div class="recommendations-card">
+        <!-- Card: Recomendações -->
+        <div class="progress-summary-card">
             <h3 class="card-title-light"><i class="fas fa-lightbulb"></i> Recomendações Personalizadas</h3>
-            <div id="recomendacoes" class="recommendations-list">
+            <div id="recomendacoes" class="recomendacoes-container">
                 <div class="loading-state">
                     <i class="fas fa-spinner fa-pulse"></i>
                     <p>Gerando recomendações...</p>
@@ -140,6 +149,34 @@
         </div>
     </main>
 </section>
+
+<!-- Modal de Notificações -->
+<div id="notificationsModal" class="modal">
+    <div class="modal-content modal-notifications">
+        <div class="modal-header">
+            <h2><i class="fas fa-bell"></i> Notificações</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="notifications-list">
+            <div class="notification-item unread">
+                <i class="fas fa-pen-fancy"></i>
+                <div class="notification-text">
+                    <strong>Novas atividades disponíveis!</strong>
+                    <p>Confira seu plano de estudo atualizado</p>
+                    <small>Há 2 horas</small>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <i class="fas fa-calendar-alt"></i>
+                <div class="notification-text">
+                    <strong>Meta da semana</strong>
+                    <p>Complete 5 atividades esta semana</p>
+                    <small>Há 1 dia</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Scripts -->
 <script src="../JS/consultarPlanoEstudo-home.js"></script>
