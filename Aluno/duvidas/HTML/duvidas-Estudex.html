@@ -1,137 +1,152 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EstudeX | Minhas Dúvidas</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="../CSS/duvidas.css">
 </head>
+
 <body>
 
-<section class="user-dashboard">
-    <!-- SIDEBAR (Menu Lateral) - PADRONIZADA COM AS DEMAIS PÁGINAS -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-            <span class="logo-text">EstudeX</span>
+    <section class="user-dashboard">
+        <!-- SIDEBAR (Menu Lateral) - PADRONIZADA COM AS DEMAIS PÁGINAS -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i
+                                class="fas fa-home"></i> <span>Home</span></a></li>
+                    <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i
+                                class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item active"
+                            id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                    <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item"
+                            id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item"
+                            id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                    <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i
+                                class="fas fa-book"></i> <span>Enem</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
         </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
-                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item active" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
-                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
-            </ul>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <a href="#" class="nav-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sair</span>
-            </a>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="dashboard-content">
+            <div class="page-title">
+                <i class="fas fa-question-circle"></i>
+                <h1>Minhas Dúvidas</h1>
+            </div>
+
+            <!-- Área do Aluno - Cards de Informação -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📖</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Série</span>
+                        <strong class="stat-value" id="serieAluno">Carregando...</strong>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❓</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Minhas Dúvidas</span>
+                        <strong class="stat-value" id="totalMinhasDuvidas">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de Ação -->
+            <div class="action-bar">
+                <button class="btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Nova Dúvida
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchDuvida" placeholder="Buscar minhas dúvidas..."
+                        onkeyup="filterDuvidas()">
+                </div>
+                <select id="disciplinaFilter" class="filter-select" onchange="filterDuvidas()">
+                    <option value="">Todas as disciplinas</option>
+                </select>
+                <select id="statusFilter" class="filter-select" onchange="filterDuvidas()">
+                    <option value="">Todos os status</option>
+                    <option value="Aberta">Aberta</option>
+                    <option value="Respondida">Respondida</option>
+                    <option value="Fechada">Fechada</option>
+                </select>
+            </div>
+
+            <!-- Lista de Dúvidas -->
+            <div id="duvidasList" class="duvidas-grid">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Carregando suas dúvidas...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Nova Dúvida -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-question-circle"></i> Nova Dúvida</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="duvidaForm" onsubmit="submitDuvida(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Título:</label>
+                    <input type="text" id="titulo" required placeholder="Ex: Dúvida sobre Bhaskara">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Disciplina:</label>
+                    <select id="disciplina" required>
+                        <option value="">Carregando disciplinas...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Descrição:</label>
+                    <textarea id="descricao" rows="4" required
+                        placeholder="Descreva sua dúvida em detalhes..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i> Enviar Dúvida
+                </button>
+            </form>
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div class="dashboard-content">
-        <div class="page-title">
-            <i class="fas fa-question-circle"></i>
-            <h1>Minhas Dúvidas</h1>
-        </div>
-
-        <!-- Área do Aluno - Cards de Informação -->
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-icon">⭐</div>
-                <div class="stat-info">
-                    <span class="stat-label">XP Acumulado</span>
-                    <strong class="stat-value" id="xpAluno">0</strong>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📖</div>
-                <div class="stat-info">
-                    <span class="stat-label">Série</span>
-                    <strong class="stat-value" id="serieAluno">Carregando...</strong>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">❓</div>
-                <div class="stat-info">
-                    <span class="stat-label">Minhas Dúvidas</span>
-                    <strong class="stat-value" id="totalMinhasDuvidas">0</strong>
-                </div>
-            </div>
-        </div>
-
-        <!-- Barra de Ação -->
-        <div class="action-bar">
-            <button class="btn-primary" onclick="openModal()">
-                <i class="fas fa-plus"></i> Nova Dúvida
-            </button>
-        </div>
-
-        <!-- Filtros -->
-        <div class="filters-container">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchDuvida" placeholder="Buscar minhas dúvidas..." onkeyup="filterDuvidas()">
-            </div>
-            <select id="statusFilter" class="filter-select" onchange="filterDuvidas()">
-                <option value="">Todos os status</option>
-                <option value="Aberta">Aberta</option>
-                <option value="Respondida">Respondida</option>
-                <option value="Fechada">Fechada</option>
-            </select>
-        </div>
-
-        <!-- Lista de Dúvidas -->
-        <div id="duvidasList" class="duvidas-grid">
-            <div class="loading-state">
-                <i class="fas fa-spinner fa-pulse"></i>
-                <p>Carregando suas dúvidas...</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Modal Nova Dúvida -->
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-question-circle"></i> Nova Dúvida</h2>
-            <span class="close" onclick="closeModal()">&times;</span>
-        </div>
-        <form id="duvidaForm" onsubmit="submitDuvida(event)">
-            <div class="form-group">
-                <label><i class="fas fa-tag"></i> Título:</label>
-                <input type="text" id="titulo" required placeholder="Ex: Dúvida sobre Bhaskara">
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-align-left"></i> Descrição:</label>
-                <textarea id="descricao" rows="4" required placeholder="Descreva sua dúvida em detalhes..."></textarea>
-            </div>
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-paper-plane"></i> Enviar Dúvida
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Scripts -->
-<script src="../JS/duvidas.js"></script>
-<script src="../JS/menuSideBar.js"></script>
+    <!-- Scripts -->
+    <script src="../JS/duvidas.js"></script>
+    <script src="../JS/menuSideBar.js"></script>
 
 </body>
+
 </html>
