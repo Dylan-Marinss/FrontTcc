@@ -143,6 +143,47 @@
         </div>
     </div>
 
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-pencil-alt"></i> Editar Dúvida</h2>
+                <span class="close" onclick="fecharModalEditar()">&times;</span>
+            </div>
+            <form id="editarForm" onsubmit="salvarEdicao(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Título:</label>
+                    <input type="text" id="editTitulo" required placeholder="Título da dúvida">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Disciplina:</label>
+                    <select id="editDisciplina" required></select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-align-left"></i> Descrição:</label>
+                    <textarea id="editDescricao" rows="4" required placeholder="Descreva sua dúvida..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Salvar alterações
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalConfirmDelete" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+            <h2 style="margin-bottom: 8px;">Excluir dúvida?</h2>
+            <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="fecharConfirmDelete()" class="btn-primary"
+                    style="background: transparent; border: 1px solid #3f3f5a;">Cancelar</button>
+                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary"
+                    style="background: #dc2626;">
+                    <i class="fas fa-trash"></i> Sim, excluir
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Scripts -->
     <script src="../JS/duvidas.js"></script>
     <script src="../JS/menuSideBar.js"></script>
