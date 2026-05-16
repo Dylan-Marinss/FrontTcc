@@ -367,6 +367,10 @@ body {
     font-size: 0.9rem;
     line-height: 1.5;
     margin-bottom: 15px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .duvida-card .meta {

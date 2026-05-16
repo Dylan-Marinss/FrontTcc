@@ -9,6 +9,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="../CSS/themes.css">
     <link rel="stylesheet" href="../CSS/atividadeProfessor.css">
+    <link rel="stylesheet" href="../CSS/professorSidebar.css">
 
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,15 +33,24 @@
             </div>
 
             <nav class="sidebar-nav">
-                <ul>
-                    <li><a href="professorPerfil.html" class="nav-item"><i class="fas fa-user"></i>
-                            <span>Perfil</span></a></li>
-                    <li><a href="atividades.html" class="nav-item active"><i class="fas fa-tasks"></i>
-                            <span>Atividades</span></a></li>
-                    <li><a href="professorTurma.html" class="nav-item"><i class="fas fa-users"></i>
-                            <span>Turmas</span></a></li>
-                </ul>
-            </nav>
+            <ul>
+                <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                    <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+                        <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                    <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                <li><a href="../../../Professor/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                    <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
 
             
         </div>
@@ -140,6 +150,8 @@
     </section>
 
     <script src="../JS/atividadeProfessor.js"></script>
+    <script src="../JS/menuSideBar.js"></script>
+
 
     
 </body>

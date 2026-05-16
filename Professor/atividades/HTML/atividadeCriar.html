@@ -24,34 +24,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a class="nav-item" href="#">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-        </svg>
-        Perfil
-      </a>
-      <a class="nav-item active" href="#">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="8" y1="6" x2="21" y2="6" />
-          <line x1="8" y1="12" x2="21" y2="12" />
-          <line x1="8" y1="18" x2="21" y2="18" />
-          <line x1="3" y1="6" x2="3.01" y2="6" />
-          <line x1="3" y1="12" x2="3.01" y2="12" />
-          <line x1="3" y1="18" x2="3.01" y2="18" />
-        </svg>
-        Atividades
-      </a>
-      <a class="nav-item" href="#">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        Turmas
-      </a>
-    </nav>
+                <ul>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item active" id="nav-perfil">
+                        <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                        <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="duvidas.html" class="nav-item" id="nav-duvidas">
+                        <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
   </aside>
 
   <!-- ── MAIN ── -->
@@ -187,5 +168,7 @@
 
 </body>
 <script src="../JS/atividadeCriar.js"></script>
+<script src="../JS/menuSideBar.js"></script>
+
 
 </html>

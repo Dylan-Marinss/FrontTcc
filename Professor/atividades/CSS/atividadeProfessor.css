@@ -709,34 +709,6 @@ textarea.form-control {
 }
 
 /* Responsividade */
-@media (max-width: 1024px) {
-    .professor-sidebar {
-        width: 80px;
-    }
-    
-    .professor-sidebar .logo-text span:not(.professor-badge),
-    .professor-sidebar .nav-item span,
-    .professor-sidebar .sidebar-footer span {
-        display: none;
-    }
-    
-    .professor-sidebar .nav-item {
-        justify-content: center;
-        padding: 15px;
-    }
-    
-    .professor-sidebar .nav-item i {
-        margin-right: 0;
-    }
-    
-    .professor-badge {
-        display: none;
-    }
-    
-    .main-content {
-        padding: 20px;
-    }
-}
 
 @media (max-width: 768px) {
     .main-content {

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Perfil do Professor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="stylesheet" href="../CSS/professorSidebar.css">
+    <link rel="stylesheet" href="../CSS/professorPerfil.css">
+</head>
+<body>
+
+<section class="user-dashboard">
+
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item active" id="nav-perfil">
+                    <i class="fas fa-user"></i><span>Perfil</span></a></li>
+                <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+                    <i class="fas fa-tasks"></i><span>Atividades</span></a></li>
+                <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                    <i class="fas fa-users"></i><span>Turmas</span></a></li>
+                <li><a href="../../../Professor/duvidas/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                    <i class="fas fa-question-circle"></i><span>Dúvidas</span></a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i><span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== CONTEÚDO PRINCIPAL ========== -->
+    <main class="dashboard-content">
+
+        <!-- HEADER DO PERFIL -->
+        <header class="profile-header" id="profileHeader">
+            <div class="avatar-large">
+                <div class="avatar-placeholder">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <h2 id="prof-nome">Carregando...</h2>
+                <p class="instituicao">
+                    <i class="fas fa-school"></i>
+                    <span id="prof-instituicao">EstudeX</span>
+                </p>
+                <span class="badge-nivel">
+                    <i class="fas fa-chalkboard-teacher"></i> Professor
+                </span>
+                <div class="bio">
+                    <i class="fas fa-quote-left"></i>
+                    <span id="bio-texto">Carregando informações do professor...</span>
+                </div>
+                <div class="tags" id="prof-disciplinas">
+                    <span class="tag"><i class="fas fa-spinner fa-spin"></i> Carregando...</span>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- DADOS PESSOAIS -->
+        <section class="info-section">
+            <div class="section-header">
+                <h3><i class="fas fa-id-card"></i> Dados Pessoais</h3>
+                <button class="btn-editar" id="btnEditar">
+                    <i class="fas fa-pen"></i> Editar
+                </button>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-user"></i> Nome Completo</span>
+                    <span class="info-valor" id="info-nome">—</span>
+                    <input type="text" class="info-input hidden" id="edit-nome" placeholder="Nome completo">
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-envelope"></i> E-mail</span>
+                    <span class="info-valor" id="info-email">—</span>
+                    <input type="email" class="info-input hidden" id="edit-email" placeholder="E-mail">
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-phone"></i> Telefone</span>
+                    <span class="info-valor" id="info-telefone">—</span>
+                    <input type="text" class="info-input hidden" id="edit-telefone" placeholder="Telefone">
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-calendar-alt"></i> Data de Nascimento</span>
+                    <span class="info-valor" id="info-nascimento">—</span>
+                    <input type="date" class="info-input hidden" id="edit-nascimento">
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-id-card"></i> CPF</span>
+                    <span class="info-valor" id="info-cpf">—</span>
+                    <input type="text" class="info-input hidden" id="edit-cpf" placeholder="CPF">
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-clock"></i> Membro desde</span>
+                    <span class="info-valor" id="info-membro">—</span>
+                </div>
+            </div>
+
+            <div class="edit-actions hidden" id="editActions">
+                <button class="btn-cancelar" id="btnCancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-salvar" id="btnSalvar">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </section>
+
+        <!-- TURMAS VINCULADAS -->
+    
+
+        <!-- ALUNOS DA TURMA (oculto) -->
+        <section class="alunos-section hidden" id="alunosSection">
+            <div class="section-header">
+                <h3 id="turmaTitulo"><i class="fas fa-user-graduate"></i> Alunos da Turma</h3>
+                <button class="btn-fechar" id="fecharAlunos">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+            <div class="alunos-container" id="alunosContainer"></div>
+        </section>
+
+    </main>
+</section>
+
+<script src="../JS/menuSideBar.js"></script>
+<script src="../JS/professorPerfil.js"></script>
+</body>
+</html>

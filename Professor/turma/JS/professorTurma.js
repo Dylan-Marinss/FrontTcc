@@ -11,13 +11,10 @@ const CONFIG = {
     PROFESSOR_ID: 1,
     ENDPOINTS: {
         PERFIL: '/professores/{id}/perfil',
-        SELOS: '/professores/{id}/selos',
         RANKING: '/professores/{id}/ranking-turmas',
         TURMAS: '/series',                            // ✅ ENDPOINT QUE EXISTE
         ALUNOS: '/alunos',                            // ✅ ENDPOINT QUE EXISTE
         ESTATISTICAS: '/professores/{id}/estatisticas',
-        TODOS_SELOS: '/professores/{id}/selos/todos',
-        RANKING_COMPLETO: '/professores/{id}/ranking/completo'
     },
     TIMEOUT: 30000
 };
@@ -54,7 +51,6 @@ class ProfessorDashboard {
             // Carregar todos os dados
             await Promise.all([
                 this.carregarPerfilProfessor(),
-                this.carregarSelosConquistas(),
                 this.carregarRankingTurmas(),
                 this.carregarTurmas(),
                 this.carregarEstatisticasFooter()
@@ -85,18 +81,6 @@ class ProfessorDashboard {
                 document.getElementById('alunosSection').style.display = 'none';
                 this.turmaSelecionada = null;
             });
-        }
-
-        // Ver todos os selos
-        const verSelos = document.getElementById('verTodosSelos');
-        if (verSelos) {
-            verSelos.addEventListener('click', () => this.verTodosSelos());
-        }
-
-        // Ver ranking completo
-        const verRanking = document.getElementById('verRankingCompleto');
-        if (verRanking) {
-            verRanking.addEventListener('click', () => this.verRankingCompleto());
         }
 
         // Fechar modal
@@ -277,121 +261,6 @@ class ProfessorDashboard {
         }
     }
 
-    // ========== SELOS E CONQUISTAS ==========
-    async carregarSelosConquistas() {
-        const container = document.getElementById('selosContainer');
-
-        try {
-            const endpoint = CONFIG.ENDPOINTS.SELOS.replace('{id}', this.professorId);
-            const selos = await this.request(endpoint);
-
-            if (selos && selos.length > 0) {
-                container.innerHTML = selos.map(selo => `
-                    <span class="selo" title="${selo.nome}">
-                        <i class="${selo.icone}"></i>
-                        <span>${selo.nome}</span>
-                    </span>
-                `).join('');
-            } else {
-                // Selos padrão
-                container.innerHTML = `
-                    <span class="selo" title="Professor Destaque 2025">
-                        <i class="fas fa-star"></i>
-                        <span>Professor Destaque</span>
-                    </span>
-                    <span class="selo" title="1000 Atividades Corrigidas">
-                        <i class="fas fa-crown"></i>
-                        <span>1000 Atividades</span>
-                    </span>
-                    <span class="selo" title="Inovador do Ano">
-                        <i class="fas fa-robot"></i>
-                        <span>Inovador</span>
-                    </span>
-                    <span class="selo" title="Ciências em Foco">
-                        <i class="fas fa-flask"></i>
-                        <span>Ciências</span>
-                    </span>
-                    <span class="selo" title="Programação no Ensino">
-                        <i class="fas fa-code"></i>
-                        <span>Programação</span>
-                    </span>
-                `;
-            }
-        } catch (error) {
-            console.error('Erro ao carregar selos:', error);
-            container.innerHTML = `
-                <span class="selo" title="Professor Destaque"><i class="fas fa-star"></i><span>Destaque</span></span>
-                <span class="selo" title="1000 Atividades"><i class="fas fa-crown"></i><span>1000</span></span>
-                <span class="selo" title="Inovador"><i class="fas fa-robot"></i><span>Inovador</span></span>
-                <span class="selo" title="Ciências"><i class="fas fa-flask"></i><span>Ciências</span></span>
-                <span class="selo" title="Programação"><i class="fas fa-code"></i><span>Programação</span></span>
-            `;
-        }
-    }
-
-    // ========== RANKING DAS TURMAS ==========
-    async carregarRankingTurmas() {
-        const container = document.getElementById('rankingContainer');
-
-        try {
-            const endpoint = CONFIG.ENDPOINTS.RANKING.replace('{id}', this.professorId);
-            const ranking = await this.request(endpoint);
-
-            if (ranking && ranking.length > 0) {
-                container.innerHTML = ranking.map((turma, index) => `
-                    <div class="ranking-card" data-turma-id="${turma.id}" onclick="professorDashboard.verDetalhesTurma(${turma.id})">
-                        <span class="posicao">
-                            ${index === 0 ? '<i class="fas fa-crown"></i>' : `#${turma.posicao || index + 1}`}
-                        </span>
-                        <span class="turma-rank">${turma.nome}</span>
-                        <span class="nota-rank">
-                            ${turma.media}% · 
-                            <i class="fas fa-arrow-${turma.tendencia || 'up'} ${turma.tendencia === 'down' ? 'down' : 'up'}"></i> 
-                            ${Math.abs(turma.variacao || 0)} pos.
-                        </span>
-                    </div>
-                `).join('');
-            } else {
-                // Ranking padrão
-                container.innerHTML = `
-                    <div class="ranking-card" data-turma-id="12" onclick="professorDashboard.carregarAlunosDaTurma(12, '3ª série EM')">
-                        <span class="posicao"><i class="fas fa-crown"></i> #1</span>
-                        <span class="turma-rank">3ª série EM</span>
-                        <span class="nota-rank">92% · <i class="fas fa-arrow-up up"></i> 3 pos.</span>
-                    </div>
-                    <div class="ranking-card" data-turma-id="9" onclick="professorDashboard.carregarAlunosDaTurma(9, '9º ano')">
-                        <span class="posicao">#2</span>
-                        <span class="turma-rank">9º ano</span>
-                        <span class="nota-rank">88% · <i class="fas fa-arrow-up up"></i> 1 pos.</span>
-                    </div>
-                    <div class="ranking-card" data-turma-id="11" onclick="professorDashboard.carregarAlunosDaTurma(11, '2ª série EM')">
-                        <span class="posicao">#3</span>
-                        <span class="turma-rank">2ª série EM</span>
-                        <span class="nota-rank">85% · <i class="fas fa-arrow-down down"></i> 2 pos.</span>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error('Erro ao carregar ranking:', error);
-            container.innerHTML = `
-                <div class="ranking-card" data-turma-id="12" onclick="professorDashboard.carregarAlunosDaTurma(12, '3ª série EM')">
-                    <span class="posicao"><i class="fas fa-crown"></i> #1</span>
-                    <span class="turma-rank">3ª série EM</span>
-                    <span class="nota-rank">92% · <i class="fas fa-arrow-up up"></i> 3 pos.</span>
-                </div>
-                <div class="ranking-card" data-turma-id="9" onclick="professorDashboard.carregarAlunosDaTurma(9, '9º ano')">
-                    <span class="posicao">#2</span>
-                    <span class="turma-rank">9º ano</span>
-                    <span class="nota-rank">88% · <i class="fas fa-arrow-up up"></i> 1 pos.</span>
-                </div>
-                <div class="ranking-card" data-turma-id="11" onclick="professorDashboard.carregarAlunosDaTurma(11, '2ª série EM')">
-                    <span class="posicao">#3</span>
-                    <span class="turma-rank">2ª série EM</span>
-                    <span class="nota-rank">85% · <i class="fas fa-arrow-down down"></i> 2 pos.</span>
-                </div>
-            `;
-        }
-    }
 
     // ========== TURMAS ==========
     async carregarTurmas() {
@@ -508,68 +377,6 @@ class ProfessorDashboard {
         }
     }
 
-
-    // ========== MODAIS ==========
-    async verTodosSelos() {
-        try {
-            const endpoint = CONFIG.ENDPOINTS.TODOS_SELOS.replace('{id}', this.professorId);
-            const selos = await this.request(endpoint);
-
-            const modal = document.getElementById('modal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.innerHTML = 'Todos os Selos';
-
-            if (selos && selos.length > 0) {
-                modalBody.innerHTML = selos.map(selo => `
-                    <div style="display: inline-block; text-align: center; margin: 15px; width: 120px;">
-                        <div class="selo" style="margin: 0 auto 10px; width: 60px; height: 60px; font-size: 1.8rem;">
-                            <i class="${selo.icone}"></i>
-                        </div>
-                        <h4 style="font-size: 0.9rem; margin: 5px 0;">${selo.nome}</h4>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">${selo.descricao || ''}</p>
-                        <small style="font-size: 0.7rem;">${selo.dataConquista ? new Date(selo.dataConquista).toLocaleDateString('pt-BR') : ''}</small>
-                    </div>
-                `).join('');
-            } else {
-                modalBody.innerHTML = '<p class="empty-state">Nenhum selo encontrado</p>';
-            }
-
-            modal.style.display = 'flex';
-        } catch (error) {
-            console.error('Erro ao carregar selos:', error);
-        }
-    }
-
-    async verRankingCompleto() {
-        try {
-            const endpoint = CONFIG.ENDPOINTS.RANKING_COMPLETO.replace('{id}', this.professorId);
-            const ranking = await this.request(endpoint);
-
-            const modal = document.getElementById('modal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-
-            modalTitle.innerHTML = 'Ranking Completo das Turmas';
-
-            if (ranking && ranking.length > 0) {
-                modalBody.innerHTML = ranking.map((turma, index) => `
-                    <div style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color);">
-                        <span style="width: 50px; font-weight: bold; color: var(--primary-color);">#${index + 1}</span>
-                        <span style="flex: 1;">${turma.nome}</span>
-                        <span style="color: var(--status-completed); font-weight: 600;">${turma.media}%</span>
-                    </div>
-                `).join('');
-            } else {
-                modalBody.innerHTML = '<p class="empty-state">Nenhum dado de ranking disponível</p>';
-            }
-
-            modal.style.display = 'flex';
-        } catch (error) {
-            console.error('Erro ao carregar ranking:', error);
-        }
-    }
 
     async verDetalhesTurma(turmaId) {
         this.carregarAlunosDaTurma(turmaId, 'Turma');

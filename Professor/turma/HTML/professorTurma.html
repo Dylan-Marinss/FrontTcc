@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- CSS externo -->
     <link rel="stylesheet" href="../CSS/professorTurma.css">
+    <link rel="stylesheet" href="../CSS/professorSidebar.css">
 </head>
 <body>
     <div class="app-container">
@@ -22,21 +23,24 @@
         </div>
 
         <nav class="sidebar-nav">
-            <ul>
-                <li><a href="professorPerfil.html" class="nav-item"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="atividades.html" class="nav-item active"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                <li><a href="professorTurma.html" class="nav-item"><i class="fas fa-users"></i> <span>Turmas</span></a></li>
-            </ul>
-        </nav>
+                <ul>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item active" id="nav-perfil">
+                        <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+                        <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                        <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                        <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                        <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
 
         <div class="sidebar-footer">
-            <a href="configuracoes-Estudex.html" class="nav-item">
-                <i class="fas fa-cog"></i> <span>Configurações</span>
-            </a>
-            <a href="login.html" class="nav-item logout">
-                <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
-            </a>
-        </div>
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
     </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
@@ -104,5 +108,7 @@
 
     <!-- JavaScript externo -->
     <script src="../JS/professorTurma.js"></script>
+    <script src="../JS/menuSideBar.js"></script>
+
 </body>
 </html>
