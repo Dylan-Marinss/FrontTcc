@@ -49,7 +49,7 @@ async function carregarDados() {
 // Carregar todas as atividades
 async function carregarTodasAtividades() {
     try {
-        const response = await fetch(`${API_URL}/atividades`);
+        const response = await fetch(`${API_URL}/atividades/${ID_ALUNO_LOGADO}`);
         if (!response.ok) throw new Error('Erro ao carregar atividades');
         todasAtividades = await response.json();
     } catch (error) {
@@ -61,7 +61,7 @@ async function carregarTodasAtividades() {
 // Carregar atividades respondidas pelo aluno
 async function carregarAtividadesRespondidas() {
     try {
-        const response = await fetch(`${API_URL}/atividadesrespostas`);
+        const response = await fetch(`${API_URL}/atividadesrespostas${ID_ALUNO_LOGADO}`);
         if (!response.ok) throw new Error('Erro ao carregar respostas');
         const todasRespostas = await response.json();
         

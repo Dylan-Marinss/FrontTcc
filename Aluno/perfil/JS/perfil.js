@@ -6,7 +6,6 @@ const ID_ALUNO_LOGADO = 1;
 
 // Variáveis globais
 let dadosAluno = null;
-let dadosSerie = null;
 let listaAlunos = [];
 let atividadesRespondidas = [];
 let todasAtividades = [];
@@ -20,15 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     inicializarEventos();
 });
 
+// ALTERAÇÃO 1: adicionado carregarAtividadesRespondidas() no Promise.all
 async function carregarDados() {
     try {
         await Promise.all([
             carregarAluno(),
-            carregarTodasAtividades(),
-            carregarAtividadesRespondidas(),
-            carregarListaAlunos()
+            carregarListaAlunos(),
+            carregarAtividadesRespondidas()
         ]);
-        
+
         atualizarPerfil();
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -41,32 +40,7 @@ async function carregarAluno() {
     const response = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
     if (!response.ok) throw new Error('Erro ao carregar aluno');
     dadosAluno = await response.json();
-    
-    if (dadosAluno.serie?.idSerie) {
-        await carregarSerie(dadosAluno.serie.idSerie);
-    }
-}
-
-async function carregarSerie(idSerie) {
-    const response = await fetch(`${API_URL}/series`);
-    if (!response.ok) throw new Error('Erro ao carregar série');
-    const series = await response.json();
-    dadosSerie = series.find(s => s.idSerie === idSerie);
-}
-
-async function carregarTodasAtividades() {
-    const response = await fetch(`${API_URL}/atividades`);
-    if (!response.ok) throw new Error('Erro ao carregar atividades');
-    todasAtividades = await response.json();
-}
-
-async function carregarAtividadesRespondidas() {
-    const response = await fetch(`${API_URL}/atividadesrespostas`);
-    if (!response.ok) throw new Error('Erro ao carregar respostas');
-    const todasRespostas = await response.json();
-    atividadesRespondidas = todasRespostas.filter(r => 
-        r.idAluno === ID_ALUNO_LOGADO && r.pontuacao !== null
-    );
+    console.log('[EstudeX] Aluno:', dadosAluno);
 }
 
 async function carregarListaAlunos() {
@@ -75,56 +49,59 @@ async function carregarListaAlunos() {
     listaAlunos = await response.json();
 }
 
+// ALTERAÇÃO 2: filtro usa r.aluno.id (objeto) em vez de r.idAluno (número solto)
+async function carregarAtividadesRespondidas() {
+    const response = await fetch(`${API_URL}/atividadesrespostas`);
+    if (!response.ok) throw new Error('Erro ao carregar respostas');
+    const todas = await response.json();
+    atividadesRespondidas = todas.filter(r =>
+        r.aluno?.id === ID_ALUNO_LOGADO && r.pontuacao !== null
+    );
+    console.log('[EstudeX] Respostas do aluno:', atividadesRespondidas);
+}
+
 // ========== ATUALIZAR PERFIL ==========
 function atualizarPerfil() {
     if (!dadosAluno) return;
-    
-    // Nome do aluno
-    document.getElementById('nomeAluno').textContent = dadosAluno.utilizador?.nome || 'Usuário';
-    
-    // Série
-    const serieTexto = dadosSerie ? `${dadosSerie.nome} - ${dadosSerie.ano}` : 'Não definida';
+
+    const nome = dadosAluno.nome || 'Usuário';
+    document.getElementById('nomeAluno').textContent = nome;
+
+    const serie = dadosAluno.serie;
+    const serieTexto = serie
+        ? `${serie.nomeSerie} (${serie.inicio?.split('-')[0] ?? ''})`
+        : 'Não definida';
     document.getElementById('serieAluno').textContent = serieTexto;
-    
-    // XP Total
+
     const xpTotal = dadosAluno.xp || 0;
-    document.getElementById('xpTotal').textContent = xpTotal;
-    
-    // Calcular nível baseado no XP
+    document.getElementById('xpTotal').textContent = xpTotal.toLocaleString('pt-BR');
+
     const nivel = calcularNivel(xpTotal);
-    const nivelTexto = getNivelTexto(nivel);
-    document.getElementById('nivelAtual').textContent = nivelTexto;
-    
-    // Barra de nível
-    const xpProximoNivel = calcularXPProximoNivel(nivel);
-    const xpAtual = xpTotal - calcularXPTotalAteNivel(nivel);
-    const percentualLevel = (xpAtual / xpProximoNivel) * 100;
-    document.getElementById('levelFill').style.width = `${percentualLevel}%`;
-    
-    // Avatar (inicial do nome)
-    const nomeInicial = dadosAluno.utilizador?.nome?.charAt(0) || 'U';
-    document.getElementById('avatarImg').src = `https://ui-avatars.com/api/?background=BB86FC&color=121212&bold=true&size=120&name=${nomeInicial}`;
-    
-    // Bio
+    document.getElementById('nivelAtual').textContent = getNivelTexto(nivel);
+
+    const xpBase     = calcularXPTotalAteNivel(nivel);
+    const xpRange    = calcularXPProximoNivel(nivel);
+    const xpAtual    = xpTotal - xpBase;
+    const percentual = Math.min(100, Math.round((xpAtual / xpRange) * 100));
+    document.getElementById('levelFill').style.width = `${percentual}%`;
+
+    const iniciais = nome.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('avatarImg').src =
+        `https://ui-avatars.com/api/?background=BB86FC&color=121212&bold=true&size=120&name=${encodeURIComponent(iniciais)}`;
+
     if (bioAtual) {
         document.getElementById('bioTexto').textContent = bioAtual;
     }
-    
-    // Atualizar estatísticas
+
     atualizarEstatisticas();
-    
-    // Atualizar ranking
-    atualizarRanking();
-    
-    // Atualizar conquistas baseado no XP
     atualizarConquistas(xpTotal);
 }
 
 // ========== CÁLCULO DE NÍVEL ==========
 function calcularNivel(xp) {
-    if (xp < 100) return 1;
-    if (xp < 300) return 2;
-    if (xp < 600) return 3;
+    if (xp < 100)  return 1;
+    if (xp < 300)  return 2;
+    if (xp < 600)  return 3;
     if (xp < 1000) return 4;
     if (xp < 1500) return 5;
     if (xp < 2100) return 6;
@@ -149,209 +126,131 @@ function getNivelTexto(nivel) {
     return textos[nivel - 1] || 'Mítico';
 }
 
-// ========== ESTATÍSTICAS ==========
+// ALTERAÇÃO 3: pontuacaoMaxima vem dentro de r.atividade (objeto), não de todasAtividades
 function atualizarEstatisticas() {
-    const totalAtividades = atividadesRespondidas.length;
-    document.getElementById('atividadesConcluidas').textContent = totalAtividades;
-    
-    // Taxa de acerto
-    let somaNotas = 0;
-    let somaMaximas = 0;
-    
-    atividadesRespondidas.forEach(resposta => {
-        const atividade = todasAtividades.find(a => a.idAtividade === resposta.idAtividade);
-        const notaMaxima = atividade?.pontuacaoMaxima || 100;
-        somaNotas += resposta.pontuacao || 0;
-        somaMaximas += notaMaxima;
+    const total = atividadesRespondidas.length;
+    document.getElementById('atividadesConcluidas').textContent = total;
+
+    let somaNotas = 0, somaMaximas = 0;
+    atividadesRespondidas.forEach(r => {
+        somaNotas   += r.pontuacao || 0;
+        somaMaximas += r.atividade?.pontuacaoMaxima || 100;
     });
-    
-    const taxaAcerto = somaMaximas > 0 ? (somaNotas / somaMaximas) * 100 : 0;
-    document.getElementById('taxaAcerto').textContent = `${taxaAcerto.toFixed(1)}%`;
-    
-    // Total de pontos
-    document.getElementById('totalPontos').textContent = somaNotas.toFixed(0);
-    
-    // Melhor sequência (simulado)
-    const melhorSequencia = Math.min(totalAtividades, 5);
-    document.getElementById('melhorSequencia').textContent = melhorSequencia;
+
+    const taxa = somaMaximas > 0 ? (somaNotas / somaMaximas) * 100 : 0;
+    document.getElementById('taxaAcerto').textContent  = `${taxa.toFixed(1)}%`;
+    document.getElementById('melhorSequencia').textContent = Math.min(total, 5);
 }
 
-// ========== RANKING ==========
-function atualizarRanking() {
-    if (!listaAlunos.length) return;
-    
-    // Ordenar alunos por XP
-    const ranking = [...listaAlunos].sort((a, b) => (b.xp || 0) - (a.xp || 0));
-    
-    // Posição do aluno
-    const posicao = ranking.findIndex(a => a.id === ID_ALUNO_LOGADO) + 1;
-    document.getElementById('posicaoRanking').textContent = `#${posicao}`;
-    document.getElementById('totalAlunos').textContent = ranking.length;
-    
-    // Percentil
-    const percentil = ((ranking.length - posicao) / ranking.length) * 100;
-    document.getElementById('percentilRanking').textContent = `${percentil.toFixed(1)}%`;
-    
-    // Barra de progresso do ranking
-    const progressoRanking = (posicao / ranking.length) * 100;
-    document.getElementById('progressFillRanking').style.width = `${progressoRanking}%`;
-    
-    // Próximo nível
-    const xpTotal = dadosAluno?.xp || 0;
-    const nivelAtual = calcularNivel(xpTotal);
-    const xpProximo = calcularXPProximoNivel(nivelAtual + 1);
-    const xpNecessario = xpProximo - (xpTotal - calcularXPTotalAteNivel(nivelAtual));
-    document.getElementById('proximoNivelTexto').textContent = `Faltam ${xpNecessario} XP para o próximo nível`;
-}
 
 // ========== CONQUISTAS ==========
 function atualizarConquistas(xp) {
     const conquistas = [
-        { id: 1, nome: 'Iniciante', icone: 'fa-star', xpNecessario: 0, unlocked: xp >= 0 },
-        { id: 2, nome: 'Dedicado', icone: 'fa-trophy', xpNecessario: 200, unlocked: xp >= 200 },
-        { id: 3, nome: 'Explorador', icone: 'fa-rocket', xpNecessario: 500, unlocked: xp >= 500 },
-        { id: 4, nome: 'Mestre', icone: 'fa-brain', xpNecessario: 1000, unlocked: xp >= 1000 },
-        { id: 5, nome: 'Em Chamas', icone: 'fa-fire', xpNecessario: 2000, unlocked: xp >= 2000 },
-        { id: 6, nome: 'Lendário', icone: 'fa-crown', xpNecessario: 3500, unlocked: xp >= 3500 }
+        { nome: 'Iniciante',  icone: 'fa-star',   xpNecessario: 0    },
+        { nome: 'Dedicado',   icone: 'fa-trophy',  xpNecessario: 200  },
+        { nome: 'Explorador', icone: 'fa-rocket',  xpNecessario: 500  },
+        { nome: 'Mestre',     icone: 'fa-brain',   xpNecessario: 1000 },
+        { nome: 'Em Chamas',  icone: 'fa-fire',    xpNecessario: 2000 },
+        { nome: 'Lendário',   icone: 'fa-crown',   xpNecessario: 3500 },
     ];
-    
+
+    conquistas.forEach(c => { c.unlocked = xp >= c.xpNecessario; });
+
     const grid = document.getElementById('achievementsGrid');
-    grid.innerHTML = conquistas.map(conq => `
-        <div class="achievement-item ${conq.unlocked ? 'unlocked' : 'locked'}">
-            <i class="fas ${conq.icone}"></i>
-            <span>${conq.nome}</span>
-            ${!conq.unlocked ? `<small style="font-size: 0.7rem;">${conq.xpNecessario} XP</small>` : ''}
+    grid.innerHTML = conquistas.map(c => `
+        <div class="achievement-item ${c.unlocked ? 'unlocked' : 'locked'}">
+            <i class="fas ${c.icone}"></i>
+            <span>${c.nome}</span>
+            ${!c.unlocked ? `<small style="font-size:0.7rem">${c.xpNecessario} XP</small>` : ''}
         </div>
     `).join('');
-    
-    // Salvar para o modal
+
     window.conquistasList = conquistas;
 }
 
 // ========== EVENTOS ==========
 function inicializarEventos() {
-    // Editar Bio
-    const editBioBtn = document.getElementById('editBioBtn');
-    const bioTexto = document.getElementById('bioTexto');
-    const bioEditArea = document.getElementById('bioEditArea');
-    const bioTextarea = document.getElementById('bioTextarea');
-    const saveBioBtn = document.getElementById('saveBioBtn');
+    const editBioBtn   = document.getElementById('editBioBtn');
+    const bioTexto     = document.getElementById('bioTexto');
+    const bioEditArea  = document.getElementById('bioEditArea');
+    const bioTextarea  = document.getElementById('bioTextarea');
+    const saveBioBtn   = document.getElementById('saveBioBtn');
     const cancelBioBtn = document.getElementById('cancelBioBtn');
-    
-    if (editBioBtn) {
-        editBioBtn.addEventListener('click', () => {
-            bioTextarea.value = bioAtual;
-            bioTexto.style.display = 'none';
-            bioEditArea.style.display = 'block';
-            editBioBtn.style.display = 'none';
-        });
-    }
-    
-    if (saveBioBtn) {
-        saveBioBtn.addEventListener('click', () => {
-            bioAtual = bioTextarea.value;
-            localStorage.setItem('userBio', bioAtual);
-            bioTexto.textContent = bioAtual || 'Clique em editar para adicionar uma bio sobre você!';
-            bioTexto.style.display = 'block';
-            bioEditArea.style.display = 'none';
-            editBioBtn.style.display = 'flex';
-        });
-    }
-    
-    if (cancelBioBtn) {
-        cancelBioBtn.addEventListener('click', () => {
-            bioTexto.style.display = 'block';
-            bioEditArea.style.display = 'none';
-            editBioBtn.style.display = 'flex';
-        });
-    }
-    
-    // Modal de conquistas
+
+    editBioBtn?.addEventListener('click', () => {
+        bioTextarea.value         = bioAtual;
+        bioTexto.style.display    = 'none';
+        bioEditArea.style.display = 'block';
+        editBioBtn.style.display  = 'none';
+    });
+
+    saveBioBtn?.addEventListener('click', () => {
+        bioAtual = bioTextarea.value;
+        localStorage.setItem('userBio', bioAtual);
+        bioTexto.textContent      = bioAtual || 'Clique em editar para adicionar uma bio!';
+        bioTexto.style.display    = 'block';
+        bioEditArea.style.display = 'none';
+        editBioBtn.style.display  = 'flex';
+    });
+
+    cancelBioBtn?.addEventListener('click', () => {
+        bioTexto.style.display    = 'block';
+        bioEditArea.style.display = 'none';
+        editBioBtn.style.display  = 'flex';
+    });
+
     const viewAchievementsBtn = document.getElementById('viewAchievementsBtn');
-    const achievementsModal = document.getElementById('achievementsModal');
-    const closeModal = document.querySelector('.close-modal');
-    
-    if (viewAchievementsBtn) {
-        viewAchievementsBtn.addEventListener('click', () => {
-            if (window.conquistasList) {
-                const fullGrid = document.getElementById('achievementsFullGrid');
-                fullGrid.innerHTML = window.conquistasList.map(conq => `
-                    <div class="achievement-item ${conq.unlocked ? 'unlocked' : 'locked'}">
-                        <i class="fas ${conq.icone}"></i>
-                        <span>${conq.nome}</span>
-                        <small>${conq.xpNecessario} XP</small>
+    const achievementsModal   = document.getElementById('achievementsModal');
+    const closeModal          = document.querySelector('.close-modal');
+
+    viewAchievementsBtn?.addEventListener('click', () => {
+        if (window.conquistasList) {
+            document.getElementById('achievementsFullGrid').innerHTML =
+                window.conquistasList.map(c => `
+                    <div class="achievement-item ${c.unlocked ? 'unlocked' : 'locked'}">
+                        <i class="fas ${c.icone}"></i>
+                        <span>${c.nome}</span>
+                        <small>${c.xpNecessario} XP</small>
                     </div>
                 `).join('');
-                achievementsModal.style.display = 'block';
-            }
-        });
-    }
-    
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
-            achievementsModal.style.display = 'none';
-        });
-    }
-    
-    // Fechar modal ao clicar fora
-    window.addEventListener('click', (e) => {
-        if (e.target === achievementsModal) {
-            achievementsModal.style.display = 'none';
+            achievementsModal.style.display = 'block';
         }
     });
-    
-    // Ver ranking
-    const viewRankingBtn = document.getElementById('viewRankingBtn');
-    if (viewRankingBtn) {
-        viewRankingBtn.addEventListener('click', () => {
-            alert('Ranking completo será implementado em breve!');
-        });
-    }
-    
-    // Editar avatar
-    const editAvatarBtn = document.getElementById('editAvatarBtn');
-    if (editAvatarBtn) {
-        editAvatarBtn.addEventListener('click', () => {
-            alert('Funcionalidade de upload de avatar será implementada em breve!');
-        });
-    }
+
+    closeModal?.addEventListener('click', () => {
+        achievementsModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', e => {
+        if (e.target === achievementsModal) achievementsModal.style.display = 'none';
+    });
+
+    document.getElementById('editAvatarBtn')?.addEventListener('click', () => {
+        alert('Upload de avatar será implementado em breve!');
+    });
 }
 
 // ========== UTILITÁRIOS ==========
 function mostrarErro(mensagem) {
-    const alert = document.createElement('div');
-    alert.className = 'alert-error';
-    alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensagem}`;
-    alert.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: rgba(255, 61, 0, 0.2);
-        border: 1px solid #FF3D00;
-        color: #FF3D00;
-        padding: 15px 25px;
-        border-radius: 12px;
-        z-index: 3000;
-        animation: slideIn 0.3s ease;
+    const div = document.createElement('div');
+    div.className = 'alert-error';
+    div.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensagem}`;
+    div.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: rgba(255,61,0,0.2); border: 1px solid #FF3D00;
+        color: #FF3D00; padding: 15px 25px; border-radius: 12px;
+        z-index: 3000; animation: slideIn 0.3s ease;
     `;
-    document.body.appendChild(alert);
-    
+    document.body.appendChild(div);
     setTimeout(() => {
-        alert.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => alert.remove(), 300);
+        div.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => div.remove(), 300);
     }, 4000);
 }
 
-// Estilos para alertas
 const alertStyles = document.createElement('style');
 alertStyles.textContent = `
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(100%); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes fadeOut {
-        from { opacity: 1; transform: translateX(0); }
-        to { opacity: 0; transform: translateX(100%); }
-    }
+    @keyframes slideIn { from { opacity:0; transform:translateX(100%) } to { opacity:1; transform:translateX(0) } }
+    @keyframes fadeOut { from { opacity:1; transform:translateX(0) } to { opacity:0; transform:translateX(100%) } }
 `;
 document.head.appendChild(alertStyles);

@@ -1,87 +1,127 @@
-// homeEstudeX.js - Funcionalidades da página Home
+// ============================================================
+//  CONFIGURAÇÃO
+// ============================================================
+const API_URL = 'http://localhost:8080';
+const ID_ALUNO_LOGADO = 1;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Carregar nome do aluno (simulado - pode ser integrado com API depois)
+// ========== INICIALIZAÇÃO ==========
+document.addEventListener('DOMContentLoaded', function () {
     carregarDadosAluno();
-    
-    // Inicializar notificações
     initNotifications();
-    
-    // Inicializar ações
     initActions();
-    
-    // Atualizar dados dinâmicos
     atualizarDadosHome();
-});
+    carregarAtividadesRecentes();
 
-// Carregar dados do aluno (simulado com localStorage)
-function carregarDadosAluno() {
-    const nomeAluno = localStorage.getItem('nomeAluno') || 'Estudante';
-    const nomeElement = document.getElementById('nomeAluno');
-    if (nomeElement) {
-        nomeElement.textContent = nomeAluno;
-    }
-}
+    const sidebar      = document.querySelector('.sidebar');
+    const menuToggle   = document.getElementById('menu-toggle');
+    const welcomeCard  = document.querySelector('.welcome-card');
+    const actionItems  = document.querySelectorAll('.action-item');
+    const shortcutBtns = document.querySelectorAll('.shortcut-btn');
+    const pageTitle    = document.querySelector('.page-title');
 
-// Inicializar modal de notificações
-function initNotifications() {
-    const notificationIcon = document.getElementById('notificationsIcon');
-    const modal = document.getElementById('notificationsModal');
-    const closeModal = document.querySelector('.close-modal');
-    
-    if (notificationIcon && modal) {
-        notificationIcon.addEventListener('click', function() {
-            modal.style.display = 'block';
-            const badge = document.querySelector('.notification-badge');
-            if (badge) {
-                badge.style.display = 'none';
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
             }
         });
     }
-    
-    if (closeModal && modal) {
-        closeModal.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
+
+    if (welcomeCard) {
+        welcomeCard.style.animation = 'slideInDown 0.6s ease-out';
     }
-    
-    window.addEventListener('click', function(e) {
-        if (modal && e.target === modal) {
-            modal.style.display = 'none';
+
+    actionItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.1}s`;
+        item.addEventListener('mouseenter', () => { item.style.boxShadow = '0 4px 15px rgba(187, 134, 252, 0.2)'; });
+        item.addEventListener('mouseleave', () => { item.style.boxShadow = 'none'; });
+    });
+
+    shortcutBtns.forEach(btn => {
+        btn.addEventListener('mouseenter', () => { btn.style.boxShadow = '0 8px 25px rgba(187, 134, 252, 0.3)'; });
+        btn.addEventListener('mouseleave', () => { btn.style.boxShadow = '0 4px 12px rgba(187, 134, 252, 0.1)'; });
+    });
+
+    if (pageTitle) {
+        pageTitle.classList.add('glitch-text');
+        setTimeout(() => pageTitle.classList.remove('glitch-text'), 5000);
+    }
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-    });
-}
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .action-item { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.05), rgba(0,0,0,0.05) 1px,
+                transparent 1px, transparent 2px
+            );
+            pointer-events: none; z-index: -1; opacity: 0.5;
+        }
+    `;
+    document.head.appendChild(style);
+});
 
-// Inicializar ações dos cards
-function initActions() {
-    // Ações da lista
-    const actions = document.querySelectorAll('.action-item');
-    actions.forEach(action => {
-        action.addEventListener('click', function() {
-            const actionType = this.getAttribute('data-action');
-            handleAction(actionType);
-        });
-    });
-    
-    // ========== BOTÃO DO PLANO DE ESTUDO - CORREÇÃO ==========
-    const planoBtn = document.getElementById('planoEstudoBtn');
-    if (planoBtn) {
-        planoBtn.addEventListener('click', function() {
-            // ALTERE ESTE CAMINHO para onde seu arquivo realmente está
-            // Opção 1: Se o arquivo estiver na mesma pasta que home-Estudex.html
-            window.location.href = 'consultarPlanoEstudo-home.html';
-            
-            // Opção 2: Se estiver em uma pasta diferente, use o caminho correto
-            // Ex: window.location.href = '../pasta/consultarPlanoEstudo-home.html';
-        });
+// ========== FUNÇÕES GLOBAIS ==========
+
+async function carregarDadosAluno() {
+    try {
+        const response = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
+        if (!response.ok) throw new Error('Erro ao buscar aluno');
+        const aluno = await response.json();
+        const el = document.getElementById('nomeAluno');
+        if (el) el.textContent = aluno.nome || 'Estudante';
+    } catch (err) {
+        console.error('[EstudeX] Erro ao carregar nome:', err);
     }
 }
 
-// Lidar com ações
+function initNotifications() {
+    const icon     = document.getElementById('notificationsIcon');
+    const modal    = document.getElementById('notificationsModal');
+    const closeBtn = document.querySelector('.close-modal');
+
+    icon?.addEventListener('click', () => {
+        modal.style.display = 'block';
+        const badge = document.querySelector('.notification-badge');
+        if (badge) badge.style.display = 'none';
+    });
+
+    closeBtn?.addEventListener('click', () => { modal.style.display = 'none'; });
+
+    window.addEventListener('click', e => {
+        if (modal && e.target === modal) modal.style.display = 'none';
+    });
+}
+
+function initActions() {
+    document.querySelectorAll('.action-item').forEach(action => {
+        action.addEventListener('click', function () {
+            handleAction(this.getAttribute('data-action'));
+        });
+    });
+
+    document.getElementById('planoEstudoBtn')?.addEventListener('click', () => {
+        window.location.href = 'consultarPlanoEstudo-home.html';
+    });
+}
+
 function handleAction(actionType) {
-    switch(actionType) {
+    switch (actionType) {
         case 'plano':
-            // ALTERE ESTE CAMINHO para onde seu arquivo realmente está
             window.location.href = 'consultarPlanoEstudo-home.html';
             break;
         case 'mensagens':
@@ -93,153 +133,105 @@ function handleAction(actionType) {
         case 'cronograma':
             alert('📅 Cronograma - Em breve você poderá visualizar seu cronograma de estudos!');
             break;
-        default:
-            console.log('Ação não reconhecida');
     }
 }
 
-// Atualizar dados da home (simulado)
-function atualizarDadosHome() {
-    const progressoSemanal = Math.floor(Math.random() * 30) + 60;
-    const horasEstudo = (Math.random() * 20 + 5).toFixed(1);
-    const taxaAcerto = Math.floor(Math.random() * 25) + 70;
-    
-    const progressoElement = document.getElementById('progressoSemanal');
-    const horasElement = document.getElementById('horasEstudo');
-    const taxaElement = document.getElementById('taxaAcerto');
-    
-    if (progressoElement) progressoElement.textContent = `${progressoSemanal}%`;
-    if (horasElement) horasElement.textContent = `${horasEstudo}h`;
-    if (taxaElement) taxaElement.textContent = `${taxaAcerto}%`;
-    
-    const circles = document.querySelectorAll('.indicator-circle');
-    circles.forEach(circle => {
-        circle.style.transition = 'transform 0.3s ease';
-    });
+async function atualizarDadosHome() {
+    try {
+        const response = await fetch(`${API_URL}/atividadesrespostas`);
+        if (!response.ok) throw new Error('Erro ao buscar respostas');
+        const todas = await response.json();
+
+        const minhas = todas.filter(r => r.aluno?.id === ID_ALUNO_LOGADO && r.pontuacao !== null);
+
+        // Taxa de acerto
+        let somaNotas = 0, somaMaximas = 0;
+        minhas.forEach(r => {
+            somaNotas   += r.pontuacao || 0;
+            somaMaximas += r.atividade?.pontuacaoMaxima || 100;
+        });
+        const taxa = somaMaximas > 0 ? (somaNotas / somaMaximas) * 100 : 0;
+
+        // Horas de estudo
+        let totalMs = 0;
+        minhas.forEach(r => {
+            if (r.momentoInicio && r.momentoFim)
+                totalMs += new Date(r.momentoFim) - new Date(r.momentoInicio);
+        });
+        const totalHoras = (totalMs / 1000 / 60 / 60).toFixed(1);
+
+        // Progresso semanal
+        const agora          = new Date();
+        const inicioSemana   = new Date(agora - 7  * 24 * 60 * 60 * 1000);
+        const inicioAnterior = new Date(agora - 14 * 24 * 60 * 60 * 1000);
+
+        const semanaAtual    = minhas.filter(r => new Date(r.momentoFim) >= inicioSemana).length;
+        const semanaAnterior = minhas.filter(r => {
+            const fim = new Date(r.momentoFim);
+            return fim >= inicioAnterior && fim < inicioSemana;
+        }).length;
+
+        let progressoTexto;
+        if (semanaAnterior === 0 && semanaAtual === 0) {
+            progressoTexto = '0%';
+        } else if (semanaAnterior === 0) {
+            progressoTexto = '+100%';
+        } else {
+            const variacao = ((semanaAtual - semanaAnterior) / semanaAnterior) * 100;
+            progressoTexto = `${variacao >= 0 ? '+' : ''}${variacao.toFixed(0)}%`;
+        }
+
+        const progressoEl = document.getElementById('progressoSemanal');
+        const horasEl     = document.getElementById('horasEstudo');
+        const taxaEl      = document.getElementById('taxaAcerto');
+
+        if (progressoEl) progressoEl.textContent = progressoTexto;
+        if (horasEl)     horasEl.textContent     = `${totalHoras}h`;
+        if (taxaEl)      taxaEl.textContent       = `${taxa.toFixed(1)}%`;
+
+    } catch (err) {
+        console.error('[EstudeX] Erro ao atualizar progresso:', err);
+    }
 }
 
-let intervalId = setInterval(() => {
-    atualizarDadosHome();
-}, 30000);
+async function carregarAtividadesRecentes() {
+    try {
+        const [resAtividades, resRespostas] = await Promise.all([
+            fetch(`${API_URL}/atividades`),
+            fetch(`${API_URL}/atividadesrespostas`)
+        ]);
 
-window.addEventListener('beforeunload', function() {
-    if (intervalId) {
-        clearInterval(intervalId);
+        if (!resAtividades.ok || !resRespostas.ok) throw new Error('Erro ao buscar atividades');
+
+        const atividades = await resAtividades.json();
+        const respostas  = await resRespostas.json();
+
+        const respondidas = new Set(
+            respostas
+                .filter(r => r.aluno?.id === ID_ALUNO_LOGADO)
+                .map(r => r.atividade?.idAtividade)
+        );
+
+        const recentes = [...atividades]
+            .sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao))
+            .slice(0, 2);
+
+        const container = document.getElementById('activitySummary');
+        if (!container) return;
+
+        container.innerHTML = recentes.map(ativ => {
+            const respondida = respondidas.has(ativ.idAtividade);
+            const data       = new Date(ativ.dataCriacao).toLocaleDateString('pt-BR');
+            return `
+                <div class="activity-item ${respondida ? 'completed' : 'pending'}">
+                    <span class="activity-label">${respondida ? '✅ Respondida' : '⏳ Pendente'}</span>
+                    <span class="activity-name">${ativ.titulo}</span>
+                    <span class="activity-date">Postada em ${data}</span>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error('[EstudeX] Erro ao carregar atividades recentes:', err);
     }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const sidebar = document.querySelector('.sidebar');
-  const menuToggle = document.getElementById('menu-toggle');
-  const welcomeCard = document.querySelector('.welcome-card');
-  const actionItems = document.querySelectorAll('.action-item');
-  const shortcutBtns = document.querySelectorAll('.shortcut-btn');
-  const notificationsIcon = document.querySelector('.notifications-icon');
-  const pageTitle = document.querySelector('.page-title');
-
-  // 1. Funcionalidade de Colapsar/Expandir Sidebar
-  if (menuToggle && sidebar) {
-      menuToggle.addEventListener('click', () => {
-          if (window.innerWidth <= 768) {
-              sidebar.classList.toggle('active');
-          } else {
-              sidebar.classList.toggle('collapsed');
-          }
-      });
-  }
-
-  // 2. Efeito de Entrada Suave no Card de Boas-vindas
-  if (welcomeCard) {
-      welcomeCard.style.animation = 'slideInDown 0.6s ease-out';
-  }
-
-  // 3. Efeito de Hover nos Itens de Ação
-  actionItems.forEach((item, index) => {
-      item.style.animationDelay = `${index * 0.1}s`;
-      item.addEventListener('mouseenter', () => {
-          item.style.boxShadow = '0 4px 15px rgba(187, 134, 252, 0.2)';
-      });
-      item.addEventListener('mouseleave', () => {
-          item.style.boxShadow = 'none';
-      });
-  });
-
-  // 4. Efeito de Hover nos Botões de Atalho
-  shortcutBtns.forEach((btn, index) => {
-      btn.addEventListener('mouseenter', () => {
-          btn.style.boxShadow = '0 8px 25px rgba(187, 134, 252, 0.3)';
-      });
-      btn.addEventListener('mouseleave', () => {
-          btn.style.boxShadow = '0 4px 12px rgba(187, 134, 252, 0.1)';
-      });
-  });
-
-  // 5. Funcionalidade de Notificações
-  if (notificationsIcon) {
-      notificationsIcon.addEventListener('click', () => {
-          showNotificationPopup();
-      });
-  }
-
-  // 6. Animação de Glitch no Título da Página
-  if (pageTitle) {
-      pageTitle.classList.add('glitch-text');
-      setTimeout(() => {
-          pageTitle.classList.remove('glitch-text');
-      }, 5000);
-  }
-
-  // 7. Animação de Fundo (Scanline) - Efeito Futurista
-  const body = document.body;
-  body.style.setProperty('--scanline-opacity', '0.05');
-
-  const style = document.createElement('style');
-  style.innerHTML = `
-      @keyframes slideInDown {
-          from {
-              opacity: 0;
-              transform: translateY(-20px);
-          }
-          to {
-              opacity: 1;
-              transform: translateY(0);
-          }
-      }
-
-      @keyframes fadeInUp {
-          from {
-              opacity: 0;
-              transform: translateY(20px);
-          }
-          to {
-              opacity: 1;
-              transform: translateY(0);
-          }
-      }
-
-      .action-item {
-          animation: fadeInUp 0.5s ease-out forwards;
-          opacity: 0;
-      }
-
-      body::before {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: repeating-linear-gradient(
-              0deg,
-              rgba(0, 0, 0, var(--scanline-opacity)),
-              rgba(0, 0, 0, var(--scanline-opacity)) 1px,
-              transparent 1px,
-              transparent 2px
-          );
-          pointer-events: none;
-          z-index: -1;
-          opacity: 0.5;
-      }
-  `;
-  document.head.appendChild(style);
-});
+}
