@@ -11,38 +11,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
 
     async function carregarTurmas() {
-
         try {
-
             const response = await fetch("http://localhost:8080/series");
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const series = await response.json();
-
             console.log("Turmas:", series);
-
-            selectSerie.innerHTML =
-                '<option value="">Selecione a turma</option>';
-
+            selectSerie.innerHTML = '<option value="">Selecione a turma</option>';
             series.forEach(serie => {
-
                 const option = document.createElement("option");
-
                 option.value = serie.idSerie || serie.id;
                 option.textContent = serie.nomeSerie;
-
                 selectSerie.appendChild(option);
             });
-
         } catch (error) {
-
             console.error("Erro ao carregar turmas:", error);
-
-            selectSerie.innerHTML =
-                '<option value="">Erro ao carregar turmas</option>';
+            selectSerie.innerHTML = '<option value="">Erro ao carregar turmas</option>';
         }
     }
 
@@ -51,38 +34,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
 
     async function carregarDificuldades() {
-
         try {
-
             const response = await fetch("http://localhost:8080/niveldificuldade");
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const dificuldades = await response.json();
-
             console.log("Dificuldades:", dificuldades);
-
-            selectDificuldade.innerHTML =
-                '<option value="">Selecione a dificuldade</option>';
-
+            selectDificuldade.innerHTML = '<option value="">Selecione a dificuldade</option>';
             dificuldades.forEach(dificuldade => {
-
                 const option = document.createElement("option");
-
                 option.value = dificuldade.idNivelDificuldade;
                 option.textContent = dificuldade.nome;
-
                 selectDificuldade.appendChild(option);
             });
-
         } catch (error) {
-
             console.error("Erro ao carregar dificuldades:", error);
-
-            selectDificuldade.innerHTML =
-                '<option value="">Erro ao carregar dificuldades</option>';
+            selectDificuldade.innerHTML = '<option value="">Erro ao carregar dificuldades</option>';
         }
     }
 
@@ -91,38 +57,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
 
     async function carregarDisciplinas() {
-
         try {
-
             const response = await fetch("http://localhost:8080/disciplinas");
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const disciplinas = await response.json();
-
             console.log("Disciplinas:", disciplinas);
-
-            selectDisciplina.innerHTML =
-                '<option value="">Selecione a disciplina</option>';
-
+            selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
             disciplinas.forEach(disciplina => {
-
                 const option = document.createElement("option");
-
                 option.value = disciplina.idDisciplina || disciplina.id;
                 option.textContent = disciplina.nome;
-
                 selectDisciplina.appendChild(option);
             });
-
         } catch (error) {
-
             console.error("Erro ao carregar disciplinas:", error);
-
-            selectDisciplina.innerHTML =
-                '<option value="">Erro ao carregar disciplinas</option>';
+            selectDisciplina.innerHTML = '<option value="">Erro ao carregar disciplinas</option>';
         }
     }
 
@@ -133,5 +82,33 @@ document.addEventListener("DOMContentLoaded", function () {
     carregarTurmas();
     carregarDificuldades();
     carregarDisciplinas();
+
+    // =========================================
+    // BOTÃO CRIAR ATIVIDADE
+    // =========================================
+
+    document.getElementById("btnSalvarAtividade").addEventListener("click", function () {
+        const idSerie       = selectSerie.value;
+        const idDificuldade = selectDificuldade.value;
+        const idDisciplina  = document.getElementById("disciplina").value;
+
+        if (!idSerie)       { alert("Selecione a turma.");       return; }
+        if (!idDificuldade) { alert("Selecione a dificuldade."); return; }
+        if (!idDisciplina)  { alert("Selecione a disciplina.");  return; }
+
+        localStorage.setItem("idSerie",       idSerie);
+        localStorage.setItem("idDificuldade", idDificuldade);
+        localStorage.setItem("idDisciplina",  idDisciplina);
+
+        window.location.href = "atividadeCriar.html";
+    });
+
+    // =========================================
+    // BOTÃO MINHAS ATIVIDADES
+    // =========================================
+
+    document.getElementById("btnConsultarAtividade").addEventListener("click", function () {
+    window.location.href = "minhasAtividades.html";
+});
 
 });

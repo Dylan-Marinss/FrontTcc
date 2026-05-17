@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     atualizarProgresso();
 
-    carregarDificuldades();
 });
 
 // ============================================================
@@ -124,11 +123,18 @@ async function criarAtividadeSeNecessario() {
     if (idAtividadeCriada) return true;
 
     const titulo = document.getElementById('titulo').value.trim();
-    const dificuldade = document.getElementById('dificuldade').value;
+    const dificuldade = localStorage.getItem('idDificuldade');
+
+    console.log('idDificuldade do localStorage:', dificuldade); // ← confirme aqui
 
     if (!titulo) {
-        showToast('Digite o titulo da atividade.', 'error');
+        showToast('Digite o título da atividade.', 'error');
         document.getElementById('titulo').focus();
+        return false;
+    }
+
+    if (!dificuldade || dificuldade === 'null' || dificuldade === 'undefined') {
+        showToast('Dificuldade não encontrada. Volte e selecione novamente.', 'error');
         return false;
     }
 
@@ -136,12 +142,11 @@ async function criarAtividadeSeNecessario() {
         const res = await fetch(`${API_URL}/atividades`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-
             body: JSON.stringify({
                 titulo,
                 idOrientador: ID_PROFESSOR_LOGADO,
                 pontuacaoMaxima: 0,
-
+                dataCriacao: new Date().toISOString(), // ← ADICIONE
                 nivelDificuldade: {
                     idNivelDificuldade: parseInt(dificuldade)
                 }
@@ -152,9 +157,7 @@ async function criarAtividadeSeNecessario() {
 
         const atividade = await res.json();
         idAtividadeCriada = atividade.idAtividade;
-
         document.getElementById('titulo').disabled = true;
-
         return true;
 
     } catch (err) {
@@ -212,8 +215,8 @@ async function salvarQuestaoAtual() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     descricao: opcoes[i],
-                    correta: i === opcaoCorretaIndex ? 1 : 0,
-                    atividadePergunta: { id: idPergunta }
+                    correta: i === opcaoCorretaIndex ? true : false,
+                    atividadePergunta: { idPergunta: idPergunta }  // ← id correto da entidade
                 })
             });
             if (!resOpcao.ok) throw new Error(`Opcao HTTP ${resOpcao.status}`);
@@ -309,15 +312,18 @@ async function finalizarAtividade() {
     // Atualiza pontuacaoMaxima = total de questoes via PUT
     // TODO: garantir que o endpoint PUT /atividades/{id} existe no backend
     try {
-        const resUpdate = await fetch(`${API_URL}/atividades/${idAtividadeCriada}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pontuacaoMaxima: total })
-        });
-        if (!resUpdate.ok) throw new Error(`PUT HTTP ${resUpdate.status}`);
+        const resUpdate = await fetch(
+            `${API_URL}/atividades/${idAtividadeCriada}/pontuacao?pontuacaoMaxima=${total}`,
+            { method: 'PATCH' }
+        );
+
+        if (!resUpdate.ok) throw new Error(`PATCH HTTP ${resUpdate.status}`);
+
     } catch (err) {
-        console.warn('Aviso: nao foi possivel atualizar pontuacaoMaxima.', err);
-        // Nao bloqueia o fluxo — a logica principal ja foi salva
+        console.error('Erro ao atualizar pontuação:', err);
+        showToast('Erro ao atualizar pontuação. Verifique o backend.', 'error');
+        setLoading(btn, false, '<i class="fas fa-flag-checkered"></i> Finalizar Atividade');
+        return; // ← para o fluxo em vez de ignorar
     }
 
     showToast(`Atividade finalizada! ${total} questao(oes) — vale ${total} ponto(s).`);
@@ -360,7 +366,7 @@ function setLoading(btn, loading, html) {
 function showToast(msg, tipo) {
     tipo = tipo || 'success';
     const toast = document.getElementById('toast');
-    const icon  = document.getElementById('toast-icon');
+    const icon = document.getElementById('toast-icon');
     document.getElementById('toast-msg').textContent = msg;
 
     toast.className = 'toast';
@@ -373,38 +379,30 @@ function showToast(msg, tipo) {
 
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(function() { toast.classList.remove('show'); }, 3500);
+    toast._timer = setTimeout(function () { toast.classList.remove('show'); }, 3500);
 }
 
 async function carregarDificuldades() {
     try {
-
         const res = await fetch(`${API_URL}/niveldificuldade`);
 
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const dificuldades = await res.json();
 
-        const select = document.getElementById('dificuldadeQuestao');
+        const select = document.getElementById('dificuldade'); // ← era 'dificuldadeQuestao'
 
-        select.innerHTML = '';
+        select.innerHTML = '<option value="">Selecione a dificuldade</option>';
 
         dificuldades.forEach(dificuldade => {
-
             const option = document.createElement('option');
-
             option.value = dificuldade.idNivelDificuldade;
             option.textContent = dificuldade.nome;
-
             select.appendChild(option);
         });
 
     } catch (err) {
-
         console.error('Erro ao carregar dificuldades:', err);
-
         showToast('Erro ao carregar dificuldades.', 'error');
     }
 }

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudeX | Professor - Minhas Atividades</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/themes.css">
+    <link rel="stylesheet" href="../CSS/professorSidebar.css">
+    <link rel="stylesheet" href="../CSS/minhasAtividades.css">
+</head>
+
+<body>
+
+    <section class="user-dashboard">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar professor-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item active"
+                            id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="../../../Professor/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="dashboard-content">
+
+            <!-- Título -->
+            <div class="page-title">
+                <i class="fas fa-tasks"></i>
+                <h1>Minhas Atividades</h1>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total de Atividades</span>
+                        <strong class="stat-value" id="totalAtividades">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
+                        onkeyup="filtrarAtividades()">
+                </div>
+                <button class="btn-primary" onclick="window.location.href='atividadeProfessor.html'">
+                    <i class="fas fa-plus"></i> Nova Atividade
+                </button>
+            </div>
+
+            <!-- Lista -->
+            <div id="atividadesList" class="atividades-grid">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Carregando atividades...</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Modal Confirmar Delete -->
+        <div id="modalConfirmDelete" class="modal" style="display:none; align-items:center; justify-content:center;">
+            <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+                <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">
+                    Excluir atividade?</h2>
+                <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button onclick="fecharConfirmDelete()" class="btn-primary"
+                        style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
+                    <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary"
+                        style="background: #dc2626;">
+                        <i class="fas fa-trash"></i> Sim, excluir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast">
+            <i class="fas fa-circle-check" id="toast-icon"></i>
+            <span id="toast-msg"></span>
+        </div>
+
+        <script src="../JS/minhasAtividades.js"></script>
+        <script src="../JS/menuSideBar.js"></script>
+
+</body>
+
+</html>
