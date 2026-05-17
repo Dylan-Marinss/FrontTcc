@@ -33,26 +33,27 @@
             </div>
 
             <nav class="sidebar-nav">
-            <ul>
-                <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
-                    <i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
-                        <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
-                    <i class="fas fa-users"></i> <span>Turmas</span></a></li>
-                <li><a href="../../../Professor/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
-                    <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-            </ul>
-        </nav>
+                <ul>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"
+                            id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../../../Professor/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
 
-        <div class="sidebar-footer">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Sair</span>
                 </a>
             </div>
 
-            
+
         </div>
 
         <!-- MAIN CONTENT -->
@@ -90,15 +91,13 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="dificuldadeQuestao"><i class="fas fa-chart-line"></i> Dificuldade</label>
+                                <label for="dificuldade"><i class="fas fa-chart-line"></i> Dificuldade</label>
                                 <select id="dificuldadeQuestao" class="form-control">
-                                    <option value="facil">Fácil</option>
-                                    <option value="medio" selected>Médio</option>
-                                    <option value="dificil">Difícil</option>
+                                    <option value="">Carregando dificuldades...</option>
                                 </select>
                             </div>
 
-                            
+
                         </div>
 
                         <div class="form-row">
@@ -128,7 +127,7 @@
                         </div>
                     </div>
 
-            
+
 
                     <!-- Botões de Ação -->
                     <div class="form-actions">
@@ -139,10 +138,11 @@
                             onclick="window.location.href='professor-atividades.html'">
                             <i class="fas fa-times"></i> Cancelar
                         </button>
-                        <button type="button" onclick="window.location.href='atividadeCriar.html'" id="btnSalvarAtividade" class="btn-primary">
+                        <button type="button" onclick="window.location.href='atividadeCriar.html'"
+                            id="btnSalvarAtividade" class="btn-primary">
                             <i class="fas fa-save"></i> Criar Atividade
                         </button>
-                        
+
                     </div>
                 </div>
             </div>
@@ -153,7 +153,7 @@
     <script src="../JS/menuSideBar.js"></script>
 
 
-    
+
 </body>
 
 </html>

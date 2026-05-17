@@ -23,32 +23,69 @@ async function carregarPerfil() {
         const prof = await response.json();
 
         // Header
-        document.getElementById('prof-nome').textContent     = prof.nome         || 'Professor';
-        document.getElementById('prof-instituicao').textContent = prof.instituicao || 'EstudeX';
-        document.getElementById('bio-texto').textContent     = prof.bio           || 'Sem biografia cadastrada.';
+        document.getElementById('prof-nome').textContent        = prof.nome || 'Professor';
+        document.getElementById('prof-instituicao').textContent = 'EstudeX';
+
+        // -------------------------------------------------------
+        // TODO: BIO DO PROFESSOR
+        // Por enquanto a bio está estática/hardcoded.
+        // Quando for implementar:
+        //   1. Adicionar coluna `Bio VARCHAR(500)` na TBL_PROFESSOR
+        //   2. Expor o campo no endpoint GET /professores/{id}
+        //   3. Substituir a linha abaixo por: prof.bio || 'Sem biografia cadastrada.'
+        //   4. No PUT de edição, incluir o campo bio no body e salvar via /professores/{id}
+        // -------------------------------------------------------
+        document.getElementById('bio-texto').textContent = 'Sem biografia cadastrada.';
 
         // Dados pessoais
-        document.getElementById('info-nome').textContent      = prof.nome          || '—';
-        document.getElementById('info-email').textContent     = prof.email         || '—';
-        document.getElementById('info-telefone').textContent  = prof.telefone      || '—';
-        document.getElementById('info-nascimento').textContent = formatarData(prof.dataNascimento);
-        document.getElementById('info-cpf').textContent       = prof.cpf           || '—';
-        document.getElementById('info-membro').textContent    = formatarData(prof.dataCadastro);
+        document.getElementById('info-nome').textContent   = prof.nome   || '—';
+        document.getElementById('info-uf').textContent     = prof.uf     || '—';
+        document.getElementById('info-cidade').textContent = prof.cidade || '—';
+        document.getElementById('info-cpf').textContent    = prof.cpf    || '—';
+
+        // -------------------------------------------------------
+        // TODO: EMAIL DO PROFESSOR
+        // A coluna Email já existe na TBL_PROFESSOR (foi criada).
+        // Para ativar:
+        //   1. Garantir que o endpoint GET /professores/{id} retorna o campo email
+        //   2. Descomentar as linhas abaixo
+        // -------------------------------------------------------
+        // document.getElementById('info-email').textContent = prof.email || '—';
+        // document.getElementById('edit-email').value       = prof.email || '';
+
+        // -------------------------------------------------------
+        // TODO: DATA DE CADASTRO (info-membro)
+        // A coluna dataCadastro não existe na TBL_UTILIZADOR ainda.
+        // Para ativar:
+        //   1. Adicionar coluna `DataCadastro DATETIME DEFAULT GETDATE()` na TBL_UTILIZADOR
+        //   2. Descomentar: document.getElementById('info-membro').textContent = formatarData(prof.dataCadastro);
+        // -------------------------------------------------------
+        document.getElementById('info-membro').textContent = '—';
 
         // Preenche inputs de edição
-        document.getElementById('edit-nome').value       = prof.nome      || '';
-        document.getElementById('edit-email').value      = prof.email     || '';
-        document.getElementById('edit-telefone').value   = prof.telefone  || '';
-        document.getElementById('edit-nascimento').value = prof.dataNascimento?.slice(0, 10) || '';
-        document.getElementById('edit-cpf').value        = prof.cpf       || '';
+        document.getElementById('edit-nome').value   = prof.nome   || '';
+        document.getElementById('edit-uf').value     = prof.uf     || '';
+        document.getElementById('edit-cidade').value = prof.cidade || '';
+        document.getElementById('edit-cpf').value    = prof.cpf    || '';
 
-        // Tags de disciplinas
-        renderizarDisciplinas(prof.disciplinas || []);
+        // -------------------------------------------------------
+        // TODO: DISCIPLINAS DO PROFESSOR
+        // A TBL_PROFESSOR tem idDisciplina (só uma disciplina por enquanto).
+        // Para ativar as tags de disciplina:
+        //   1. Garantir que o endpoint retorna o objeto disciplina dentro do professor
+        //   2. Substituir o array vazio por: [prof.disciplina] ou prof.disciplinas
+        // -------------------------------------------------------
+        renderizarDisciplinas([]);
 
-        // Stats
-        document.getElementById('stat-turmas').textContent     = prof.totalTurmas     ?? '—';
-        document.getElementById('stat-alunos').textContent     = prof.totalAlunos     ?? '—';
-        document.getElementById('stat-atividades').textContent = prof.totalAtividades ?? '—';
+        // -------------------------------------------------------
+        // TODO: STATS (total de turmas, alunos, atividades)
+        // Esses dados precisam vir de endpoints específicos, ex:
+        //   GET /professores/{id}/stats → { totalTurmas, totalAlunos, totalAtividades }
+        // Quando existirem, substituir os '—' pelos valores reais.
+        // -------------------------------------------------------
+        document.getElementById('stat-turmas').textContent     = '—';
+        document.getElementById('stat-alunos').textContent     = '—';
+        document.getElementById('stat-atividades').textContent = '—';
 
     } catch (error) {
         console.error('Erro ao carregar perfil:', error);
@@ -59,12 +96,10 @@ async function carregarPerfil() {
 
 function renderizarDisciplinas(disciplinas) {
     const container = document.getElementById('prof-disciplinas');
-
     if (!disciplinas.length) {
         container.innerHTML = '<span class="tag">Sem disciplinas cadastradas</span>';
         return;
     }
-
     container.innerHTML = disciplinas.map(d =>
         `<span class="tag"><i class="fas fa-book"></i> ${d.nome || d}</span>`
     ).join('');
@@ -145,8 +180,9 @@ async function abrirAlunos(idTurma, nomeTurma) {
                     <div class="aluno-avatar">${iniciais}</div>
                     <div class="aluno-info">
                         <h4>${escapeHtml(a.nome)}</h4>
-                        <p><i class="fas fa-circle" style="font-size:0.5rem; color:var(--status-completed);"></i>
-                           ${escapeHtml(a.serie?.nomeSerie || a.serie || 'Série não definida')}
+                        <p>
+                            <i class="fas fa-circle" style="font-size:0.5rem; color:var(--status-completed);"></i>
+                            ${escapeHtml(a.serie?.nomeSerie || a.serie || 'Série não definida')}
                         </p>
                     </div>
                 </div>`;
@@ -169,12 +205,13 @@ document.getElementById('fecharAlunos')?.addEventListener('click', () => {
 //  EDIÇÃO DO PERFIL
 // ============================================================
 function inicializarEdicao() {
-    const btnEditar  = document.getElementById('btnEditar');
+    const btnEditar   = document.getElementById('btnEditar');
     const btnCancelar = document.getElementById('btnCancelar');
-    const btnSalvar  = document.getElementById('btnSalvar');
+    const btnSalvar   = document.getElementById('btnSalvar');
     const editActions = document.getElementById('editActions');
 
-    const campos = ['nome', 'email', 'telefone', 'nascimento', 'cpf'];
+    const campos = ['nome', 'cpf', 'uf', 'cidade'];
+    // TODO: adicionar 'email' no array acima quando o endpoint de professor retornar o campo email
 
     btnEditar?.addEventListener('click', () => {
         campos.forEach(c => {
@@ -196,18 +233,19 @@ function inicializarEdicao() {
 
     btnSalvar?.addEventListener('click', async () => {
         const body = {
-            nome:           document.getElementById('edit-nome').value.trim(),
-            email:          document.getElementById('edit-email').value.trim(),
-            telefone:       document.getElementById('edit-telefone').value.trim(),
-            dataNascimento: document.getElementById('edit-nascimento').value,
-            cpf:            document.getElementById('edit-cpf').value.trim(),
+            nome:   document.getElementById('edit-nome').value.trim(),
+            cpf:    document.getElementById('edit-cpf').value.trim(),
+            uf:     document.getElementById('edit-uf').value.trim(),
+            cidade: document.getElementById('edit-cidade').value.trim(),
+            // TODO: descomentar quando endpoint de professor aceitar email no PUT
+            // email: document.getElementById('edit-email').value.trim(),
         };
 
         btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         btnSalvar.disabled = true;
 
         try {
-            const response = await fetch(`${API_URL}/professores/${ID_PROFESSOR_LOGADO}`, {
+            const response = await fetch(`${API_URL}/utilizadores/${ID_PROFESSOR_LOGADO}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -216,14 +254,15 @@ function inicializarEdicao() {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             // Atualiza os valores exibidos
-            document.getElementById('info-nome').textContent      = body.nome;
-            document.getElementById('info-email').textContent     = body.email;
-            document.getElementById('info-telefone').textContent  = body.telefone;
-            document.getElementById('info-nascimento').textContent = formatarData(body.dataNascimento);
-            document.getElementById('info-cpf').textContent       = body.cpf;
-            document.getElementById('prof-nome').textContent      = body.nome;
+            document.getElementById('info-nome').textContent   = body.nome;
+            document.getElementById('info-cpf').textContent    = body.cpf;
+            document.getElementById('info-uf').textContent     = body.uf;
+            document.getElementById('info-cidade').textContent = body.cidade;
+            document.getElementById('prof-nome').textContent   = body.nome;
+            // TODO: descomentar quando email estiver ativo
+            // document.getElementById('info-email').textContent = body.email;
 
-            btnCancelar.click(); // fecha modo edição
+            btnCancelar.click();
             showAlert('✅ Perfil atualizado com sucesso!', 'success');
 
         } catch (error) {
