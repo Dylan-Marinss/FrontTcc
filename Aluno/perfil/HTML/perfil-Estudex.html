@@ -69,10 +69,9 @@
             </div>
         </div>
 
-        <!-- Grid de Conteúdo -->
-        <div class="profile-grid">
-            <!-- Seção Sobre Mim (Editável) -->
-            <div class="card about-card">
+        <!-- NOVO LAYOUT: Sobre Mim (maior) -->
+        <div class="about-section-full">
+            <div class="card about-card-full">
                 <div class="card-header">
                     <h3><i class="fas fa-user-astronaut"></i> Sobre Mim</h3>
                     <button class="edit-bio-btn" id="editBioBtn">
@@ -94,7 +93,10 @@
                     <span class="tag"><i class="fas fa-hashtag"></i> Aprendiz</span>
                 </div>
             </div>
+        </div>
 
+        <!-- GRID: Selos e Conquistas + Estatísticas Rápidas (Lado a Lado) -->
+        <div class="two-columns-grid">
             <!-- Selos e Conquistas -->
             <div class="card achievements-card">
                 <div class="card-header">
@@ -131,7 +133,6 @@
                 </div>
             </div>
 
-
             <!-- Estatísticas Rápidas -->
             <div class="card stats-quick-card">
                 <div class="card-header">
@@ -159,24 +160,20 @@
                             <strong class="stat-number" id="melhorSequencia">0</strong>
                         </div>
                     </div>
+                    <div class="stat-item">
+                        <i class="fas fa-clock"></i>
+                        <div class="stat-details">
+                            <span class="stat-label">Total de Pontos</span>
+                            <strong class="stat-number" id="totalPontos">0</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 </section>
 
-<!-- Modal de Selos/Conquistas -->
-<div id="achievementsModal" class="modal">
-    <div class="modal-content modal-achievements">
-        <div class="modal-header">
-            <h2><i class="fas fa-medal"></i> Todas as Conquistas</h2>
-            <span class="close-modal">&times;</span>
-        </div>
-        <div class="achievements-full-grid" id="achievementsFullGrid">
-            <!-- Conteúdo via JS -->
-        </div>
-    </div>
-</div>
+
 
 <!-- Scripts -->
 <script src="../JS/perfil.js"></script>

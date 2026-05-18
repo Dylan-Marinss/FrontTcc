@@ -1,28 +1,5 @@
 /* ========== PLANO-ESTUDO.CSS - ESTILOS ESPECÍFICOS ========== */
 
-/* Botão Voltar */
-.btn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(187, 134, 252, 0.1);
-    border: 1px solid var(--border-color);
-    padding: 10px 20px;
-    border-radius: 30px;
-    color: var(--primary-color);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 25px;
-    transition: all 0.3s ease;
-}
-
-.btn-back:hover {
-    background: rgba(187, 134, 252, 0.2);
-    transform: translateX(-5px);
-    border-color: var(--primary-color);
-}
-
 /* Informações do Aluno */
 .info-row {
     display: flex;
@@ -271,4 +248,4 @@
     font-size: 3rem;
     margin-bottom: 15px;
     color: var(--text-muted);
-} 
+}
