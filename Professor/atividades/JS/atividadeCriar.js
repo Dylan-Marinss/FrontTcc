@@ -1,39 +1,56 @@
-// ============================================================
-//  CONFIGURACAO
-// ============================================================
+
 const API_URL = 'http://localhost:8080';
-const ID_PROFESSOR_LOGADO = 6; // substituir pelo ID real apos login
+const ID_PROFESSOR_LOGADO = 6; // substituir pelo ID real após login
 
 // ============================================================
 //  ESTADO
 // ============================================================
-let idAtividadeCriada = null;  // preenchido apos POST /atividades
-let questoes = [];             // questoes ja salvas { idPergunta, enunciado, opcoes[], correta }
-let questaoAtual = 0;          // indice da questao emedicao
-let opcaoCorretaIndex = null;  // indice da alternativa marcada como correta
+let idAtividadeCriada = null;
+let questoes          = [];
+let questaoAtual      = 0;
+let opcaoCorretaIndex = null; // índice da alternativa marcada como correta
 
 // ============================================================
-//  INICIALIZACAO
+//  INICIALIZAÇÃO
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-
+    carregarDificuldades();
     adicionarOpcao();
-
     atualizarProgresso();
-
+    initSidebar();
 });
 
 // ============================================================
-//  ALTERNATIVAS
+//  SIDEBAR
+// ============================================================
+function initSidebar() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar    = document.getElementById('sidebar');
+    if (!menuToggle || !sidebar) return;
+
+    menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('active');
+        } else {
+            sidebar.classList.toggle('collapsed');
+        }
+    });
+}
+
+// ============================================================
+//  LETRAS DAS ALTERNATIVAS
 // ============================================================
 const LETRAS = ['A', 'B', 'C', 'D', 'E'];
 
+// ============================================================
+//  ADICIONAR ALTERNATIVA
+// ============================================================
 function adicionarOpcao() {
     const container = document.getElementById('opcoes-container');
     const total = container.children.length;
 
     if (total >= 5) {
-        showToast('Maximo de 5 alternativas por questao.', 'error');
+        showToast('Máximo de 5 alternativas por questão.', 'error');
         return;
     }
 
@@ -43,64 +60,165 @@ function adicionarOpcao() {
     row.dataset.idx = idx;
 
     row.innerHTML = `
-        <div class="opcao-letra" id="letra-${idx}">${LETRAS[idx]}</div>
-        <input type="radio" name="correta" class="opcao-radio" id="radio-${idx}"
-               value="${idx}" onchange="marcarCorreta(${idx})">
-        <input type="text" class="opcao-input" id="opcao-input-${idx}"
-               placeholder="Alternativa ${LETRAS[idx]}...">
-        <button class="btn-remove" onclick="removerOpcao(this)" title="Remover">
+        <div class="opcao-letra" id="letra-${idx}" title="Clique para marcar como correta">${LETRAS[idx]}</div>
+        <input
+            type="radio"
+            name="correta"
+            class="opcao-radio"
+            id="radio-${idx}"
+            value="${idx}"
+            title="Marcar alternativa ${LETRAS[idx]} como correta"
+        >
+        <input
+            type="text"
+            class="opcao-input"
+            id="opcao-input-${idx}"
+            placeholder="Alternativa ${LETRAS[idx]}..."
+            autocomplete="off"
+        >
+        <button class="btn-remove" onclick="removerOpcao(this)" title="Remover alternativa">
             <i class="fas fa-xmark"></i>
         </button>
     `;
 
     container.appendChild(row);
+
+    // ── Evento: clique no RADIO ──────────────────────────────
+    const radio = row.querySelector('.opcao-radio');
+    radio.addEventListener('change', () => {
+        if (radio.checked) marcarCorreta(idx);
+    });
+
+    // ── Evento: clique na LETRA (alternativa ao radio) ───────
+    const letra = row.querySelector('.opcao-letra');
+    letra.addEventListener('click', () => {
+        radio.checked = true;
+        marcarCorreta(idx);
+    });
+
     atualizarContador();
-    document.getElementById(`opcao-input-${idx}`).focus();
+    document.getElementById(`opcao-input-${idx}`)?.focus();
 }
 
+// ============================================================
+//  REMOVER ALTERNATIVA
+// ============================================================
 function removerOpcao(btn) {
     const container = document.getElementById('opcoes-container');
     if (container.children.length <= 1) {
-        showToast('E necessario ao menos uma alternativa.', 'error');
+        showToast('É necessário ao menos uma alternativa.', 'error');
         return;
     }
-    btn.closest('.opcao-row').remove();
+
+    const row = btn.closest('.opcao-row');
+
+    // Se a alternativa removida era a correta, reseta o estado
+    const idx = parseInt(row.dataset.idx);
+    if (idx === opcaoCorretaIndex) {
+        opcaoCorretaIndex = null;
+        atualizarIndicadorCorreta();
+    }
+
+    row.remove();
     renumerarOpcoes();
     atualizarContador();
 }
 
+// ============================================================
+//  RENUMERAR OPÇÕES (após remoção)
+// ============================================================
 function renumerarOpcoes() {
     opcaoCorretaIndex = null;
+
     document.querySelectorAll('.opcao-row').forEach((row, i) => {
         row.dataset.idx = i;
+        row.classList.remove('marcada-correta');
 
         const letra = row.querySelector('.opcao-letra');
         letra.id = `letra-${i}`;
         letra.textContent = LETRAS[i];
         letra.classList.remove('correta');
+        // Recria o evento para o novo índice
+        letra.onclick = null;
+        letra.addEventListener('click', () => {
+            const radio = row.querySelector('.opcao-radio');
+            radio.checked = true;
+            marcarCorreta(i);
+        });
 
         const radio = row.querySelector('.opcao-radio');
-        radio.id = `radio-${i}`;
+        radio.id    = `radio-${i}`;
         radio.value = i;
         radio.checked = false;
-        radio.setAttribute('onchange', `marcarCorreta(${i})`);
+        radio.onchange = null;
+        radio.addEventListener('change', () => {
+            if (radio.checked) marcarCorreta(i);
+        });
 
         const input = row.querySelector('.opcao-input');
         input.id = `opcao-input-${i}`;
         input.placeholder = `Alternativa ${LETRAS[i]}...`;
     });
+
+    atualizarIndicadorCorreta();
 }
 
+// ============================================================
+//  MARCAR CORRETA — função central
+//  Chamada tanto pelo radio quanto pelo clique na letra
+// ============================================================
 function marcarCorreta(idx) {
     opcaoCorretaIndex = idx;
-    document.querySelectorAll('.opcao-letra').forEach((el, i) => {
-        el.classList.toggle('correta', i === idx);
+
+    // Remove destaques de todas as linhas
+    document.querySelectorAll('.opcao-row').forEach((row, i) => {
+        const letra = row.querySelector('.opcao-letra');
+        const radio = row.querySelector('.opcao-radio');
+
+        if (i === idx) {
+            letra.classList.add('correta');
+            row.classList.add('marcada-correta');
+            radio.checked = true;
+        } else {
+            letra.classList.remove('correta');
+            row.classList.remove('marcada-correta');
+            radio.checked = false;
+        }
     });
+
+    atualizarIndicadorCorreta();
 }
 
+// ============================================================
+//  ATUALIZAR INDICADOR VISUAL DE CORRETA
+// ============================================================
+function atualizarIndicadorCorreta() {
+    const hint   = document.getElementById('correta-hint');
+    const status = document.getElementById('correta-status');
+    const texto  = document.getElementById('correta-status-texto');
+
+    if (opcaoCorretaIndex !== null) {
+        // Esconde a dica, mostra o status de sucesso
+        if (hint)   hint.style.display   = 'none';
+        if (status) status.style.display = 'flex';
+        if (texto)  texto.textContent    =
+            `Alternativa ${LETRAS[opcaoCorretaIndex]} marcada como correta`;
+    } else {
+        // Mostra a dica, esconde o status
+        if (hint)   hint.style.display   = 'flex';
+        if (status) status.style.display = 'none';
+    }
+}
+
+// ============================================================
+//  ATUALIZAR CONTADOR DE ALTERNATIVAS
+// ============================================================
 function atualizarContador() {
     const total = document.getElementById('opcoes-container').children.length;
-    document.getElementById('count-label').textContent = `${total} / 5`;
+
+    const countLabel = document.getElementById('count-label');
+    if (countLabel) countLabel.textContent = `${total} / 5`;
+
     const btnAdd = document.getElementById('btn-add-opcao');
     if (btnAdd) btnAdd.style.display = total >= 5 ? 'none' : 'flex';
 }
@@ -110,31 +228,36 @@ function atualizarContador() {
 // ============================================================
 function atualizarProgresso() {
     const num = questaoAtual + 1;
-    document.getElementById('questao-numero').textContent = `Questao ${num}`;
+
+    const numEl = document.getElementById('questao-numero');
+    if (numEl) numEl.textContent = `Questão ${num}`;
+
     const pct = Math.max((questaoAtual / Math.max(questoes.length + 1, 1)) * 100, 5);
-    document.getElementById('questao-progress').style.width = `${Math.min(pct, 95)}%`;
-    document.getElementById('btn-anterior').disabled = questaoAtual === 0;
+    const fill = document.getElementById('questao-progress');
+    if (fill) fill.style.width = `${Math.min(pct, 95)}%`;
+
+    const btnAnt = document.getElementById('btn-anterior');
+    if (btnAnt) btnAnt.disabled = questaoAtual === 0;
 }
 
 // ============================================================
-//  CRIAR ATIVIDADE (so na primeira questao)
+//  CRIAR ATIVIDADE (somente na primeira questão)
 // ============================================================
 async function criarAtividadeSeNecessario() {
     if (idAtividadeCriada) return true;
 
-    const titulo = document.getElementById('titulo').value.trim();
-    const dificuldade = localStorage.getItem('idDificuldade');
-
-    console.log('idDificuldade do localStorage:', dificuldade); // ← confirme aqui
+    const titulo      = document.getElementById('titulo')?.value.trim();
+    const dificuldade = document.getElementById('dificuldade')?.value;
 
     if (!titulo) {
         showToast('Digite o título da atividade.', 'error');
-        document.getElementById('titulo').focus();
+        document.getElementById('titulo')?.focus();
         return false;
     }
 
-    if (!dificuldade || dificuldade === 'null' || dificuldade === 'undefined') {
-        showToast('Dificuldade não encontrada. Volte e selecione novamente.', 'error');
+    if (!dificuldade || dificuldade === '' || dificuldade === 'null') {
+        showToast('Selecione o nível de dificuldade.', 'error');
+        document.getElementById('dificuldade')?.focus();
         return false;
     }
 
@@ -146,10 +269,8 @@ async function criarAtividadeSeNecessario() {
                 titulo,
                 idOrientador: ID_PROFESSOR_LOGADO,
                 pontuacaoMaxima: 0,
-                dataCriacao: new Date().toISOString(), // ← ADICIONE
-                nivelDificuldade: {
-                    idNivelDificuldade: parseInt(dificuldade)
-                }
+                dataCriacao: new Date().toISOString(),
+                nivelDificuldade: { idNivelDificuldade: parseInt(dificuldade) }
             })
         });
 
@@ -157,24 +278,32 @@ async function criarAtividadeSeNecessario() {
 
         const atividade = await res.json();
         idAtividadeCriada = atividade.idAtividade;
-        document.getElementById('titulo').disabled = true;
+
+        // Bloqueia campos após criação
+        ['titulo', 'dificuldade'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+
         return true;
 
     } catch (err) {
-        console.error('Erro ao criar atividade:', err);
+        console.error('[EstudeX] Erro ao criar atividade:', err);
         showToast('Erro ao criar a atividade. Verifique o backend.', 'error');
         return false;
     }
 }
 
 // ============================================================
-//  SALVAR QUESTAO -> POST /atividadesPergunta + /perguntasopcoes
+//  SALVAR QUESTÃO ATUAL
+//  REGRA: NÃO deixa salvar sem alternativa correta marcada
 // ============================================================
 async function salvarQuestaoAtual() {
-    const enunciado = document.getElementById('enunciado').value.trim();
+    const enunciado = document.getElementById('enunciado')?.value.trim();
+
     if (!enunciado) {
-        showToast('Digite o enunciado da questao.', 'error');
-        document.getElementById('enunciado').focus();
+        showToast('Digite o enunciado da questão.', 'error');
+        document.getElementById('enunciado')?.focus();
         return null;
     }
 
@@ -185,12 +314,30 @@ async function salvarQuestaoAtual() {
         showToast('Adicione ao menos 2 alternativas.', 'error');
         return null;
     }
+
     if (opcoes.some(o => !o)) {
-        showToast('Preencha todas as alternativas.', 'error');
+        showToast('Preencha todas as alternativas antes de continuar.', 'error');
         return null;
     }
+
+    // ─── VALIDAÇÃO CRÍTICA: correta obrigatória ───────────────
     if (opcaoCorretaIndex === null) {
-        showToast('Selecione a alternativa correta.', 'error');
+        showToast(
+            'Marque a alternativa correta antes de salvar a questão.',
+            'error'
+        );
+        // Rola até a área de alternativas e agita o hint
+        const hint = document.getElementById('correta-hint');
+        if (hint) {
+            hint.style.display = 'flex';
+            hint.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            hint.style.borderColor = 'var(--accent-color)';
+            hint.style.background  = 'rgba(255,61,0,0.08)';
+            setTimeout(() => {
+                hint.style.borderColor = '';
+                hint.style.background  = '';
+            }, 2500);
+        }
         return null;
     }
 
@@ -205,171 +352,227 @@ async function salvarQuestaoAtual() {
             })
         });
         if (!resPergunta.ok) throw new Error(`Pergunta HTTP ${resPergunta.status}`);
-        const pergunta = await resPergunta.json();
+        const pergunta   = await resPergunta.json();
         const idPergunta = pergunta.id ?? pergunta.idPergunta;
 
-        // 2. Salva as opcoes
+        // 2. Salva as opções
         for (let i = 0; i < opcoes.length; i++) {
             const resOpcao = await fetch(`${API_URL}/perguntasopcoes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     descricao: opcoes[i],
-                    correta: i === opcaoCorretaIndex ? true : false,
-                    atividadePergunta: { idPergunta: idPergunta }  // ← id correto da entidade
+                    correta: i === opcaoCorretaIndex,
+                    atividadePergunta: { idPergunta }
                 })
             });
-            if (!resOpcao.ok) throw new Error(`Opcao HTTP ${resOpcao.status}`);
+            if (!resOpcao.ok) throw new Error(`Opção HTTP ${resOpcao.status}`);
         }
 
         questoes[questaoAtual] = { idPergunta, enunciado, opcoes, correta: opcaoCorretaIndex };
         return idPergunta;
 
     } catch (err) {
-        console.error('Erro ao salvar questao:', err);
-        showToast('Erro ao salvar a questao. Verifique o backend.', 'error');
+        console.error('[EstudeX] Erro ao salvar questão:', err);
+        showToast('Erro ao salvar a questão. Verifique o backend.', 'error');
         return null;
     }
 }
 
 // ============================================================
-//  PROXIMA QUESTAO
+//  PRÓXIMA QUESTÃO
 // ============================================================
 async function proximaQuestao() {
-    const btn = document.getElementById('btn-proxima');
+    const btn   = document.getElementById('btn-proxima');
+    const label = '<i class="fas fa-save"></i> Próxima Questão';
     setLoading(btn, true, 'Salvando...');
 
     const criou = await criarAtividadeSeNecessario();
-    if (!criou) { setLoading(btn, false, '<i class="fas fa-save"></i> Proxima Questao'); return; }
+    if (!criou) { setLoading(btn, false, label); return; }
 
     const salvo = await salvarQuestaoAtual();
-    if (!salvo) { setLoading(btn, false, '<i class="fas fa-save"></i> Proxima Questao'); return; }
+    if (!salvo) { setLoading(btn, false, label); return; }
 
-    showToast(`Questao ${questaoAtual + 1} salva!`);
+    showToast(`Questão ${questaoAtual + 1} salva!`);
     questaoAtual++;
     limparFormulario();
     atualizarProgresso();
-    setLoading(btn, false, '<i class="fas fa-save"></i> Proxima Questao');
+    setLoading(btn, false, label);
 }
 
 // ============================================================
-//  QUESTAO ANTERIOR
+//  QUESTÃO ANTERIOR
 // ============================================================
 function questaoAnterior() {
     if (questaoAtual === 0) return;
     questaoAtual--;
-
-    const q = questoes[questaoAtual];
-    if (q) {
-        document.getElementById('enunciado').value = q.enunciado;
-        document.getElementById('opcoes-container').innerHTML = '';
-        opcaoCorretaIndex = q.correta;
-
-        q.opcoes.forEach((texto, i) => {
-            adicionarOpcao();
-            document.getElementById(`opcao-input-${i}`).value = texto;
-            if (i === q.correta) {
-                document.getElementById(`radio-${i}`).checked = true;
-                document.getElementById(`letra-${i}`).classList.add('correta');
-            }
-        });
-        atualizarContador();
-    }
-
+    carregarQuestao(questaoAtual);
     atualizarProgresso();
-    showToast(`Voltou para a Questao ${questaoAtual + 1}.`);
 }
 
 // ============================================================
-//  FINALIZAR ATIVIDADE
-//  Regras:
-//    1. Minimo de 1 questao salva para finalizar
-//    2. pontuacaoMaxima = total de questoes salvas (1 questao = 1 ponto)
+//  CARREGAR QUESTÃO NO FORM
 // ============================================================
-async function finalizarAtividade() {
-    const btn = document.querySelector('.btn-outline');
-    setLoading(btn, true, 'Finalizando...');
+function carregarQuestao(index) {
+    const q = questoes[index];
+    if (!q) return;
+
+    const enunciadoEl = document.getElementById('enunciado');
+    const container   = document.getElementById('opcoes-container');
+
+    if (enunciadoEl) enunciadoEl.value = q.enunciado;
+    container.innerHTML = '';
+    opcaoCorretaIndex = null;
+
+    q.opcoes.forEach((texto, i) => {
+        adicionarOpcao();
+        const inputEl = document.getElementById(`opcao-input-${i}`);
+        if (inputEl) inputEl.value = texto;
+    });
+
+    // Marca a correta após renderizar todas as opções
+    if (q.correta !== null && q.correta !== undefined) {
+        const radio = document.getElementById(`radio-${q.correta}`);
+        if (radio) radio.checked = true;
+        marcarCorreta(q.correta);
+    }
+
+    atualizarContador();
+    showToast(`Editando questão ${index + 1}.`);
+}
+
+// ============================================================
+//  PUBLICAR ATIVIDADE
+// ============================================================
+async function publicarAtividade() {
+    const btn   = document.querySelector('.main-actions .btn-primary');
+    const label = '<i class="fas fa-paper-plane"></i> Publicar Atividade';
+    setLoading(btn, true, 'Publicando...');
 
     const criou = await criarAtividadeSeNecessario();
-    if (!criou) { setLoading(btn, false, '<i class="fas fa-flag-checkered"></i> Finalizar Atividade'); return; }
+    if (!criou) { setLoading(btn, false, label); return; }
 
-    // Tenta salvar a questao atual se o enunciado estiver preenchido
-    const enunciado = document.getElementById('enunciado').value.trim();
-    if (enunciado) {
-        const salvo = await salvarQuestaoAtual();
-        if (!salvo) { setLoading(btn, false, '<i class="fas fa-flag-checkered"></i> Finalizar Atividade'); return; }
-    }
+    const salvo = await salvarQuestaoAtual();
+    if (!salvo) { setLoading(btn, false, label); return; }
 
     const total = questoes.filter(Boolean).length;
 
-    // Regra: minimo de 1 questao salva
-    if (total < 1) {
-        showToast('A atividade precisa ter ao menos 1 questao salva.', 'error');
-        setLoading(btn, false, '<i class="fas fa-flag-checkered"></i> Finalizar Atividade');
-        return;
-    }
-
-    // Atualiza pontuacaoMaxima = total de questoes via PUT
-    // TODO: garantir que o endpoint PUT /atividades/{id} existe no backend
+    // Atualiza pontuação
     try {
         const resUpdate = await fetch(
             `${API_URL}/atividades/${idAtividadeCriada}/pontuacao?pontuacaoMaxima=${total}`,
             { method: 'PATCH' }
         );
-
         if (!resUpdate.ok) throw new Error(`PATCH HTTP ${resUpdate.status}`);
-
     } catch (err) {
-        console.error('Erro ao atualizar pontuação:', err);
+        console.error('[EstudeX] Erro ao atualizar pontuação:', err);
         showToast('Erro ao atualizar pontuação. Verifique o backend.', 'error');
-        setLoading(btn, false, '<i class="fas fa-flag-checkered"></i> Finalizar Atividade');
-        return; // ← para o fluxo em vez de ignorar
+        setLoading(btn, false, label);
+        return;
     }
 
-    showToast(`Atividade finalizada! ${total} questao(oes) — vale ${total} ponto(s).`);
-
+    showToast('Atividade publicada com sucesso!');
+    setLoading(btn, false, label);
     setTimeout(() => {
-        // TODO: redirecionar para lista de atividades quando a pagina existir
-        // window.location.href = '../HTML/atividades.html';
-        alert(`Atividade criada com sucesso!\n${total} questao(oes) salvas — vale ${total} ponto(s).`);
-    }, 1500);
+        window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
+    }, 2000);
+}
+
+// ============================================================
+//  SALVAR RASCUNHO
+// ============================================================
+async function salvarRascunho() {
+    const btn   = document.querySelector('.main-actions .btn-outline');
+    const label = '<i class="fas fa-save"></i> Salvar Rascunho';
+    setLoading(btn, true, 'Salvando Rascunho...');
+
+    const criou = await criarAtividadeSeNecessario();
+    if (!criou) { setLoading(btn, false, label); return; }
+
+    const salvo = await salvarQuestaoAtual();
+    if (!salvo) { setLoading(btn, false, label); return; }
+
+    showToast('Rascunho salvo com sucesso!');
+    setLoading(btn, false, label);
 }
 
 // ============================================================
 //  CANCELAR
 // ============================================================
 function cancelar() {
-    if (questoes.length > 0 || document.getElementById('enunciado').value.trim()) {
-        if (!confirm('Deseja cancelar? O progresso nao salvo sera perdido.')) return;
+    const temConteudo =
+        questoes.length > 0 ||
+        document.getElementById('enunciado')?.value.trim() ||
+        document.getElementById('titulo')?.value.trim();
+
+    if (temConteudo) {
+        if (!confirm('Tem certeza que deseja cancelar? As alterações não salvas serão perdidas.')) return;
     }
-    // TODO: redirecionar para lista de atividades
-    window.history.back();
+    window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
 }
 
 // ============================================================
-//  UTILITARIOS
+//  CARREGAR DIFICULDADES
+// ============================================================
+async function carregarDificuldades() {
+    try {
+        const res = await fetch(`${API_URL}/niveldificuldade`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const lista  = await res.json();
+        const select = document.getElementById('dificuldade');
+        if (!select) return;
+
+        select.innerHTML = '<option value="">Selecione a dificuldade</option>';
+        lista.forEach(d => {
+            const opt     = document.createElement('option');
+            opt.value     = d.idNivelDificuldade;
+            opt.textContent = d.nome;
+            select.appendChild(opt);
+        });
+
+        // Pre-seleciona se vier do localStorage
+        const dif = localStorage.getItem('idDificuldade');
+        if (dif) select.value = dif;
+
+    } catch (err) {
+        console.error('[EstudeX] Erro ao carregar dificuldades:', err);
+        showToast('Erro ao carregar dificuldades.', 'error');
+    }
+}
+
+// ============================================================
+//  UTILITÁRIOS
 // ============================================================
 function limparFormulario() {
-    document.getElementById('enunciado').value = '';
-    document.getElementById('opcoes-container').innerHTML = '';
+    const enunciadoEl = document.getElementById('enunciado');
+    const container   = document.getElementById('opcoes-container');
+    if (enunciadoEl) enunciadoEl.value = '';
+    if (container)   container.innerHTML = '';
     opcaoCorretaIndex = null;
+    atualizarIndicadorCorreta(); // reseta o indicador
     adicionarOpcao();
     atualizarContador();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function setLoading(btn, loading, html) {
-    btn.disabled = loading;
-    btn.innerHTML = loading ? '<i class="fas fa-spinner fa-spin"></i> ' + html : html;
+function setLoading(btn, loading, htmlLabel) {
+    if (!btn) return;
+    btn.disabled  = loading;
+    btn.innerHTML = loading
+        ? `<i class="fas fa-spinner fa-spin"></i> ${htmlLabel}`
+        : htmlLabel;
 }
 
-function showToast(msg, tipo) {
-    tipo = tipo || 'success';
+function showToast(msg, tipo = 'success') {
     const toast = document.getElementById('toast');
-    const icon = document.getElementById('toast-icon');
-    document.getElementById('toast-msg').textContent = msg;
+    const icon  = document.getElementById('toast-icon');
+    const msgEl = document.getElementById('toast-msg');
+    if (!toast || !icon || !msgEl) return;
 
-    toast.className = 'toast';
+    msgEl.textContent = msg;
+    toast.className   = 'toast';
+
     if (tipo === 'error') {
         toast.classList.add('error');
         icon.className = 'fas fa-circle-xmark';
@@ -379,30 +582,5 @@ function showToast(msg, tipo) {
 
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () { toast.classList.remove('show'); }, 3500);
-}
-
-async function carregarDificuldades() {
-    try {
-        const res = await fetch(`${API_URL}/niveldificuldade`);
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const dificuldades = await res.json();
-
-        const select = document.getElementById('dificuldade'); // ← era 'dificuldadeQuestao'
-
-        select.innerHTML = '<option value="">Selecione a dificuldade</option>';
-
-        dificuldades.forEach(dificuldade => {
-            const option = document.createElement('option');
-            option.value = dificuldade.idNivelDificuldade;
-            option.textContent = dificuldade.nome;
-            select.appendChild(option);
-        });
-
-    } catch (err) {
-        console.error('Erro ao carregar dificuldades:', err);
-        showToast('Erro ao carregar dificuldades.', 'error');
-    }
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
 }

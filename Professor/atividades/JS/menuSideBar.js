@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const sidebar     = document.getElementById('sidebar');
-    const menuToggle  = document.getElementById('menu-toggle');
+    const sidebar    = document.querySelector('.sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
 
     // ── Colapsar / expandir sidebar ──────────────────────────
     if (menuToggle && sidebar) {
@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 sidebar.classList.toggle('active');
             } else {
                 sidebar.classList.toggle('collapsed');
+                // Adiciona classe no body pra mover o main-content
+                // (necessário porque a sidebar é position: fixed)
+                document.body.classList.toggle('sidebar-collapsed');
             }
         });
     }

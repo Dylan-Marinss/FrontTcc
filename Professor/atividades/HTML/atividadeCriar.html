@@ -3,152 +3,343 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EstudeX – Criar Questão</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>EstudeX – Criar Atividade</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <link rel="stylesheet" href="../CSS/atividadeCriar.css">
 </head>
+
 <body>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
+
     <div class="sidebar-header">
       <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-      <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+
+      <span class="logo-text">
+        EstudeX
+        <span class="professor-badge">Prof</span>
+      </span>
     </div>
 
     <nav class="sidebar-nav">
       <ul>
+
         <li>
-          <a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item">
-            <i class="fas fa-user"></i><span>Perfil</span>
+          <a href="../../../Professor/perfil/HTML/professorPerfil.html"
+             class="nav-item">
+            <i class="fas fa-user"></i>
+            <span>Perfil</span>
           </a>
         </li>
+
         <li>
           <a href="#" class="nav-item active">
-            <i class="fas fa-tasks"></i><span>Atividades</span>
+            <i class="fas fa-tasks"></i>
+            <span>Atividades</span>
           </a>
         </li>
+
         <li>
-          <a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item">
-            <i class="fas fa-users"></i><span>Turmas</span>
+          <a href="../../../Professor/turma/HTML/professorTurma.html"
+             class="nav-item">
+            <i class="fas fa-users"></i>
+            <span>Turmas</span>
           </a>
         </li>
+
         <li>
           <a href="#" class="nav-item">
-            <i class="fas fa-question-circle"></i><span>Dúvidas</span>
+            <i class="fas fa-question-circle"></i>
+            <span>Dúvidas</span>
           </a>
         </li>
+
       </ul>
     </nav>
 
     <div class="sidebar-footer">
       <a href="#" class="nav-item" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i><span>Sair</span>
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Sair</span>
       </a>
     </div>
+
   </aside>
 
   <!-- MAIN -->
   <main class="dashboard-content">
 
-    <!-- BANNER -->
-    <div class="page-banner">
-      <div class="banner-icon">
-        <i class="fas fa-plus-circle"></i>
+    <!-- HEADER -->
+    <div class="header-top">
+
+      <div class="page-title">
+        <i class="fas fa-file-circle-plus"></i>
+        <h1>Criar Nova Atividade</h1>
       </div>
-      <div class="banner-text">
-        <h1>Criar Nova Questão</h1>
-        <p>Preencha o enunciado e adicione as alternativas da questão</p>
+
+      <div class="notifications-icon">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge">3</span>
       </div>
+
     </div>
 
-    <!-- PROGRESSO -->
-    <div class="progress-section">
-      <span class="progress-label" id="questao-numero">Questão 1</span>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="questao-progress" style="width:5%"></div>
-      </div>
-    </div>
+    <!-- CARD PRINCIPAL -->
+    <div class="card main-form-card">
 
-    <!-- CARD: TÍTULO -->
-    <div class="card">
       <div class="card-section-title">
-        <i class="fas fa-info-circle"></i>
-        Título da Atividade
-      </div>
-      <div class="form-group">
-        <label class="field-label">Título <span class="required">*</span></label>
-        <input type="text" id="titulo" class="input-field" placeholder="Digite o título da atividade...">
-      </div>
-    </div>
-
-    <!-- CARD: QUESTÃO -->
-    <div class="card">
-      <div class="card-section-title">
-        <i class="fas fa-circle-question"></i>
-        Enunciado da Questão
+        <i class="fas fa-clipboard-list"></i>
+        Detalhes da Atividade
       </div>
 
-      <div class="form-group">
-        <label class="field-label">
-          <i class="fas fa-file-lines"></i>
-          Enunciado <span class="required">*</span>
-        </label>
-        <textarea class="input-field input-enunciado" id="enunciado" placeholder="Digite o enunciado da questão..."></textarea>
+      <!-- INFORMAÇÕES BÁSICAS -->
+      <div class="form-section">
+
+        <h2>Informações Básicas</h2>
+
+        <div class="form-group">
+          <label class="field-label" for="titulo">
+            Título da Atividade
+            <span class="required">*</span>
+          </label>
+
+          <input type="text"
+                 id="titulo"
+                 class="input-field"
+                 placeholder="Ex: Revisão de Cálculo I">
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="descricao">
+            Descrição
+          </label>
+
+          <textarea id="descricao"
+                    class="input-field"
+                    placeholder="Descreva os objetivos e o que será avaliado..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="disciplina">
+            Disciplina
+          </label>
+
+          <select id="disciplina" class="input-field">
+            <option value="">Selecione a disciplina</option>
+            <option value="1">Matemática</option>
+            <option value="2">Português</option>
+            <option value="3">História</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="turma">
+            Turma
+          </label>
+
+          <select id="turma" class="input-field">
+            <option value="">Selecione a turma</option>
+            <option value="1">Turma A</option>
+            <option value="2">Turma B</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="dataEntrega">
+            Data de Entrega
+          </label>
+
+          <input type="date"
+                 id="dataEntrega"
+                 class="input-field">
+        </div>
+
       </div>
 
       <div class="divider"></div>
 
-      <div class="opcoes-header">
-        <div class="card-section-title" style="margin-bottom:0">
-          <i class="fas fa-list-check"></i>
-          Alternativas
+      <!-- QUESTÕES -->
+      <div class="form-section">
+
+        <h2>Questões da Atividade</h2>
+
+        <!-- PROGRESSO -->
+        <div class="progress-section">
+
+          <span class="progress-label" id="questao-numero">
+            Questão 1
+          </span>
+
+          <!-- CORREÇÃO AQUI -->
+          <div class="progress-bar-bg">
+
+            <div class="progress-bar-fill"
+                 id="questao-progress"
+                 style="width:5%">
+            </div>
+
+          </div>
+
         </div>
-        <span class="opcoes-count" id="count-label">1 / 5</span>
+
+        <!-- ENUNCIADO -->
+        <div class="form-group">
+
+          <label class="field-label" for="enunciado">
+            Enunciado da Questão
+            <span class="required">*</span>
+          </label>
+
+          <textarea
+            class="input-field input-enunciado"
+            id="enunciado"
+            placeholder="Digite o enunciado da questão..."
+          ></textarea>
+
+        </div>
+
+        <!-- CABEÇALHO DAS ALTERNATIVAS -->
+        <div class="opcoes-header">
+
+          <div class="opcoes-header-left">
+
+            <i class="fas fa-list-check"
+               style="color:var(--secondary-color)">
+            </i>
+
+            <span class="opcoes-titulo">
+              Alternativas
+            </span>
+
+            <span class="opcoes-count" id="count-label">
+              1 / 5
+            </span>
+
+          </div>
+
+        </div>
+
+        <!-- DICA -->
+        <div class="correta-hint" id="correta-hint">
+
+          <i class="fas fa-circle-info"></i>
+
+          <span>
+            Clique no <strong>círculo</strong> ou na
+            <strong>letra</strong> da alternativa
+            para marcá-la como <strong>correta</strong>
+          </span>
+
+        </div>
+
+        <!-- STATUS -->
+        <div class="correta-status"
+             id="correta-status"
+             style="display:none">
+
+          <i class="fas fa-circle-check"></i>
+
+          <span id="correta-status-texto">
+            Alternativa A marcada como correta
+          </span>
+
+        </div>
+
+        <!-- OPÇÕES -->
+        <div id="opcoes-container"></div>
+
+        <!-- BOTÃO ADICIONAR -->
+        <button class="btn-add"
+                id="btn-add-opcao"
+                onclick="adicionarOpcao()">
+
+          <i class="fas fa-plus"></i>
+          Adicionar alternativa
+
+        </button>
+
+        <!-- NAVEGAÇÃO -->
+        <div class="form-actions-question">
+
+          <button class="btn btn-secondary"
+                  id="btn-anterior"
+                  onclick="questaoAnterior()"
+                  disabled>
+
+            <i class="fas fa-arrow-left"></i>
+            Anterior
+
+          </button>
+
+          <button class="btn btn-primary"
+                  id="btn-proxima"
+                  onclick="proximaQuestao()">
+
+            <i class="fas fa-save"></i>
+            Próxima Questão
+
+          </button>
+
+        </div>
+
       </div>
 
-      <p class="opcoes-hint">
-        <i class="fas fa-circle-info"></i>
-        Selecione o círculo ao lado da alternativa correta
-      </p>
+      <div class="divider"></div>
 
-      <div id="opcoes-container"></div>
+      
 
-      <button class="btn-add" id="btn-add-opcao" onclick="adicionarOpcao()">
-        <i class="fas fa-plus"></i>
-        Adicionar alternativa
-      </button>
+      <!-- BOTÕES -->
+      <div class="main-actions">
 
-      <div class="card-footer">
-        <div class="footer-left">
-          <button class="btn btn-secondary" onclick="cancelar()">
-            <i class="fas fa-xmark"></i> Cancelar
-          </button>
-          <button class="btn btn-secondary" id="btn-anterior" onclick="questaoAnterior()" disabled>
-            <i class="fas fa-arrow-left"></i> Anterior
-          </button>
-        </div>
-        <div class="footer-right">
-          <button class="btn btn-outline" onclick="finalizarAtividade()">
-            <i class="fas fa-flag-checkered"></i> Finalizar Atividade
-          </button>
-          <button class="btn btn-primary" id="btn-proxima" onclick="proximaQuestao()">
-            <i class="fas fa-save"></i> Próxima Questão
-          </button>
-        </div>
+        <button class="btn btn-secondary"
+                onclick="cancelar()">
+
+          <i class="fas fa-xmark"></i>
+          Cancelar
+
+        </button>
+
+        <button class="btn btn-outline"
+                onclick="salvarRascunho()">
+
+          <i class="fas fa-save"></i>
+          Salvar Rascunho
+
+        </button>
+
+        <button class="btn btn-primary"
+                onclick="publicarAtividade()">
+
+          <i class="fas fa-paper-plane"></i>
+          Publicar Atividade
+
+        </button>
+
       </div>
+
     </div>
 
   </main>
 
   <!-- TOAST -->
   <div class="toast" id="toast">
-    <i class="fas fa-circle-check" id="toast-icon"></i>
-    <span id="toast-msg">Questão salva!</span>
+
+    <i class="fas fa-circle-check"
+       id="toast-icon">
+    </i>
+
+    <span id="toast-msg"></span>
+
   </div>
 
-  <script src="../JS/atividadeCriar.js"></script>
-  <script src="../JS/menuSideBar.js"></script>
+  <script src="../JS/professorCriarAtividade.js"></script>
+  <script src="menuSideBar.js"></script>
+
 </body>
 </html>
