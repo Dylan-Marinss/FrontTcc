@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:8080';
 const ID_ALUNO_LOGADO = 1; // substituir pelo ID real após login
 
-const LETRAS = ['A','B','C','D','E'];
+const LETRAS = ['A', 'B', 'C', 'D', 'E'];
 
 let idAtividade = null;
 let atividade = null;
@@ -28,12 +28,29 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 async function carregarAtividade() {
     try {
-        // Busca a atividade
         const resAtividade = await fetch(`${API_URL}/atividades/${idAtividade}`);
         if (!resAtividade.ok) throw new Error('Atividade não encontrada');
         atividade = await resAtividade.json();
 
-        // Busca todas as perguntas e filtra pela atividade
+        // ✅ Verifica se já respondeu ANTES de carregar tudo
+        const resRespostas = await fetch(`${API_URL}/atividadesrespostas`);
+        if (resRespostas.ok) {
+            const todasRespostas = await resRespostas.json();
+            const jaRespondeu = todasRespostas.some(
+                r => r.atividade?.idAtividade === idAtividade && r.aluno?.id === ID_ALUNO_LOGADO
+            );
+            if (jaRespondeu) {
+                document.getElementById('telaLoading').innerHTML = `
+                    <i class="fas fa-lock" style="font-size:2rem; color: var(--accent-color)"></i>
+                    <p style="margin-top: 16px; font-size: 1rem;">Você já realizou esta atividade e não pode refazê-la.</p>
+                    <button class="btn-voltar-lista" onclick="window.history.back()" style="margin-top: 24px">
+                        <i class="fas fa-arrow-left"></i> Voltar para Atividades
+                    </button>
+                `;
+                return;
+            }
+        }
+
         const resPerguntas = await fetch(`${API_URL}/atividadesPergunta`);
         if (!resPerguntas.ok) throw new Error('Erro ao carregar perguntas');
         const todasPerguntas = await resPerguntas.json();
@@ -47,7 +64,6 @@ async function carregarAtividade() {
             return;
         }
 
-        // Atualiza header
         document.getElementById('headerTitulo').textContent = atividade.titulo || 'Atividade';
         document.getElementById('headerSubtitulo').textContent =
             `${perguntas.length} questão(ões) • ${atividade.nivelDificuldade?.nome || ''} • Vale ${atividade.pontuacaoMaxima || 0} ponto(s)`;
@@ -150,7 +166,7 @@ async function enviarRespostas() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                aluno: { idUtilizador: ID_ALUNO_LOGADO },
+                aluno: { id: ID_ALUNO_LOGADO },
                 atividade: { idAtividade: idAtividade },
                 momentoInicio: agora,
                 momentoFim: agora,
@@ -176,16 +192,15 @@ function mostrarResultado(acertos, total, pontuacao) {
     const pct = Math.round((acertos / total) * 100);
 
     let emoji, titulo, subtitulo;
-    if (pct === 100) { emoji='🏆'; titulo='Perfeito!'; subtitulo='Você acertou todas as questões!'; }
-    else if (pct >= 70) { emoji='🎉'; titulo='Muito bem!'; subtitulo=`Você acertou ${pct}% das questões.`; }
-    else if (pct >= 50) { emoji='👍'; titulo='Bom trabalho!'; subtitulo=`Você acertou ${pct}% das questões.`; }
-    else { emoji='📚'; titulo='Continue praticando!'; subtitulo=`Você acertou ${pct}% das questões.`; }
+    if (pct === 100) { emoji = '🏆'; titulo = 'Perfeito!'; subtitulo = 'Você acertou todas as questões!'; }
+    else if (pct >= 70) { emoji = '🎉'; titulo = 'Muito bem!'; subtitulo = `Você acertou ${pct}% das questões.`; }
+    else if (pct >= 50) { emoji = '👍'; titulo = 'Bom trabalho!'; subtitulo = `Você acertou ${pct}% das questões.`; }
+    else { emoji = '📚'; titulo = 'Continue praticando!'; subtitulo = `Você acertou ${pct}% das questões.`; }
 
     document.getElementById('resultadoEmoji').textContent = emoji;
     document.getElementById('resultadoTitulo').textContent = titulo;
     document.getElementById('resultadoSubtitulo').textContent = subtitulo;
-    document.getElementById('notaDisplay').textContent = pontuacao;
-    document.getElementById('totalAcertos').textContent = acertos;
+    document.getElementById('notaDisplay').textContent = `${pontuacao} / ${atividade.pontuacaoMaxima || total}`; document.getElementById('totalAcertos').textContent = acertos;
     document.getElementById('totalErros').textContent = erros;
     document.getElementById('totalQuestoes').textContent = total;
 

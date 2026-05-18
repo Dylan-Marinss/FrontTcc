@@ -658,3 +658,27 @@ body {
     margin: 20px auto;
   }
 }
+
+.nota-aluno {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    gap: 2px;
+}
+
+.nota-label-card {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nota-valor {
+    font-family: var(--font-futuristic);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--status-completed);
+}
