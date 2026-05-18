@@ -6,6 +6,7 @@
     width: 100%;
 }
 
+/* ========== SIDEBAR ========== */
 .sidebar {
     width: 250px;
     background-color: #0D0D0D;
@@ -16,12 +17,13 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+    justify-content: flex-start;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
     z-index: 1000;
     transition: width 0.3s ease;
 }
 
+/* ========== SIDEBAR COLLAPSED ========== */
 .sidebar.collapsed {
     width: 70px;
 }
@@ -35,6 +37,7 @@
 .sidebar.collapsed .nav-item {
     justify-content: center;
     padding: 12px 0;
+    margin: 0 8px;
 }
 
 .sidebar.collapsed .nav-item i {
@@ -47,6 +50,7 @@
     padding: 0;
 }
 
+/* ========== HEADER ========== */
 .sidebar-header {
     display: flex;
     align-items: center;
@@ -63,6 +67,7 @@
     color: #BB86FC;
     margin-left: 10px;
     transition: opacity 0.3s ease;
+    white-space: nowrap;
 }
 
 .professor-badge {
@@ -82,14 +87,23 @@
     cursor: pointer;
     color: #a21fa2;
     transition: color 0.3s ease;
+    flex-shrink: 0;
 }
 
 .menu-icon:hover {
     color: #BB86FC;
 }
 
+/* ========== NAV ITEMS ========== */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+}
+
 .sidebar-nav ul {
     list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .sidebar-nav li {
@@ -105,6 +119,8 @@
     transition: all 0.3s ease;
     border-radius: 8px;
     margin: 0 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
 }
 
 .nav-item i {
@@ -113,6 +129,7 @@
     color: #a21fa2;
     width: 24px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .nav-item:hover {
@@ -120,29 +137,41 @@
     color: #BB86FC;
 }
 
+.nav-item:hover i {
+    color: #BB86FC;
+}
+
+/* Item ativo — gradiente igual ao da imagem */
 .nav-item.active {
     background: linear-gradient(90deg, #BB86FC 0%, #a21fa2 100%);
     color: #121212;
+    font-weight: 600;
 }
 
 .nav-item.active i {
     color: #121212;
 }
 
+/* ========== FOOTER (Sair) ========== */
 .sidebar-footer {
-    padding: 20px 0;
+    padding: 20px 0 10px;
     border-top: 1px solid #bb86fc33;
+    margin-top: auto;
 }
 
-.dashboard-content {
+/* ========== MAIN CONTENT ========== */
+/* Usa .main-content (padrão do HTML) */
+.main-content {
     flex: 1;
     margin-left: 250px;
     padding: 30px;
     transition: margin-left 0.3s ease;
     width: calc(100% - 250px);
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
-.sidebar.collapsed ~ .dashboard-content {
+.sidebar.collapsed ~ .main-content {
     margin-left: 70px;
     width: calc(100% - 70px);
 }
@@ -157,7 +186,234 @@
         transform: translateX(0);
     }
 
-    .dashboard-content {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+}
+
+/* ========== SIDEBAR PROFESSOR - COMPARTILHADA ========== */
+
+.user-dashboard {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* ========== SIDEBAR ========== */
+.sidebar,
+.professor-sidebar {
+    width: 250px;
+    background-color: #0D0D0D;
+    padding: 20px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: width 0.3s ease;
+    flex-shrink: 0;
+    border-right: 1px solid rgba(187, 134, 252, 0.2);
+}
+
+/* ========== COLLAPSED ========== */
+.sidebar.collapsed,
+.professor-sidebar.collapsed {
+    width: 70px;
+}
+
+.sidebar.collapsed .logo-text,
+.professor-sidebar.collapsed .logo-text,
+.sidebar.collapsed .nav-item span,
+.professor-sidebar.collapsed .nav-item span,
+.sidebar.collapsed .sidebar-footer span,
+.professor-sidebar.collapsed .sidebar-footer span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item,
+.professor-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 15px 0;
+    margin: 0 8px;
+}
+
+.sidebar.collapsed .nav-item i,
+.professor-sidebar.collapsed .nav-item i {
+    margin-right: 0;
+    font-size: 1.3rem;
+}
+
+.sidebar.collapsed .sidebar-header,
+.professor-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0;
+}
+
+/* ========== HEADER ========== */
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 30px;
+    height: 40px;
+}
+
+.logo-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #BB86FC;
+    margin-left: 10px;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+}
+
+.professor-badge {
+    font-size: 0.65rem;
+    background: #BB86FC;
+    color: #121212;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.menu-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #a21fa2;
+    transition: color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.menu-icon:hover {
+    color: #BB86FC;
+}
+
+/* ========== NAV ========== */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 5px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #E0E0E0;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    margin: 0 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    margin-right: 15px;
+    color: #a21fa2;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+    background-color: #1A1A1A;
+    color: #BB86FC;
+    border-left-color: #BB86FC;
+}
+
+.nav-item:hover i {
+    color: #BB86FC;
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, #BB86FC 0%, #a21fa2 100%);
+    color: #121212;
+    font-weight: 600;
+    border-left-color: transparent;
+}
+
+.nav-item.active i {
+    color: #121212;
+}
+
+/* ========== FOOTER ========== */
+.sidebar-footer {
+    padding: 20px 0 10px;
+    border-top: 1px solid rgba(187, 134, 252, 0.2);
+    margin-top: auto;
+}
+
+.sidebar-footer .nav-item.logout {
+    color: #FF3D00;
+}
+
+.sidebar-footer .nav-item.logout i {
+    color: #FF3D00;
+}
+
+.sidebar-footer .nav-item.logout:hover {
+    background: rgba(255, 61, 0, 0.1);
+    color: #FF3D00;
+    border-left-color: #FF3D00;
+}
+
+/* ========== MAIN CONTENT ========== */
+.main-content {
+    margin-left: 250px;
+    flex: 1;
+    padding: 30px;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    box-sizing: border-box;
+    background-color: #121212;
+}
+
+/* Sidebar é fixed, então o ~ não funciona.
+   O JS adiciona .sidebar-collapsed no body. */
+body.sidebar-collapsed .main-content {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+}
+
+/* ========== RESPONSIVIDADE ========== */
+@media (max-width: 768px) {
+    .sidebar,
+    .professor-sidebar {
+        transform: translateX(-250px);
+    }
+
+    .sidebar.active,
+    .professor-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main-content {
         margin-left: 0;
         width: 100%;
         padding: 20px;

@@ -3,6 +3,7 @@
    Estilos específicos da página de perfil.
    Layout/sidebar → professorSidebar.css
    ======================================================== */
+@import url('professorSidebar.css');
 
 :root {
     --primary-color: #BB86FC;
@@ -600,4 +601,33 @@ input[type="date"].info-input::-webkit-calendar-picker-indicator {
     }
 
     .alunos-container { grid-template-columns: 1fr; }
+}
+
+/* ========== ROLAGEM SUAVE ========== */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Ajuste para o conteúdo não ficar escondido atrás da sidebar */
+section {
+    scroll-margin-top: 30px;
+}
+
+/* Estilos para as novas seções (Atividades, Turmas, Dúvidas) */
+.atividades-section,
+.turmas-section,
+.duvidas-section {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.atividades-section:hover,
+.turmas-section:hover,
+.duvidas-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(187, 134, 252, 0.13);
 }
