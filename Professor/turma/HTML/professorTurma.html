@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +8,46 @@
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Fontes Google -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- CSS externo -->
     <link rel="stylesheet" href="../CSS/professorTurma.css">
     <link rel="stylesheet" href="../CSS/professorSidebar.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- SIDEBAR -->
-    <!-- SIDEBAR (Menu Lateral) - VERSÃO PROFESSOR -->
-    <div class="sidebar professor-sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-            <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
-        </div>
+        <!-- SIDEBAR (Menu Lateral) - VERSÃO PROFESSOR -->
+        <div class="sidebar professor-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
 
-        <nav class="sidebar-nav">
+            <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item active" id="nav-perfil">
-                        <i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
-                        <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                        <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
-                        <i class="fas fa-users"></i> <span>Turmas</span></a></li>
-                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
-                        <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"
+                            id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item active"
+                            id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../../../Professor/duvidas/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
                 </ul>
             </nav>
 
-        <div class="sidebar-footer">
+            <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Sair</span>
                 </a>
             </div>
-    </div>
+        </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="main-content">
@@ -111,4 +117,5 @@
     <script src="../JS/menuSideBar.js"></script>
 
 </body>
+
 </html>
