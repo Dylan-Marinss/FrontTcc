@@ -76,29 +76,106 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // =========================================
+    // DROPDOWN CUSTOMIZADO
+    // =========================================
+    function criarDropdownCustom(selectEl) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-select-wrapper';
+
+        const selected = document.createElement('div');
+        selected.className = 'custom-select-selected';
+        selected.innerHTML = `<span>${selectEl.options[0]?.text || 'Selecione...'}</span><i class="fas fa-chevron-down"></i>`;
+
+        const list = document.createElement('div');
+        list.className = 'custom-select-list';
+
+        wrapper.appendChild(selected);
+        wrapper.appendChild(list);
+
+        // Esconde o select original mas mantém no DOM
+        selectEl.style.display = 'none';
+        selectEl.parentNode.insertBefore(wrapper, selectEl);
+        wrapper.appendChild(selectEl);
+
+        // Abre/fecha
+        selected.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = wrapper.classList.contains('open');
+            fecharTodosDropdowns();
+            if (!isOpen) {
+                wrapper.classList.add('open');
+                renderOpcoes();
+            }
+        });
+
+        function renderOpcoes() {
+            list.innerHTML = '';
+            Array.from(selectEl.options).forEach((opt, i) => {
+                const item = document.createElement('div');
+                item.className = 'custom-select-item';
+                if (opt.value === selectEl.value) item.classList.add('active');
+                item.textContent = opt.text;
+                item.dataset.value = opt.value;
+
+                item.addEventListener('click', () => {
+                    selectEl.value = opt.value;
+                    selected.innerHTML = `<span>${opt.text}</span><i class="fas fa-chevron-down"></i>`;
+                    wrapper.classList.remove('open');
+                    // Dispara change para qualquer listener existente
+                    selectEl.dispatchEvent(new Event('change'));
+                });
+
+                list.appendChild(item);
+            });
+        }
+
+        // Atualiza o dropdown quando o select é populado via fetch
+        const observer = new MutationObserver(() => {
+            const firstOpt = selectEl.options[0];
+            if (firstOpt) {
+                selected.innerHTML = `<span>${firstOpt.text}</span><i class="fas fa-chevron-down"></i>`;
+            }
+        });
+        observer.observe(selectEl, { childList: true });
+
+        return wrapper;
+    }
+
+    function fecharTodosDropdowns() {
+        document.querySelectorAll('.custom-select-wrapper.open')
+            .forEach(w => w.classList.remove('open'));
+    }
+
+    // Fecha ao clicar fora
+    document.addEventListener('click', fecharTodosDropdowns);
+
+    // =========================================
     // INICIAR
     // =========================================
 
     carregarTurmas();
     carregarDificuldades();
     carregarDisciplinas();
+    criarDropdownCustom(selectSerie);
+    criarDropdownCustom(selectDificuldade);
+    criarDropdownCustom(selectDisciplina);
 
     // =========================================
     // BOTÃO CRIAR ATIVIDADE
     // =========================================
 
     document.getElementById("btnSalvarAtividade").addEventListener("click", function () {
-        const idSerie       = selectSerie.value;
+        const idSerie = selectSerie.value;
         const idDificuldade = selectDificuldade.value;
-        const idDisciplina  = document.getElementById("disciplina").value;
+        const idDisciplina = document.getElementById("disciplina").value;
 
-        if (!idSerie)       { alert("Selecione a turma.");       return; }
+        if (!idSerie) { alert("Selecione a turma."); return; }
         if (!idDificuldade) { alert("Selecione a dificuldade."); return; }
-        if (!idDisciplina)  { alert("Selecione a disciplina.");  return; }
+        if (!idDisciplina) { alert("Selecione a disciplina."); return; }
 
-        localStorage.setItem("idSerie",       idSerie);
+        localStorage.setItem("idSerie", idSerie);
         localStorage.setItem("idDificuldade", idDificuldade);
-        localStorage.setItem("idDisciplina",  idDisciplina);
+        localStorage.setItem("idDisciplina", idDisciplina);
 
         window.location.href = "atividadeCriar.html";
     });
@@ -108,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
 
     document.getElementById("btnConsultarAtividade").addEventListener("click", function () {
-    window.location.href = "minhasAtividades.html";
-});
+        window.location.href = "minhasAtividades.html";
+    });
 
 });

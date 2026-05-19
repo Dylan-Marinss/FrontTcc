@@ -62,15 +62,17 @@ function renderizarAtividades(lista) {
 
     container.innerHTML = lista.map(a => {
         const dificuldade = a.nivelDificuldade?.nome || '—';
-        const badgeClass  = resolverBadgeClass(dificuldade);
-        const pontos      = a.pontuacaoMaxima ?? 0;
-        const data        = a.dataCriacao ? formatarData(a.dataCriacao) : '—';
+        const badgeClass = resolverBadgeClass(dificuldade);
+        const pontos = a.pontuacaoMaxima ?? 0;
+        const data = a.dataCriacao ? formatarData(a.dataCriacao) : '—';
 
         return `
-            <div class="atividade-card" id="card-${a.idAtividade}">
+            <div class="atividade-card" id="card-${a.idAtividade}" 
+                onclick="abrirModalRespostas(${a.idAtividade}, '${(a.titulo || '').replace(/'/g, "\\'")}')"
+                style="cursor:pointer;">
                 <div class="card-actions">
                     <button class="btn-card-action btn-deletar" title="Excluir atividade"
-                        onclick="deletarAtividade(${a.idAtividade})">
+                        onclick="event.stopPropagation(); deletarAtividade(${a.idAtividade})">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -172,7 +174,7 @@ async function confirmarDelete() {
 // ============================================================
 function resolverBadgeClass(nomeDificuldade) {
     const n = (nomeDificuldade || '').toLowerCase();
-    if (n.includes('fácil') || n.includes('facil') || n.includes('baixo'))    return 'facil';
+    if (n.includes('fácil') || n.includes('facil') || n.includes('baixo')) return 'facil';
     if (n.includes('médio') || n.includes('medio') || n.includes('moderado')) return 'medio';
     if (n.includes('difícil') || n.includes('dificil') || n.includes('alto')) return 'dificil';
     return 'default';
@@ -190,6 +192,7 @@ function formatarData(dataStr) {
 function inicializarFechamentoModais() {
     window.onclick = function (event) {
         if (event.target === document.getElementById('modalConfirmDelete')) fecharConfirmDelete();
+        if (event.target === document.getElementById('modalRespostas')) fecharModalRespostas();
     };
 }
 
@@ -202,4 +205,114 @@ function showAlert(message, type) {
         alert.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => alert.remove(), 300);
     }, 4000);
+}
+
+// ============================================================
+//  MODAL RESPOSTAS
+// ============================================================
+async function abrirModalRespostas(idAtividade, tituloAtividade) {
+    const modal = document.getElementById('modalRespostas');
+    const body = document.getElementById('modalRespostasBody');
+    const titulo = document.getElementById('modalRespostasTitulo');
+
+    titulo.textContent = tituloAtividade;
+    body.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#9ca3af;">
+            <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;"></i>
+            <p style="margin-top:10px;">Carregando respostas...</p>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('active')));
+
+    try {
+        const res = await fetch(`${API_URL}/atividadesrespostas/atividade/${idAtividade}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const respostas = await res.json();
+        renderizarRespostas(respostas);
+    } catch (err) {
+        console.error('Erro ao carregar respostas:', err);
+        body.innerHTML = `
+            <div style="text-align:center; padding:30px; color:#9ca3af;">
+                <i class="fas fa-triangle-exclamation" style="font-size:1.5rem; color:#f59e0b;"></i>
+                <p style="margin-top:10px;">Erro ao carregar respostas.</p>
+            </div>
+        `;
+    }
+}
+
+function renderizarRespostas(respostas) {
+    const body = document.getElementById('modalRespostasBody');
+
+    if (respostas.length === 0) {
+        body.innerHTML = `
+            <div style="text-align:center; padding:30px; color:#9ca3af;">
+                <i class="fas fa-inbox" style="font-size:2rem;"></i>
+                <p style="margin-top:10px;">Nenhum aluno respondeu ainda.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const linhas = respostas.map(r => {
+        const nome = r.aluno?.nome || '—';
+        const inicio = r.momentoInicio ? formatarDataHora(r.momentoInicio) : '—';
+        const fim = r.momentoFim ? formatarDataHora(r.momentoFim) : '—';
+        const nota = r.pontuacao != null ? r.pontuacao.toFixed(1) : '—';
+
+        return `
+            <tr>
+                <td style="padding:12px 10px; border-bottom:1px solid #2a2a3a;">
+                    <i class="fas fa-user-graduate" style="margin-right:8px; color:var(--primary-color);"></i>
+                    ${nome}
+                </td>
+                <td style="padding:12px 10px; border-bottom:1px solid #2a2a3a; color:#9ca3af; font-size:0.85rem;">${inicio}</td>
+                <td style="padding:12px 10px; border-bottom:1px solid #2a2a3a; color:#9ca3af; font-size:0.85rem;">${fim}</td>
+                <td style="padding:12px 10px; border-bottom:1px solid #2a2a3a; text-align:center;">
+                    <span style="
+                        background: rgba(187,134,252,0.15);
+                        color: var(--primary-color);
+                        padding: 3px 10px;
+                        border-radius: 999px;
+                        font-weight: 600;
+                        font-size: 0.85rem;
+                    ">${nota}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    body.innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+            <thead>
+                <tr style="color:#9ca3af; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;">
+                    <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #2a2a3a;">Aluno</th>
+                    <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #2a2a3a;">Início</th>
+                    <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #2a2a3a;">Fim</th>
+                    <th style="padding:8px 10px; text-align:center; border-bottom:2px solid #2a2a3a;">Nota</th>
+                </tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+        </table>
+        <p style="margin-top:16px; color:#9ca3af; font-size:0.8rem; text-align:right;">
+            ${respostas.length} aluno${respostas.length !== 1 ? 's' : ''} respondeu${respostas.length !== 1 ? 'ram' : ''}
+        </p>
+    `;
+}
+
+function fecharModalRespostas() {
+    const modal = document.getElementById('modalRespostas');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 200);
+}
+
+function formatarDataHora(dataStr) {
+    try {
+        const d = new Date(dataStr);
+        return d.toLocaleString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    } catch { return '—'; }
 }

@@ -124,7 +124,7 @@ function renderizarAtividades() {
         </div>
         <div class="info">
             <span><i class="fas fa-chart-line"></i> Nível: ${atividade.nivelDificuldade?.nome || 'Não definido'}</span>
-            <span class="status ${concluida ? 'concluida' : 'pendente'}">${concluida ? '✅ Respondida' : '⏳ Pendente'}</span>
+            <span class="status ${concluida ? 'concluida' : 'pendente'}">${concluida ? ' Respondida' : ' Pendente'}</span>
         </div>
         ${concluida ? `
             <div class="nota-aluno">

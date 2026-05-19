@@ -6,15 +6,14 @@ const ID_PROFESSOR_LOGADO = 6; // substituir pelo ID real após login
 //  ESTADO
 // ============================================================
 let idAtividadeCriada = null;
-let questoes          = [];
-let questaoAtual      = 0;
+let questoes = [];
+let questaoAtual = 0;
 let opcaoCorretaIndex = null; // índice da alternativa marcada como correta
 
 // ============================================================
 //  INICIALIZAÇÃO
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-    carregarDificuldades();
     adicionarOpcao();
     atualizarProgresso();
     initSidebar();
@@ -25,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 function initSidebar() {
     const menuToggle = document.getElementById('menu-toggle');
-    const sidebar    = document.getElementById('sidebar');
+    const sidebar = document.getElementById('sidebar');
     if (!menuToggle || !sidebar) return;
 
     menuToggle.addEventListener('click', () => {
@@ -147,7 +146,7 @@ function renumerarOpcoes() {
         });
 
         const radio = row.querySelector('.opcao-radio');
-        radio.id    = `radio-${i}`;
+        radio.id = `radio-${i}`;
         radio.value = i;
         radio.checked = false;
         radio.onchange = null;
@@ -193,19 +192,19 @@ function marcarCorreta(idx) {
 //  ATUALIZAR INDICADOR VISUAL DE CORRETA
 // ============================================================
 function atualizarIndicadorCorreta() {
-    const hint   = document.getElementById('correta-hint');
+    const hint = document.getElementById('correta-hint');
     const status = document.getElementById('correta-status');
-    const texto  = document.getElementById('correta-status-texto');
+    const texto = document.getElementById('correta-status-texto');
 
     if (opcaoCorretaIndex !== null) {
         // Esconde a dica, mostra o status de sucesso
-        if (hint)   hint.style.display   = 'none';
+        if (hint) hint.style.display = 'none';
         if (status) status.style.display = 'flex';
-        if (texto)  texto.textContent    =
+        if (texto) texto.textContent =
             `Alternativa ${LETRAS[opcaoCorretaIndex]} marcada como correta`;
     } else {
         // Mostra a dica, esconde o status
-        if (hint)   hint.style.display   = 'flex';
+        if (hint) hint.style.display = 'flex';
         if (status) status.style.display = 'none';
     }
 }
@@ -246,8 +245,13 @@ function atualizarProgresso() {
 async function criarAtividadeSeNecessario() {
     if (idAtividadeCriada) return true;
 
-    const titulo      = document.getElementById('titulo')?.value.trim();
-    const dificuldade = document.getElementById('dificuldade')?.value;
+    const titulo = document.getElementById('titulo')?.value.trim();
+    const dificuldade = localStorage.getItem('idDificuldade');
+
+    if (!dificuldade || dificuldade === 'null') {
+        showToast('Erro: nível de dificuldade não encontrado. Volte à tela anterior.', 'error');
+        return false;
+    }
 
     if (!titulo) {
         showToast('Digite o título da atividade.', 'error');
@@ -255,11 +259,6 @@ async function criarAtividadeSeNecessario() {
         return false;
     }
 
-    if (!dificuldade || dificuldade === '' || dificuldade === 'null') {
-        showToast('Selecione o nível de dificuldade.', 'error');
-        document.getElementById('dificuldade')?.focus();
-        return false;
-    }
 
     try {
         const res = await fetch(`${API_URL}/atividades`, {
@@ -332,10 +331,10 @@ async function salvarQuestaoAtual() {
             hint.style.display = 'flex';
             hint.scrollIntoView({ behavior: 'smooth', block: 'center' });
             hint.style.borderColor = 'var(--accent-color)';
-            hint.style.background  = 'rgba(255,61,0,0.08)';
+            hint.style.background = 'rgba(255,61,0,0.08)';
             setTimeout(() => {
                 hint.style.borderColor = '';
-                hint.style.background  = '';
+                hint.style.background = '';
             }, 2500);
         }
         return null;
@@ -352,7 +351,7 @@ async function salvarQuestaoAtual() {
             })
         });
         if (!resPergunta.ok) throw new Error(`Pergunta HTTP ${resPergunta.status}`);
-        const pergunta   = await resPergunta.json();
+        const pergunta = await resPergunta.json();
         const idPergunta = pergunta.id ?? pergunta.idPergunta;
 
         // 2. Salva as opções
@@ -383,7 +382,7 @@ async function salvarQuestaoAtual() {
 //  PRÓXIMA QUESTÃO
 // ============================================================
 async function proximaQuestao() {
-    const btn   = document.getElementById('btn-proxima');
+    const btn = document.getElementById('btn-proxima');
     const label = '<i class="fas fa-save"></i> Próxima Questão';
     setLoading(btn, true, 'Salvando...');
 
@@ -418,7 +417,7 @@ function carregarQuestao(index) {
     if (!q) return;
 
     const enunciadoEl = document.getElementById('enunciado');
-    const container   = document.getElementById('opcoes-container');
+    const container = document.getElementById('opcoes-container');
 
     if (enunciadoEl) enunciadoEl.value = q.enunciado;
     container.innerHTML = '';
@@ -452,12 +451,26 @@ async function publicarAtividade() {
     const criou = await criarAtividadeSeNecessario();
     if (!criou) { setLoading(btn, false, label); return; }
 
-    const salvo = await salvarQuestaoAtual();
-    if (!salvo) { setLoading(btn, false, label); return; }
+    // Verifica se o professor preencheu algo na questão atual
+    const enunciado = document.getElementById('enunciado')?.value.trim();
+    const temOpcoes = Array.from(document.querySelectorAll('.opcao-input'))
+                           .some(i => i.value.trim() !== '');
+
+    const questaoAtualPreenchida = enunciado || temOpcoes;
+
+    if (questaoAtualPreenchida) {
+        // Tem conteúdo digitado — tenta salvar antes de publicar
+        const salvo = await salvarQuestaoAtual();
+        if (!salvo) { setLoading(btn, false, label); return; }
+    } else if (questoes.filter(Boolean).length === 0) {
+        // Formulário vazio E nenhuma questão salva ainda
+        showToast('Adicione ao menos uma questão antes de publicar.', 'error');
+        setLoading(btn, false, label);
+        return;
+    }
 
     const total = questoes.filter(Boolean).length;
 
-    // Atualiza pontuação
     try {
         const resUpdate = await fetch(
             `${API_URL}/atividades/${idAtividadeCriada}/pontuacao?pontuacaoMaxima=${total}`,
@@ -474,7 +487,7 @@ async function publicarAtividade() {
     showToast('Atividade publicada com sucesso!');
     setLoading(btn, false, label);
     setTimeout(() => {
-        window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
+        window.location.href = 'minhasAtividades.html';
     }, 2000);
 }
 
@@ -482,7 +495,7 @@ async function publicarAtividade() {
 //  SALVAR RASCUNHO
 // ============================================================
 async function salvarRascunho() {
-    const btn   = document.querySelector('.main-actions .btn-outline');
+    const btn = document.querySelector('.main-actions .btn-outline');
     const label = '<i class="fas fa-save"></i> Salvar Rascunho';
     setLoading(btn, true, 'Salvando Rascunho...');
 
@@ -511,44 +524,15 @@ function cancelar() {
     window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
 }
 
-// ============================================================
-//  CARREGAR DIFICULDADES
-// ============================================================
-async function carregarDificuldades() {
-    try {
-        const res = await fetch(`${API_URL}/niveldificuldade`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const lista  = await res.json();
-        const select = document.getElementById('dificuldade');
-        if (!select) return;
-
-        select.innerHTML = '<option value="">Selecione a dificuldade</option>';
-        lista.forEach(d => {
-            const opt     = document.createElement('option');
-            opt.value     = d.idNivelDificuldade;
-            opt.textContent = d.nome;
-            select.appendChild(opt);
-        });
-
-        // Pre-seleciona se vier do localStorage
-        const dif = localStorage.getItem('idDificuldade');
-        if (dif) select.value = dif;
-
-    } catch (err) {
-        console.error('[EstudeX] Erro ao carregar dificuldades:', err);
-        showToast('Erro ao carregar dificuldades.', 'error');
-    }
-}
 
 // ============================================================
 //  UTILITÁRIOS
 // ============================================================
 function limparFormulario() {
     const enunciadoEl = document.getElementById('enunciado');
-    const container   = document.getElementById('opcoes-container');
+    const container = document.getElementById('opcoes-container');
     if (enunciadoEl) enunciadoEl.value = '';
-    if (container)   container.innerHTML = '';
+    if (container) container.innerHTML = '';
     opcaoCorretaIndex = null;
     atualizarIndicadorCorreta(); // reseta o indicador
     adicionarOpcao();
@@ -558,7 +542,7 @@ function limparFormulario() {
 
 function setLoading(btn, loading, htmlLabel) {
     if (!btn) return;
-    btn.disabled  = loading;
+    btn.disabled = loading;
     btn.innerHTML = loading
         ? `<i class="fas fa-spinner fa-spin"></i> ${htmlLabel}`
         : htmlLabel;
@@ -566,12 +550,12 @@ function setLoading(btn, loading, htmlLabel) {
 
 function showToast(msg, tipo = 'success') {
     const toast = document.getElementById('toast');
-    const icon  = document.getElementById('toast-icon');
+    const icon = document.getElementById('toast-icon');
     const msgEl = document.getElementById('toast-msg');
     if (!toast || !icon || !msgEl) return;
 
     msgEl.textContent = msg;
-    toast.className   = 'toast';
+    toast.className = 'toast';
 
     if (tipo === 'error') {
         toast.classList.add('error');
