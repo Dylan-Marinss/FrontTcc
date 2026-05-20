@@ -275,11 +275,20 @@ body {
     align-items: center;
     padding-top: 15px;
     border-top: 1px solid rgba(187, 134, 252, 0.1);
+    margin-top: auto;       /* adiciona isso — empurra o footer para o fundo */
 }
 
-.duvida-data {
-    font-size: 0.8rem;
-    color: var(--text-muted);
+.duvida-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;          /* adiciona isso */
+    flex-direction: column; /* e isso */
 }
 
 .duvida-actions {
@@ -445,8 +454,12 @@ body {
 .duvida-aluno,
 .duvida-disciplina,
 .duvida-data {
-    display: flex;
-    flex-direction: column;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: inline-flex;   /* troca flex por inline-flex */
+    flex-direction: row;    /* força row explicitamente */
+    align-items: center;
+    gap: 6px;
 }
 
 .duvida-info .label {

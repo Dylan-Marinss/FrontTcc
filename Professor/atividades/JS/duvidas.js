@@ -23,37 +23,61 @@ document.addEventListener('DOMContentLoaded', () => {
 //  CONFIGURAR EVENTOS
 // ============================================================
 function configurarEventos() {
-    // Busca
     document.getElementById('search-input').addEventListener('input', () => filtrarDuvidas());
-
-    // Filtros
     document.getElementById('filter-disciplina').addEventListener('change', () => filtrarDuvidas());
     document.getElementById('filter-turma').addEventListener('change', () => filtrarDuvidas());
     document.getElementById('filter-status').addEventListener('change', () => filtrarDuvidas());
 
-    // Fechar modal ao clicar fora
     document.getElementById('modal-resposta').addEventListener('click', (e) => {
-        if (e.target.id === 'modal-resposta') {
-            fecharModal();
-        }
+        if (e.target.id === 'modal-resposta') fecharModal();
     });
 }
 
 // ============================================================
 //  CARREGAR DÚVIDAS
+//  - Busca TODAS as dúvidas + todas as respostas em paralelo
+//  - Cruza os dados para calcular o status de cada dúvida
 // ============================================================
 async function carregarDuvidas() {
     try {
-        const res = await fetch(`${API_URL}/duvidas?idProfessor=${ID_PROFESSOR_LOGADO}`);
-        
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        duvidasLista = await res.json();
-        
-        if (duvidasLista.content) {
-            duvidasLista = duvidasLista.content;
+        // Busca dúvidas e respostas em paralelo
+        const [resDuvidas, resRespostas] = await Promise.all([
+            fetch(`${API_URL}/duvidas`),
+            fetch(`${API_URL}/respostasDuvidas`)
+        ]);
+
+        if (!resDuvidas.ok) throw new Error(`HTTP ${resDuvidas.status}`);
+
+        let todasDuvidas = await resDuvidas.json();
+
+        // Suporta paginação Spring (Page<T>)
+        if (todasDuvidas.content) todasDuvidas = todasDuvidas.content;
+
+        // Monta um Set com os idDuvida que já foram respondidos
+        let idsRespondidos = new Set();
+        if (resRespostas.ok) {
+            const respostas = await resRespostas.json();
+            // A entidade RespostaDuvida usa "idDuvida" como FK para Duvida
+            respostas.forEach(r => {
+                if (r.idDuvida) idsRespondidos.add(r.idDuvida);
+            });
         }
-        
+
+        // Normaliza cada dúvida para o formato que o frontend espera
+        duvidasLista = todasDuvidas.map(d => ({
+            id:         d.idDuvida,
+            aluno:      d.utilizador?.nome || 'Aluno desconhecido',
+            disciplina: d.disciplina?.nome || 'Sem disciplina',
+            turma:      d.utilizador?.serie?.nomeSerie || d.utilizador?.turma || 'Sem turma',
+            titulo:     d.titulo || 'Sem título',
+            descricao:  d.descricao || '',
+            data:       formatarData(d.momento),
+            status:     idsRespondidos.has(d.idDuvida) ? 'respondida' : 'pendente',
+            respondida: idsRespondidos.has(d.idDuvida),
+            // Guarda o objeto original para uso no envio da resposta
+            _raw: d
+        }));
+
         duvidasFiltradas = [...duvidasLista];
         renderizarDuvidas();
         atualizarEstatisticas();
@@ -62,15 +86,7 @@ async function carregarDuvidas() {
     } catch (err) {
         console.error('Erro ao carregar dúvidas:', err);
         showToast('Erro ao carregar dúvidas. Verifique o backend.', 'error');
-        
-        // Dados de exemplo para teste
-        duvidasLista = [
-            { id: 1, aluno: 'João Silva', disciplina: 'Matemática', turma: '3º Ano A', titulo: 'Dúvida sobre Derivadas', descricao: 'Não entendi como calcular a derivada de funções compostas. Pode me explicar o método da cadeia?', data: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'), status: 'pendente', respondida: false },
-            { id: 2, aluno: 'Maria Santos', disciplina: 'Português', turma: '2º Ano B', titulo: 'Análise de Figuras de Linguagem', descricao: 'Qual é a diferença entre metáfora e metonímia? Pode dar exemplos práticos?', data: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'), status: 'pendente', respondida: false },
-            { id: 3, aluno: 'Pedro Oliveira', disciplina: 'História', turma: '3º Ano A', titulo: 'Revolução Francesa', descricao: 'Qual foi o impacto da Revolução Francesa na política mundial?', data: new Date().toLocaleDateString('pt-BR'), status: 'respondida', respondida: true },
-            { id: 4, aluno: 'Ana Costa', disciplina: 'Química', turma: '1º Ano C', titulo: 'Reações Químicas', descricao: 'Como balancear uma equação química? Qual é o método mais fácil?', data: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR'), status: 'respondida', respondida: true }
-        ];
-        
+
         duvidasFiltradas = [...duvidasLista];
         renderizarDuvidas();
         atualizarEstatisticas();
@@ -80,26 +96,23 @@ async function carregarDuvidas() {
 
 function popularFiltros() {
     const disciplinas = [...new Set(duvidasLista.map(d => d.disciplina))];
-    const turmas = [...new Set(duvidasLista.map(d => d.turma))];
+    const turmas      = [...new Set(duvidasLista.map(d => d.turma))];
 
-    const selectDisc = document.getElementById('filter-disciplina');
+    const selectDisc  = document.getElementById('filter-disciplina');
     const selectTurma = document.getElementById('filter-turma');
 
-    // Limpar opções anteriores exceto a primeira
-    selectDisc.innerHTML = '<option value="">Todas as Disciplinas</option>';
+    selectDisc.innerHTML  = '<option value="">Todas as Disciplinas</option>';
     selectTurma.innerHTML = '<option value="">Todas as Turmas</option>';
 
     disciplinas.forEach(d => {
         const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
+        opt.value = opt.textContent = d;
         selectDisc.appendChild(opt);
     });
 
     turmas.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
+        opt.value = opt.textContent = t;
         selectTurma.appendChild(opt);
     });
 }
@@ -108,23 +121,17 @@ function popularFiltros() {
 //  FILTRAR DÚVIDAS
 // ============================================================
 function filtrarDuvidas() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const statusFilter = document.getElementById('filter-status').value;
-    const disciplinaFilter = document.getElementById('filter-disciplina').value;
-    const turmaFilter = document.getElementById('filter-turma').value;
+    const searchTerm      = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter    = document.getElementById('filter-status').value;
+    const disciplinaFilter= document.getElementById('filter-disciplina').value;
+    const turmaFilter     = document.getElementById('filter-turma').value;
 
-    duvidasFiltradas = duvidasLista.filter(duvida => {
-        const matchSearch = 
-            duvida.titulo.toLowerCase().includes(searchTerm) ||
-            duvida.descricao.toLowerCase().includes(searchTerm) ||
-            duvida.aluno.toLowerCase().includes(searchTerm);
-
-        const matchStatus = !statusFilter || duvida.status === statusFilter;
-        const matchDisc = !disciplinaFilter || duvida.disciplina === disciplinaFilter;
-        const matchTurma = !turmaFilter || duvida.turma === turmaFilter;
-
-        return matchSearch && matchStatus && matchDisc && matchTurma;
-    });
+    duvidasFiltradas = duvidasLista.filter(d =>
+        (!searchTerm       || d.titulo.toLowerCase().includes(searchTerm) || d.descricao.toLowerCase().includes(searchTerm) || d.aluno.toLowerCase().includes(searchTerm)) &&
+        (!statusFilter     || d.status === statusFilter) &&
+        (!disciplinaFilter || d.disciplina === disciplinaFilter) &&
+        (!turmaFilter      || d.turma === turmaFilter)
+    );
 
     renderizarDuvidas();
 }
@@ -133,7 +140,7 @@ function filtrarDuvidas() {
 //  RENDERIZAR DÚVIDAS
 // ============================================================
 function renderizarDuvidas() {
-    const grid = document.getElementById('duvidas-grid');
+    const grid       = document.getElementById('duvidas-grid');
     const emptyState = document.getElementById('empty-state');
 
     if (duvidasFiltradas.length === 0) {
@@ -152,7 +159,7 @@ function renderizarDuvidas() {
                 </div>
                 <span class="duvida-status ${duvida.status}">
                     <i class="fas fa-${duvida.respondida ? 'check-circle' : 'clock'}"></i>
-                    ${duvida.status === 'respondida' ? 'Respondida' : duvida.status === 'arquivada' ? 'Arquivada' : 'Pendente'}
+                    ${duvida.status === 'respondida' ? 'Respondida' : duvida.status === 'Pendente' ? 'Pendente' : 'Pendente'}
                 </span>
             </div>
             <h3 class="duvida-titulo">${duvida.titulo}</h3>
@@ -165,9 +172,6 @@ function renderizarDuvidas() {
                     <button class="btn-icon" title="Responder" onclick="event.stopPropagation(); abrirModal(${duvida.id})">
                         <i class="fas fa-reply"></i>
                     </button>
-                    <button class="btn-icon" title="Arquivar" onclick="event.stopPropagation(); arquivarDuvida(${duvida.id})">
-                        <i class="fas fa-archive"></i>
-                    </button>
                 </div>
             </div>
         </div>
@@ -179,19 +183,15 @@ function renderizarDuvidas() {
 // ============================================================
 function abrirModal(id) {
     duvidasAtual = duvidasLista.find(d => d.id === id);
-
     if (!duvidasAtual) return;
 
-    // Preencher informações da dúvida
-    document.getElementById('modal-aluno').textContent = duvidasAtual.aluno;
+    document.getElementById('modal-aluno').textContent      = duvidasAtual.aluno;
     document.getElementById('modal-disciplina').textContent = `${duvidasAtual.disciplina} (${duvidasAtual.turma})`;
-    document.getElementById('modal-data').textContent = duvidasAtual.data;
-    document.getElementById('modal-descricao').textContent = duvidasAtual.descricao;
-    document.getElementById('modal-resposta-text').value = '';
+    document.getElementById('modal-data').textContent       = duvidasAtual.data;
+    document.getElementById('modal-descricao').textContent  = duvidasAtual.descricao;
+    document.getElementById('modal-resposta-text').value    = '';
 
-    // Mostrar modal
-    const modal = document.getElementById('modal-resposta');
-    modal.classList.add('show');
+    document.getElementById('modal-resposta').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
 
@@ -199,26 +199,31 @@ function abrirModal(id) {
 //  FECHAR MODAL
 // ============================================================
 function fecharModal() {
-    const modal = document.getElementById('modal-resposta');
-    modal.classList.remove('show');
+    document.getElementById('modal-resposta').classList.remove('show');
     document.body.style.overflow = 'auto';
     duvidasAtual = null;
 }
 
 // ============================================================
 //  ENVIAR RESPOSTA
+//  - Endpoint correto: POST /respostasDuvidas
+//  - Body alinhado com a entidade RespostaDuvida:
+//      { idDuvida, conteudoResposta, momento, utilizador: { id } }
+//
+//  ATENÇÃO: a entidade RespostaDuvida precisa ter um campo
+//  "idDuvida" como FK para a entidade Duvida (ver nota abaixo).
 // ============================================================
 async function enviarResposta() {
     if (!duvidasAtual) return;
 
-    const resposta = document.getElementById('modal-resposta-text').value.trim();
+    const conteudoResposta = document.getElementById('modal-resposta-text').value.trim();
 
-    if (!resposta) {
+    if (!conteudoResposta) {
         showToast('Digite uma resposta antes de enviar.', 'error');
         return;
     }
 
-    if (resposta.length > 2000) {
+    if (conteudoResposta.length > 2000) {
         showToast('A resposta não pode exceder 2000 caracteres.', 'error');
         return;
     }
@@ -227,27 +232,30 @@ async function enviarResposta() {
     setLoading(btn, true, 'Enviando...');
 
     try {
-        const res = await fetch(`${API_URL}/duvidas/${duvidasAtual.id}/resposta`, {
+        const res = await fetch(`${API_URL}/respostasDuvidas`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                resposta,
-                idProfessor: ID_PROFESSOR_LOGADO,
-                dataResposta: new Date().toISOString()
+                // FK para a dúvida — veja nota sobre a entidade abaixo
+                idDuvida:          duvidasAtual.id,
+                conteudoResposta:  conteudoResposta,
+                momento:           new Date().toISOString(),
+                utilizador:        { id: ID_PROFESSOR_LOGADO }
             })
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const duvidasIndex = duvidasLista.findIndex(d => d.id === duvidasAtual.id);
-        if (duvidasIndex !== -1) {
-            duvidasLista[duvidasIndex].status = 'respondida';
-            duvidasLista[duvidasIndex].respondida = true;
+        // Atualiza o estado local
+        const idx = duvidasLista.findIndex(d => d.id === duvidasAtual.id);
+        if (idx !== -1) {
+            duvidasLista[idx].status    = 'respondida';
+            duvidasLista[idx].respondida = true;
         }
 
         showToast('Resposta enviada com sucesso!', 'success');
         fecharModal();
-        renderizarDuvidas();
+        filtrarDuvidas();  // re-renderiza respeitando filtros ativos
         atualizarEstatisticas();
 
     } catch (err) {
@@ -258,63 +266,43 @@ async function enviarResposta() {
     }
 }
 
-// ============================================================
-//  ARQUIVAR DÚVIDA
-// ============================================================
-async function arquivarDuvida(id) {
-    if (!confirm('Tem certeza que deseja arquivar esta dúvida?')) return;
-
-    try {
-        const res = await fetch(`${API_URL}/duvidas/${id}/arquivar`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const duvidasIndex = duvidasLista.findIndex(d => d.id === id);
-        if (duvidasIndex !== -1) {
-            duvidasLista[duvidasIndex].status = 'arquivada';
-        }
-
-        showToast('Dúvida arquivada com sucesso!', 'success');
-        filtrarDuvidas();
-        atualizarEstatisticas();
-
-    } catch (err) {
-        console.error('Erro ao arquivar dúvida:', err);
-        showToast('Erro ao arquivar dúvida.', 'error');
-    }
-}
 
 // ============================================================
 //  ATUALIZAR ESTATÍSTICAS
 // ============================================================
 function atualizarEstatisticas() {
-    const pendentes = duvidasLista.filter(d => d.status === 'pendente').length;
-    const respondidas = duvidasLista.filter(d => d.status === 'respondida').length;
-    const total = duvidasLista.length;
-
-    document.getElementById('stat-pendentes').textContent = pendentes;
-    document.getElementById('stat-respondidas').textContent = respondidas;
-    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-pendentes').textContent  = duvidasLista.filter(d => d.status === 'pendente').length;
+    document.getElementById('stat-respondidas').textContent= duvidasLista.filter(d => d.status === 'respondida').length;
+    document.getElementById('stat-total').textContent      = duvidasLista.length;
 }
 
 // ============================================================
 //  UTILITÁRIOS
 // ============================================================
-function setLoading(btn, loading, html) {
-    btn.disabled = loading;
-    btn.innerHTML = loading ? '<i class="fas fa-spinner fa-spin"></i> ' + html : html;
+function formatarData(dataString) {
+    if (!dataString) return 'Data não disponível';
+    try {
+        const data = new Date(dataString);
+        if (isNaN(data.getTime())) return dataString;
+        return data.toLocaleDateString('pt-BR') + ' ' +
+               data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return dataString;
+    }
 }
 
-function showToast(msg, tipo) {
-    tipo = tipo || 'success';
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toast-icon');
-    document.getElementById('toast-msg').textContent = msg;
+function setLoading(btn, loading, html) {
+    btn.disabled  = loading;
+    btn.innerHTML = loading ? `<i class="fas fa-spinner fa-spin"></i> ${html}` : html;
+}
 
+function showToast(msg, tipo = 'success') {
+    const toast = document.getElementById('toast');
+    const icon  = document.getElementById('toast-icon');
+
+    document.getElementById('toast-msg').textContent = msg;
     toast.className = 'toast';
+
     if (tipo === 'error') {
         toast.classList.add('error');
         icon.className = 'fas fa-circle-xmark';
@@ -324,7 +312,7 @@ function showToast(msg, tipo) {
 
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(function () { toast.classList.remove('show'); }, 3500);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
 // ============================================================
