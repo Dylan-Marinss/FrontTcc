@@ -55,26 +55,30 @@ async function carregarDuvidas() {
 
         // Monta um Set com os idDuvida que já foram respondidos
         let idsRespondidos = new Set();
+        let respostasMap = new Map();
         if (resRespostas.ok) {
             const respostas = await resRespostas.json();
             // A entidade RespostaDuvida usa "idDuvida" como FK para Duvida
             respostas.forEach(r => {
-                if (r.idDuvida) idsRespondidos.add(r.idDuvida);
+                if (r.idDuvida) {
+                    idsRespondidos.add(r.idDuvida);
+                    respostasMap.set(r.idDuvida, r.conteudoResposta || '');
+                }
             });
         }
 
         // Normaliza cada dúvida para o formato que o frontend espera
         duvidasLista = todasDuvidas.map(d => ({
-            id:         d.idDuvida,
-            aluno:      d.utilizador?.nome || 'Aluno desconhecido',
+            id: d.idDuvida,
+            aluno: d.utilizador?.nome || 'Aluno desconhecido',
             disciplina: d.disciplina?.nome || 'Sem disciplina',
-            turma:      d.utilizador?.serie?.nomeSerie || d.utilizador?.turma || 'Sem turma',
-            titulo:     d.titulo || 'Sem título',
-            descricao:  d.descricao || '',
-            data:       formatarData(d.momento),
-            status:     idsRespondidos.has(d.idDuvida) ? 'respondida' : 'pendente',
+            turma: d.utilizador?.serie?.nomeSerie || d.utilizador?.turma || 'Sem turma',
+            titulo: d.titulo || 'Sem título',
+            descricao: d.descricao || '',
+            data: formatarData(d.momento),
+            status: idsRespondidos.has(d.idDuvida) ? 'respondida' : 'pendente',
             respondida: idsRespondidos.has(d.idDuvida),
-            // Guarda o objeto original para uso no envio da resposta
+            conteudoResposta: respostasMap.get(d.idDuvida) || '',
             _raw: d
         }));
 
@@ -96,12 +100,12 @@ async function carregarDuvidas() {
 
 function popularFiltros() {
     const disciplinas = [...new Set(duvidasLista.map(d => d.disciplina))];
-    const turmas      = [...new Set(duvidasLista.map(d => d.turma))];
+    const turmas = [...new Set(duvidasLista.map(d => d.turma))];
 
-    const selectDisc  = document.getElementById('filter-disciplina');
+    const selectDisc = document.getElementById('filter-disciplina');
     const selectTurma = document.getElementById('filter-turma');
 
-    selectDisc.innerHTML  = '<option value="">Todas as Disciplinas</option>';
+    selectDisc.innerHTML = '<option value="">Todas as Disciplinas</option>';
     selectTurma.innerHTML = '<option value="">Todas as Turmas</option>';
 
     disciplinas.forEach(d => {
@@ -121,16 +125,16 @@ function popularFiltros() {
 //  FILTRAR DÚVIDAS
 // ============================================================
 function filtrarDuvidas() {
-    const searchTerm      = document.getElementById('search-input').value.toLowerCase();
-    const statusFilter    = document.getElementById('filter-status').value;
-    const disciplinaFilter= document.getElementById('filter-disciplina').value;
-    const turmaFilter     = document.getElementById('filter-turma').value;
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const statusFilter = document.getElementById('filter-status').value;
+    const disciplinaFilter = document.getElementById('filter-disciplina').value;
+    const turmaFilter = document.getElementById('filter-turma').value;
 
     duvidasFiltradas = duvidasLista.filter(d =>
-        (!searchTerm       || d.titulo.toLowerCase().includes(searchTerm) || d.descricao.toLowerCase().includes(searchTerm) || d.aluno.toLowerCase().includes(searchTerm)) &&
-        (!statusFilter     || d.status === statusFilter) &&
+        (!searchTerm || d.titulo.toLowerCase().includes(searchTerm) || d.descricao.toLowerCase().includes(searchTerm) || d.aluno.toLowerCase().includes(searchTerm)) &&
+        (!statusFilter || d.status === statusFilter) &&
         (!disciplinaFilter || d.disciplina === disciplinaFilter) &&
-        (!turmaFilter      || d.turma === turmaFilter)
+        (!turmaFilter || d.turma === turmaFilter)
     );
 
     renderizarDuvidas();
@@ -140,7 +144,7 @@ function filtrarDuvidas() {
 //  RENDERIZAR DÚVIDAS
 // ============================================================
 function renderizarDuvidas() {
-    const grid       = document.getElementById('duvidas-grid');
+    const grid = document.getElementById('duvidas-grid');
     const emptyState = document.getElementById('empty-state');
 
     if (duvidasFiltradas.length === 0) {
@@ -169,7 +173,9 @@ function renderizarDuvidas() {
                     <i class="fas fa-calendar-alt"></i> ${duvida.data}
                 </span>
                 <div class="duvida-actions">
-                    <button class="btn-icon" title="Responder" onclick="event.stopPropagation(); abrirModal(${duvida.id})">
+                    <button class="btn-icon" title="${duvida.respondida ? 'Já respondida' : 'Responder'}" 
+                        ${duvida.respondida ? 'disabled' : `onclick="event.stopPropagation(); abrirModal(${duvida.id})"`}
+                        style="${duvida.respondida ? 'opacity:0.4; cursor:not-allowed;' : ''}">
                         <i class="fas fa-reply"></i>
                     </button>
                 </div>
@@ -185,11 +191,37 @@ function abrirModal(id) {
     duvidasAtual = duvidasLista.find(d => d.id === id);
     if (!duvidasAtual) return;
 
-    document.getElementById('modal-aluno').textContent      = duvidasAtual.aluno;
+    document.getElementById('modal-aluno').textContent = duvidasAtual.aluno;
     document.getElementById('modal-disciplina').textContent = `${duvidasAtual.disciplina} (${duvidasAtual.turma})`;
-    document.getElementById('modal-data').textContent       = duvidasAtual.data;
-    document.getElementById('modal-descricao').textContent  = duvidasAtual.descricao;
-    document.getElementById('modal-resposta-text').value    = '';
+    document.getElementById('modal-data').textContent = duvidasAtual.data;
+    document.getElementById('modal-descricao').textContent = duvidasAtual.descricao;
+
+    const textarea = document.getElementById('modal-resposta-text');
+    const btnEnviar = document.querySelector('.modal-footer .btn-primary');
+
+    if (duvidasAtual.respondida) {
+        textarea.value = duvidasAtual.conteudoResposta || 'Resposta não disponível.';
+        textarea.disabled = true;
+        btnEnviar.disabled = true;
+        btnEnviar.style.opacity = '0.5';
+        btnEnviar.style.cursor = 'not-allowed';
+
+        const jaExiste = document.getElementById('aviso-ja-respondida');
+        if (jaExiste) jaExiste.remove();
+
+        const aviso = document.createElement('p');
+        aviso.id = 'aviso-ja-respondida';
+        aviso.textContent = '⚠️ Esta dúvida já foi respondida e não pode ser alterada.';
+        aviso.style.cssText = 'color:#e74c3c; font-size:0.82rem; margin-top:6px; font-weight:600;';
+        textarea.insertAdjacentElement('afterend', aviso);
+
+    } else {
+        textarea.value = '';
+        textarea.disabled = false;
+        btnEnviar.disabled = false;
+        btnEnviar.style.opacity = '';
+        btnEnviar.style.cursor = '';
+    }
 
     document.getElementById('modal-resposta').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -218,6 +250,12 @@ async function enviarResposta() {
 
     const conteudoResposta = document.getElementById('modal-resposta-text').value.trim();
 
+
+    if (duvidasAtual.respondida) {
+        showToast('Esta dúvida já foi respondida e não pode ser respondida novamente.', 'error');
+        return;
+    }
+
     if (!conteudoResposta) {
         showToast('Digite uma resposta antes de enviar.', 'error');
         return;
@@ -237,10 +275,10 @@ async function enviarResposta() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 // FK para a dúvida — veja nota sobre a entidade abaixo
-                idDuvida:          duvidasAtual.id,
-                conteudoResposta:  conteudoResposta,
-                momento:           new Date().toISOString(),
-                utilizador:        { id: ID_PROFESSOR_LOGADO }
+                idDuvida: duvidasAtual.id,
+                conteudoResposta: conteudoResposta,
+                momento: new Date().toISOString(),
+                utilizador: { id: ID_PROFESSOR_LOGADO }
             })
         });
 
@@ -249,8 +287,9 @@ async function enviarResposta() {
         // Atualiza o estado local
         const idx = duvidasLista.findIndex(d => d.id === duvidasAtual.id);
         if (idx !== -1) {
-            duvidasLista[idx].status    = 'respondida';
+            duvidasLista[idx].status = 'respondida';
             duvidasLista[idx].respondida = true;
+            duvidasLista[idx].conteudoResposta = conteudoResposta;
         }
 
         showToast('Resposta enviada com sucesso!', 'success');
@@ -271,9 +310,9 @@ async function enviarResposta() {
 //  ATUALIZAR ESTATÍSTICAS
 // ============================================================
 function atualizarEstatisticas() {
-    document.getElementById('stat-pendentes').textContent  = duvidasLista.filter(d => d.status === 'pendente').length;
-    document.getElementById('stat-respondidas').textContent= duvidasLista.filter(d => d.status === 'respondida').length;
-    document.getElementById('stat-total').textContent      = duvidasLista.length;
+    document.getElementById('stat-pendentes').textContent = duvidasLista.filter(d => d.status === 'pendente').length;
+    document.getElementById('stat-respondidas').textContent = duvidasLista.filter(d => d.status === 'respondida').length;
+    document.getElementById('stat-total').textContent = duvidasLista.length;
 }
 
 // ============================================================
@@ -284,21 +323,25 @@ function formatarData(dataString) {
     try {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
-        return data.toLocaleDateString('pt-BR') + ' ' +
-               data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return data.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' +
+               data.toLocaleTimeString('pt-BR', { 
+                   hour: '2-digit', 
+                   minute: '2-digit',
+                   timeZone: 'America/Sao_Paulo'
+               });
     } catch {
         return dataString;
     }
 }
 
 function setLoading(btn, loading, html) {
-    btn.disabled  = loading;
+    btn.disabled = loading;
     btn.innerHTML = loading ? `<i class="fas fa-spinner fa-spin"></i> ${html}` : html;
 }
 
 function showToast(msg, tipo = 'success') {
     const toast = document.getElementById('toast');
-    const icon  = document.getElementById('toast-icon');
+    const icon = document.getElementById('toast-icon');
 
     document.getElementById('toast-msg').textContent = msg;
     toast.className = 'toast';

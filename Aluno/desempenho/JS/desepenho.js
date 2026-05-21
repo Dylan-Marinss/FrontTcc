@@ -1,595 +1,481 @@
-// desempenho.js - Página de Desempenho do Aluno
-
-// ========== CONFIGURAÇÕES ==========
+// ============================================================
+//  CONFIGURAÇÃO
+// ============================================================
 const API_URL = 'http://localhost:8080';
-const ID_ALUNO_LOGADO = 1;
+const ID_ALUNO_LOGADO = 1; // substituir pelo ID real após login
 
-// Variáveis globais
-let todasAtividades = [];
-let atividadesRespondidas = [];
-let dadosAluno = null;
+// ============================================================
+//  ESTADO
+// ============================================================
+let todasRespostas = [];
+let respostasFiltradas = [];
 let lineChart = null;
 let barChart = null;
 
-// ========== INICIALIZAÇÃO ==========
-document.addEventListener('DOMContentLoaded', async () => {
-    await carregarDados();
+// Paleta de cores por disciplina (título da atividade)
+const CORES_DISCIPLINAS = [
+    '#BB86FC', // roxo principal
+    '#03DAC6', // ciano
+    '#FF6B6B', // vermelho
+    '#FFD93D', // amarelo
+    '#6BCB77', // verde
+    '#4D96FF', // azul
+    '#FF922B', // laranja
+    '#F06595', // rosa
+    '#74C0FC', // azul claro
+    '#A9E34B', // verde limão
+];
+
+const mapaCores = {};
+let indiceCor = 0;
+
+function obterCorDisciplina(titulo) {
+    if (!mapaCores[titulo]) {
+        mapaCores[titulo] = CORES_DISCIPLINAS[indiceCor % CORES_DISCIPLINAS.length];
+        indiceCor++;
+    }
+    return mapaCores[titulo];
+}
+
+// Retorna o nome da disciplina se existir, senão usa o título da atividade
+function nomeDisciplina(r) {
+    return r.atividade?.disciplina?.nome || r.atividade?.titulo || 'Sem disciplina';
+}
+
+// ============================================================
+//  INICIALIZAÇÃO
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    carregarDesempenho();
 });
 
-// ========== CARREGAR DADOS DA API ==========
-async function carregarDados() {
+// ============================================================
+//  CARREGAR DADOS
+// ============================================================
+async function carregarDesempenho() {
     try {
-        // Carregar todas as atividades
-        await carregarTodasAtividades();
-        
-        // Carregar atividades respondidas pelo aluno
-        await carregarAtividadesRespondidas();
-        
-        // Carregar dados do aluno
-        await carregarDadosAluno();
-        
-        // Calcular e exibir estatísticas
-        calcularEstatisticas();
-        
-        // Renderizar gráficos
-        renderizarGraficos();
-        
-        // Renderizar tabela de atividades
-        renderizarTabelaAtividades();
-        
-        // Gerar recomendações personalizadas
-        gerarRecomendacoes();
-        
-    } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        mostrarErro('Erro ao carregar dados de desempenho');
+        const res = await fetch(`${API_URL}/atividadesrespostas`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const todas = await res.json();
+
+        // Filtra apenas as respostas do aluno logado
+        todasRespostas = todas.filter(r => r.aluno?.id === ID_ALUNO_LOGADO);
+
+        // Ordena por data de início
+        todasRespostas.sort((a, b) => new Date(a.momentoInicio) - new Date(b.momentoInicio));
+
+        respostasFiltradas = [...todasRespostas];
+
+        popularFiltroAtividades();
+        atualizarTudo();
+
+    } catch (err) {
+        console.error('Erro ao carregar desempenho:', err);
+        document.getElementById('atividadesTableBody').innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erro ao carregar dados. Verifique o backend.</p>
+                </td>
+            </tr>`;
     }
 }
 
-// Carregar todas as atividades
-async function carregarTodasAtividades() {
-    try {
-        const response = await fetch(`${API_URL}/atividades/${ID_ALUNO_LOGADO}`);
-        if (!response.ok) throw new Error('Erro ao carregar atividades');
-        todasAtividades = await response.json();
-    } catch (error) {
-        console.error('Erro:', error);
-        todasAtividades = [];
+// ============================================================
+//  POPULAR FILTRO DE DISCIPLINAS
+// ============================================================
+function popularFiltroAtividades() {
+    // Extrai disciplinas únicas das respostas
+    const disciplinas = [...new Map(
+        todasRespostas
+            .filter(r => r.atividade?.disciplina)
+            .map(r => [r.atividade.disciplina.id, r.atividade.disciplina.nome])
+    ).entries()].map(([id, nome]) => nome);
+
+    // Fallback: se nenhuma atividade tem disciplina ainda, usa título
+    const itens = disciplinas.length > 0
+        ? disciplinas
+        : [...new Set(todasRespostas.map(r => r.atividade?.titulo || 'Sem título'))];
+
+    let container = document.getElementById('filtro-atividade-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'filtro-atividade-container';
+        container.style.cssText = 'margin-bottom: 20px; display: flex; align-items: center; gap: 12px;';
+
+        const label = document.createElement('label');
+        label.textContent = 'Filtrar por disciplina:';
+        label.style.cssText = 'color: var(--text-muted); font-size: 0.9rem;';
+
+        const select = document.createElement('select');
+        select.id = 'filtro-atividade';
+        select.style.cssText = `
+            background-color: var(--bg-card);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: var(--font-main);
+            outline: none;
+        `;
+        select.addEventListener('change', aplicarFiltro);
+
+        const optTodas = document.createElement('option');
+        optTodas.value = '';
+        optTodas.textContent = 'Todas as disciplinas';
+        select.appendChild(optTodas);
+
+        itens.forEach(nome => {
+            obterCorDisciplina(nome);
+            const opt = document.createElement('option');
+            opt.value = nome;
+            opt.textContent = nome;
+            select.appendChild(opt);
+        });
+
+        container.appendChild(label);
+        container.appendChild(select);
+
+        const chartsGrid = document.querySelector('.charts-grid');
+        chartsGrid.parentElement.insertBefore(container, chartsGrid);
     }
+
+    itens.forEach(t => obterCorDisciplina(t));
 }
 
-// Carregar atividades respondidas pelo aluno
-async function carregarAtividadesRespondidas() {
-    try {
-        const response = await fetch(`${API_URL}/atividadesrespostas${ID_ALUNO_LOGADO}`);
-        if (!response.ok) throw new Error('Erro ao carregar respostas');
-        const todasRespostas = await response.json();
-        
-        // Filtrar apenas as respostas do aluno logado que têm nota
-        atividadesRespondidas = todasRespostas.filter(r => 
-            r.idAluno === ID_ALUNO_LOGADO && 
-            r.pontuacao !== null && 
-            r.pontuacao !== undefined
-        );
-    } catch (error) {
-        console.error('Erro:', error);
-        atividadesRespondidas = [];
-    }
+// ============================================================
+//  APLICAR FILTRO
+//  — não filtra os dados, só redesenha o gráfico com destaque
+// ============================================================
+function aplicarFiltro() {
+    respostasFiltradas = [...todasRespostas];
+    atualizarTudo();
 }
 
-// Carregar dados do aluno
-async function carregarDadosAluno() {
-    try {
-        const response = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
-        if (!response.ok) throw new Error('Erro ao carregar aluno');
-        dadosAluno = await response.json();
-    } catch (error) {
-        console.error('Erro:', error);
-        dadosAluno = null;
-    }
+// ============================================================
+//  ATUALIZAR TUDO
+// ============================================================
+function atualizarTudo() {
+    atualizarEstatisticas();
+    atualizarCirculoDesempenho();
+    atualizarGraficoLinha();
+    atualizarGraficoBarra();
+    atualizarTabela();
 }
 
-// ========== CÁLCULO DE ESTATÍSTICAS ==========
-function calcularEstatisticas() {
-    if (!atividadesRespondidas.length) {
-        mostrarDadosVazios();
-        return;
-    }
-    
-    // Total de atividades respondidas
-    const totalRespondidas = atividadesRespondidas.length;
-    
-    // Calcular soma das notas e notas máximas
-    let somaNotas = 0;
-    let somaMaximas = 0;
-    let maiorNota = 0;
-    let notasMaximasCount = 0;
-    
-    atividadesRespondidas.forEach(resposta => {
-        // Buscar a atividade correspondente
-        const atividade = todasAtividades.find(a => a.idAtividade === resposta.idAtividade);
-        const notaMaxima = atividade?.pontuacaoMaxima || 100;
-        const notaObtida = resposta.pontuacao || 0;
-        
-        somaNotas += notaObtida;
-        somaMaximas += notaMaxima;
-        
-        if (notaObtida > maiorNota) maiorNota = notaObtida;
-        
-        // Calcular percentual da nota
-        const percentual = (notaObtida / notaMaxima) * 100;
-        if (percentual >= 90) notasMaximasCount++;
-    });
-    
-    // Média geral (percentual)
-    const mediaPercentual = somaMaximas > 0 ? (somaNotas / somaMaximas) * 100 : 0;
-    
-    // Média por atividade
-    const mediaPorAtividade = totalRespondidas > 0 ? somaNotas / totalRespondidas : 0;
-    
-    // Total de pontos acumulados
+// ============================================================
+//  ESTATÍSTICAS RÁPIDAS
+// ============================================================
+function atualizarEstatisticas() {
+    const total = respostasFiltradas.length;
+    const somaNotas = respostasFiltradas.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
+    const media = total > 0 ? (somaNotas / total).toFixed(1) : '0';
+
+    document.getElementById('totalRespondidas').textContent = total;
+    document.getElementById('mediaGeral').textContent = media;
+}
+
+// ============================================================
+//  CÍRCULO DE DESEMPENHO
+// ============================================================
+function atualizarCirculoDesempenho() {
+    const total = respostasFiltradas.length;
+    const somaNotas = respostasFiltradas.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
+    const somaMax   = respostasFiltradas.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
     const totalPontos = somaNotas;
-    
-    // Classificação baseada na média
-    let classificacao = '';
-    if (mediaPercentual >= 85) classificacao = 'Avançado 🚀';
-    else if (mediaPercentual >= 70) classificacao = 'Proficiente 📚';
-    else if (mediaPercentual >= 50) classificacao = 'Intermediário 📖';
-    else classificacao = 'Iniciante 🌱';
-    
-    // Atualizar DOM
-    document.getElementById('totalRespondidas').textContent = totalRespondidas;
-    document.getElementById('mediaGeral').textContent = mediaPercentual.toFixed(1) + '%';
-    document.getElementById('maiorNota').textContent = maiorNota.toFixed(0);
-    document.getElementById('taxaAcerto').textContent = mediaPercentual.toFixed(1) + '%';
-    document.getElementById('percentualAcerto').textContent = mediaPercentual.toFixed(0) + '%';
+    const mediaPorAtividade = total > 0 ? (somaNotas / total).toFixed(1) : 0;
+    const notasMaximas = respostasFiltradas.filter(r => r.pontuacao >= (r.atividade?.pontuacaoMaxima || 10)).length;
+    const percentual = somaMax > 0 ? Math.round((somaNotas / somaMax) * 100) : 0;
+
+    // Classificação
+    let classificacao = 'Iniciante';
+    if (percentual >= 90) classificacao = 'Expert';
+    else if (percentual >= 75) classificacao = 'Avançado';
+    else if (percentual >= 60) classificacao = 'Intermediário';
+    else if (percentual >= 40) classificacao = 'Básico';
+
+    document.getElementById('percentualAcerto').textContent = `${percentual}%`;
     document.getElementById('classificacao').textContent = classificacao;
-    document.getElementById('totalPontos').textContent = totalPontos.toFixed(0);
-    document.getElementById('mediaPorAtividade').textContent = mediaPorAtividade.toFixed(1);
-    document.getElementById('notasMaximas').textContent = notasMaximasCount;
-    
-    // Atualizar círculo de progresso
-    const circumference = 282.7;
-    const offset = circumference - (mediaPercentual / 100) * circumference;
+    document.getElementById('totalPontos').textContent = totalPontos;
+    document.getElementById('mediaPorAtividade').textContent = mediaPorAtividade;
+    document.getElementById('notasMaximas').textContent = notasMaximas;
+
+    // Animação do círculo SVG
+    const circunferencia = 282.7;
+    const offset = circunferencia - (percentual / 100) * circunferencia;
     const circle = document.getElementById('performanceCircle');
     if (circle) {
         circle.style.strokeDashoffset = offset;
     }
-    
-    // Salvar dados para uso posterior
-    window.desempenhoData = {
-        totalRespondidas,
-        mediaPercentual,
-        maiorNota,
-        mediaPorAtividade,
-        totalPontos,
-        notasMaximasCount,
-        classificacao
-    };
 }
 
-function mostrarDadosVazios() {
-    document.getElementById('totalRespondidas').textContent = '0';
-    document.getElementById('mediaGeral').textContent = '0%';
-    document.getElementById('maiorNota').textContent = '0';
-    document.getElementById('taxaAcerto').textContent = '0%';
-    document.getElementById('percentualAcerto').textContent = '0%';
-    document.getElementById('classificacao').textContent = 'Iniciante 🌱';
-    document.getElementById('totalPontos').textContent = '0';
-    document.getElementById('mediaPorAtividade').textContent = '0';
-    document.getElementById('notasMaximas').textContent = '0';
-}
+// ============================================================
+//  GRÁFICO DE LINHA — Chart.js
+//  X = sequência de tentativas por disciplina (1ª, 2ª, 3ª…)
+//  Y = nota real obtida
+//  Disciplina selecionada no filtro = linha destacada
+// ============================================================
+let lineChartInstance = null;
 
-// ========== GRÁFICOS ==========
-function renderizarGraficos() {
-    if (!atividadesRespondidas.length) {
-        mostrarGraficosVazios();
+function atualizarGraficoLinha() {
+    // Garante que o elemento é um <canvas>
+    let el = document.getElementById('lineChart');
+    if (!el) return;
+    if (el.tagName === 'DIV') {
+        el.outerHTML = '<canvas id="lineChart" class="chart-canvas"></canvas>';
+        el = document.getElementById('lineChart');
+    }
+
+    if (todasRespostas.length === 0) {
+        el.style.display = 'none';
         return;
     }
-    
-    // Preparar dados para o gráfico de linha (evolução das notas)
-    const dadosLinha = prepararDadosEvolucao();
-    
-    // Gráfico de Linha
-    const ctxLine = document.getElementById('lineChart').getContext('2d');
-    
-    if (lineChart) lineChart.destroy();
-    
-    lineChart = new Chart(ctxLine, {
+    el.style.display = '';
+
+    const filtroSelecionado = document.getElementById('filtro-atividade')?.value || '';
+
+    // Uma série por disciplina
+    const disciplinas = [...new Set(todasRespostas.map(r => nomeDisciplina(r)))];
+
+    // Para cada disciplina, lista as notas em ordem cronológica
+    const porDisciplina = {};
+    disciplinas.forEach(d => {
+        porDisciplina[d] = todasRespostas
+            .filter(r => nomeDisciplina(r) === d)
+            .map(r => r.pontuacao ?? 0);
+    });
+
+    // Eixo X: labels "1", "2", "3"… até o máximo de tentativas
+    const maxTentativas = Math.max(...disciplinas.map(d => porDisciplina[d].length));
+    const labels = Array.from({ length: maxTentativas }, (_, i) => String(i + 1));
+
+    // Nota máxima para escala do eixo Y
+    const notaMaxima = Math.max(...todasRespostas.map(r => r.atividade?.pontuacaoMaxima ?? 10));
+
+    // Monta datasets
+    const datasets = disciplinas.map(d => {
+        const cor = obterCorDisciplina(d);
+        const destacada = !filtroSelecionado || filtroSelecionado === d;
+
+        const dados = Array.from({ length: maxTentativas }, (_, i) =>
+            porDisciplina[d][i] !== undefined ? porDisciplina[d][i] : null
+        );
+
+        return {
+            label: d,
+            data: dados,
+            borderColor: destacada ? cor : cor + '33',
+            backgroundColor: destacada ? cor + '22' : 'transparent',
+            borderWidth: destacada ? 3 : 1.5,
+            pointRadius: destacada ? 6 : 3,
+            pointHoverRadius: destacada ? 8 : 4,
+            pointBackgroundColor: destacada ? cor : cor + '33',
+            tension: 0.4,
+            spanGaps: true,
+        };
+    });
+
+    if (lineChartInstance) lineChartInstance.destroy();
+
+    lineChartInstance = new Chart(el, {
         type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#9E9E9E',
+                        font: { size: 11 },
+                        boxWidth: 12,
+                        padding: 16,
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: ctx => `${ctx[0].dataset.label} — ${ctx[0].label}ª tentativa`,
+                        label: ctx => ` Nota: ${ctx.parsed.y}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Nº da tentativa',
+                        color: '#9E9E9E',
+                        font: { size: 11 }
+                    },
+                    ticks: { color: '#9E9E9E', font: { size: 11 } },
+                    grid: { color: '#2a2a2a' },
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Nota',
+                        color: '#9E9E9E',
+                        font: { size: 11 }
+                    },
+                    min: 0,
+                    max: notaMaxima,
+                    ticks: { color: '#9E9E9E', stepSize: 1 },
+                    grid: { color: '#2a2a2a' },
+                }
+            }
+        }
+    });
+}
+
+// ============================================================
+//  GRÁFICO DE BARRAS — Chart.js (distribuição de notas)
+// ============================================================
+function atualizarGraficoBarra() {
+    const canvas = document.getElementById('barChart');
+    if (!canvas) return;
+
+    // Garante que é um canvas
+    if (canvas.tagName !== 'CANVAS') return;
+
+    const disciplinas = [...new Set(respostasFiltradas.map(r => nomeDisciplina(r)))];
+
+    const labels = disciplinas;
+    const dados  = disciplinas.map(d => {
+        const group = respostasFiltradas.filter(r => nomeDisciplina(r) === d);
+        const soma  = group.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
+        const max   = group.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
+        return max > 0 ? Math.round((soma / max) * 100) : 0;
+    });
+
+    const cores = disciplinas.map(d => obterCorDisciplina(d));
+    const coresBorda = cores.map(c => c + 'CC');
+
+    if (barChart) barChart.destroy();
+
+    barChart = new Chart(canvas, {
+        type: 'bar',
         data: {
-            labels: dadosLinha.labels,
+            labels,
             datasets: [{
-                label: 'Nota Obtida (%)',
-                data: dadosLinha.notas,
-                borderColor: '#BB86FC',
-                backgroundColor: 'rgba(187, 134, 252, 0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#a21fa2',
-                pointBorderColor: '#BB86FC',
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                tension: 0.3,
-                fill: true
+                label: 'Aproveitamento (%)',
+                data: dados,
+                backgroundColor: cores.map(c => c + '55'),
+                borderColor: coresBorda,
+                borderWidth: 2,
+                borderRadius: 6,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    labels: { color: '#E0E0E0' }
-                },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            return `Nota: ${context.raw}%`;
-                        }
+                        label: ctx => ` ${ctx.parsed.y}% de aproveitamento`
                     }
                 }
             },
             scales: {
+                x: {
+                    ticks: { color: '#9E9E9E', font: { size: 11 } },
+                    grid:  { color: '#2a2a2a' },
+                },
                 y: {
-                    beginAtZero: true,
+                    min: 0,
                     max: 100,
-                    grid: { color: '#2a2a2a' },
-                    title: {
-                        display: true,
-                        text: 'Percentual de Acerto (%)',
-                        color: '#9E9E9E'
-                    }
-                },
-                x: {
-                    grid: { color: '#2a2a2a' },
-                    title: {
-                        display: true,
-                        text: 'Atividades (Ordem de Realização)',
-                        color: '#9E9E9E'
-                    }
-                }
-            }
-        }
-    });
-    
-    // Gráfico de Barras (Distribuição das Notas)
-    const dadosBarras = prepararDadosDistribuicao();
-    
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    
-    if (barChart) barChart.destroy();
-    
-    barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: ['0-49%', '50-69%', '70-84%', '85-100%'],
-            datasets: [{
-                label: 'Quantidade de Atividades',
-                data: dadosBarras,
-                backgroundColor: ['#FF3D00', '#FFC107', '#4FC3F7', '#00E676'],
-                borderRadius: 8,
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: { color: '#E0E0E0' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw} atividade(s)`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#2a2a2a' },
-                    title: {
-                        display: true,
-                        text: 'Número de Atividades',
-                        color: '#9E9E9E'
-                    }
-                },
-                x: {
-                    grid: { color: '#2a2a2a' },
-                    title: {
-                        display: true,
-                        text: 'Faixa de Acerto',
-                        color: '#9E9E9E'
-                    }
+                    ticks: { color: '#9E9E9E', callback: v => v + '%' },
+                    grid:  { color: '#2a2a2a' },
                 }
             }
         }
     });
 }
 
-function prepararDadosEvolucao() {
-    // Ordernar por data (mais antigo primeiro)
-    const ordenadas = [...atividadesRespondidas].sort((a, b) => {
-        return new Date(a.momentoFim) - new Date(b.momentoFim);
-    });
-    
-    const labels = [];
-    const notas = [];
-    
-    ordenadas.forEach((resposta, index) => {
-        const atividade = todasAtividades.find(a => a.idAtividade === resposta.idAtividade);
-        const notaMaxima = atividade?.pontuacaoMaxima || 100;
-        const percentual = ((resposta.pontuacao || 0) / notaMaxima) * 100;
-        
-        labels.push(`Atividade ${index + 1}`);
-        notas.push(percentual.toFixed(1));
-    });
-    
-    return { labels, notas };
-}
-
-function prepararDadosDistribuicao() {
-    const faixas = [0, 0, 0, 0]; // 0-49%, 50-69%, 70-84%, 85-100%
-    
-    atividadesRespondidas.forEach(resposta => {
-        const atividade = todasAtividades.find(a => a.idAtividade === resposta.idAtividade);
-        const notaMaxima = atividade?.pontuacaoMaxima || 100;
-        const percentual = ((resposta.pontuacao || 0) / notaMaxima) * 100;
-        
-        if (percentual < 50) faixas[0]++;
-        else if (percentual < 70) faixas[1]++;
-        else if (percentual < 85) faixas[2]++;
-        else faixas[3]++;
-    });
-    
-    return faixas;
-}
-
-function mostrarGraficosVazios() {
-    const ctxLine = document.getElementById('lineChart').getContext('2d');
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    
-    if (lineChart) lineChart.destroy();
-    if (barChart) barChart.destroy();
-    
-    lineChart = new Chart(ctxLine, {
-        type: 'line',
-        data: {
-            labels: ['Nenhuma atividade concluída'],
-            datasets: [{
-                label: 'Nota Obtida (%)',
-                data: [0],
-                borderColor: '#BB86FC',
-                backgroundColor: 'rgba(187, 134, 252, 0.1)'
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-    
-    barChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: ['0-49%', '50-69%', '70-84%', '85-100%'],
-            datasets: [{
-                label: 'Quantidade de Atividades',
-                data: [0, 0, 0, 0],
-                backgroundColor: ['#FF3D00', '#FFC107', '#4FC3F7', '#00E676']
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-// ========== TABELA DE ATIVIDADES ==========
-function renderizarTabelaAtividades() {
+// ============================================================
+//  TABELA DE HISTÓRICO
+// ============================================================
+function atualizarTabela() {
     const tbody = document.getElementById('atividadesTableBody');
-    
-    if (!atividadesRespondidas.length) {
+    if (!tbody) return;
+
+    if (respostasFiltradas.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="empty-state">
                     <i class="fas fa-inbox"></i>
-                    <p>Você ainda não respondeu nenhuma atividade.</p>
-                    <p>Complete atividades para ver seu desempenho!</p>
+                    <p>Nenhuma atividade encontrada.</p>
                 </td>
-            </tr>
-        `;
+            </tr>`;
         return;
     }
-    
-    // Ordenar por data (mais recente primeiro)
-    const ordenadas = [...atividadesRespondidas].sort((a, b) => {
-        return new Date(b.momentoFim) - new Date(a.momentoFim);
-    });
-    
-    tbody.innerHTML = ordenadas.map(resposta => {
-        const atividade = todasAtividades.find(a => a.idAtividade === resposta.idAtividade);
-        const titulo = atividade?.titulo || 'Atividade';
-        const notaMaxima = atividade?.pontuacaoMaxima || 100;
-        const notaObtida = resposta.pontuacao || 0;
-        const percentual = (notaObtida / notaMaxima) * 100;
-        const data = formatarData(resposta.momentoFim);
-        
-        let statusClass = '';
-        let statusText = '';
-        
-        if (percentual >= 85) {
-            statusClass = 'status-excellent';
-            statusText = 'Excelente';
-        } else if (percentual >= 70) {
-            statusClass = 'status-good';
-            statusText = 'Bom';
-        } else if (percentual >= 50) {
-            statusClass = 'status-average';
-            statusText = 'Regular';
-        } else {
-            statusClass = 'status-low';
-            statusText = 'Precisa Melhorar';
-        }
-        
+
+    tbody.innerHTML = respostasFiltradas.map(r => {
+        const titulo     = r.atividade?.titulo || 'Sem título';
+        const disciplina = nomeDisciplina(r);
+        const nota   = r.pontuacao ?? 0;
+        const max    = r.atividade?.pontuacaoMaxima ?? 10;
+        const perc   = max > 0 ? Math.round((nota / max) * 100) : 0;
+        const data   = formatarData(r.momentoFim || r.momentoInicio);
+        const cor    = obterCorDisciplina(disciplina);
+
+        let statusClass, statusLabel;
+        if (perc >= 90)      { statusClass = 'status-excellent'; statusLabel = 'Excelente'; }
+        else if (perc >= 70) { statusClass = 'status-good';      statusLabel = 'Bom'; }
+        else if (perc >= 50) { statusClass = 'status-average';   statusLabel = 'Regular'; }
+        else                 { statusClass = 'status-low';        statusLabel = 'Baixo'; }
+
         return `
             <tr>
-                <td><strong>${escapeHtml(titulo)}</strong></td>
-                <td>${data}</td>
-                <td>${notaObtida.toFixed(0)}</td>
-                <td>${notaMaxima}</td>
                 <td>
-                    <div class="progress-bar-mini">
-                        <div class="progress-fill-mini" style="width: ${percentual}%"></div>
-                    </div>
-                    <span style="font-size: 0.75rem;">${percentual.toFixed(1)}%</span>
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${cor};margin-right:8px;"></span>
+                    <span style="font-weight:600">${disciplina}</span>
+                    <span style="color:var(--text-muted);font-size:0.8rem;margin-left:6px;">— ${titulo}</span>
                 </td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            </tr>
-        `;
+                <td>${data}</td>
+                <td>${nota}</td>
+                <td>${max}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="progress-bar-mini">
+                            <div class="progress-fill-mini" style="width:${perc}%; background: linear-gradient(90deg, ${cor}, ${cor}99);"></div>
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--text-muted)">${perc}%</span>
+                    </div>
+                </td>
+                <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            </tr>`;
     }).join('');
 }
 
-// ========== RECOMENDAÇÕES PERSONALIZADAS ==========
-function gerarRecomendacoes() {
-    const container = document.getElementById('recommendationsContainer');
-    
-    if (!atividadesRespondidas.length) {
-        container.innerHTML = `
-            <div class="recommendation-card">
-                <div class="recommendation-title">
-                    <i class="fas fa-rocket"></i> Comece Agora!
-                </div>
-                <div class="recommendation-description">
-                    Você ainda não respondeu nenhuma atividade. Que tal começar agora mesmo?
-                    Acesse a página de Atividades e comece a acumular XP!
-                </div>
-                <a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="recommendation-action">
-                    Ver Atividades <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-        `;
-        return;
-    }
-    
-    const recomendacoes = [];
-    const media = window.desempenhoData?.mediaPercentual || 0;
-    
-    // Recomendação baseada na média geral
-    if (media < 50) {
-        recomendacoes.push({
-            titulo: '📚 Reforço necessário!',
-            descricao: 'Sua média está abaixo de 50%. Recomendamos revisar os conteúdos básicos e refazer as atividades com menor desempenho.',
-            acao: 'Ver atividades pendentes',
-            link: '../../../Aluno/atividade/HTML/atividades-Estudex.html',
-            prioridade: 'high'
-        });
-    } else if (media < 70) {
-        recomendacoes.push({
-            titulo: '🎯 Continue praticando!',
-            descricao: 'Você está no caminho certo! Com um pouco mais de prática, você pode alcançar notas ainda melhores.',
-            acao: 'Ver matérias para revisar',
-            link: '#',
-            prioridade: 'medium'
-        });
-    } else if (media >= 85) {
-        recomendacoes.push({
-            titulo: '🏆 Excelente desempenho!',
-            descricao: 'Parabéns! Você está indo muito bem. Que tal desafiar-se com atividades mais avançadas?',
-            acao: 'Ver próximos desafios',
-            link: '../../../Aluno/atividade/HTML/atividades-Estudex.html',
-            prioridade: 'low'
-        });
-    }
-    
-    // Identificar matéria com pior desempenho (simulado)
-    const piorNota = Math.min(...atividadesRespondidas.map(r => r.pontuacao || 0));
-    if (piorNota < 50) {
-        recomendacoes.push({
-            titulo: '⚠️ Atenção em atividades específicas',
-            descricao: 'Você teve desempenho abaixo do esperado em algumas atividades. Revise o conteúdo e tente novamente!',
-            acao: 'Revisar atividades',
-            link: '../../../Aluno/atividade/HTML/atividades-Estudex.html',
-            prioridade: 'high'
-        });
-    }
-    
-    // Recomendação geral
-    if (atividadesRespondidas.length >= 5) {
-        recomendacoes.push({
-            titulo: '💪 Mantenha o ritmo!',
-            descricao: `Você já completou ${atividadesRespondidas.length} atividades! Continue assim para acumular mais XP e melhorar suas notas.`,
-            acao: 'Ver estatísticas',
-            link: '#',
-            prioridade: 'low'
-        });
-    }
-    
-    container.innerHTML = recomendacoes.map(rec => `
-        <div class="recommendation-card ${rec.prioridade}">
-            <div class="recommendation-title">
-                <i class="fas ${rec.prioridade === 'high' ? 'fa-exclamation-triangle' : rec.prioridade === 'medium' ? 'fa-chart-line' : 'fa-check-circle'}"></i>
-                ${rec.titulo}
-            </div>
-            <div class="recommendation-description">
-                ${rec.descricao}
-            </div>
-            <a href="${rec.link}" class="recommendation-action">
-                ${rec.acao} <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-    `).join('');
-}
-
-// ========== FUNÇÕES UTILITÁRIAS ==========
+// ============================================================
+//  UTILITÁRIOS
+// ============================================================
 function formatarData(dataString) {
     if (!dataString) return 'Data não disponível';
     try {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
-        return data.toLocaleDateString('pt-BR');
+        return data.toLocaleDateString('pt-BR') + ' ' +
+               data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     } catch {
         return dataString;
     }
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function mostrarErro(mensagem) {
-    const alert = document.createElement('div');
-    alert.className = 'alert-error';
-    alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${mensagem}`;
-    alert.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: rgba(255, 61, 0, 0.2);
-        border: 1px solid #FF3D00;
-        color: #FF3D00;
-        padding: 15px 25px;
-        border-radius: 12px;
-        z-index: 3000;
-        animation: slideIn 0.3s ease;
-    `;
-    document.body.appendChild(alert);
-    
-    setTimeout(() => {
-        alert.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => alert.remove(), 300);
-    }, 4000);
-}
-
-// ========== ESTILOS PARA ALERTAS ==========
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(100%); }
-        to { opacity: 1; transform: translateX(0); }
+// ============================================================
+//  MENU SIDEBAR
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menu-toggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+            document.querySelector('.dashboard-content').classList.toggle('collapsed');
+        });
     }
-    @keyframes fadeOut {
-        from { opacity: 1; transform: translateX(0); }
-        to { opacity: 0; transform: translateX(100%); }
-    }
-`;
-document.head.appendChild(style);
+});

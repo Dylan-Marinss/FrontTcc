@@ -539,8 +539,12 @@ function formatarData(dataString) {
     try {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
-        return data.toLocaleDateString('pt-BR') + ' ' +
-            data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return data.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' +
+               data.toLocaleTimeString('pt-BR', { 
+                   hour: '2-digit', 
+                   minute: '2-digit',
+                   timeZone: 'America/Sao_Paulo'
+               });
     } catch {
         return dataString;
     }
