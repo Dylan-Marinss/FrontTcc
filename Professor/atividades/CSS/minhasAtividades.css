@@ -455,3 +455,17 @@ body {
 .btn-deletar:hover {
     transform: scale(1.16);
 }
+
+.atividade-disciplina {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.atividade-disciplina i {
+    color: var(--primary-color);
+    font-size: 0.75rem;
+}

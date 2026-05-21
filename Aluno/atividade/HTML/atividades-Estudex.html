@@ -30,6 +30,7 @@
                 <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item"><i class="fas fa-book"></i> <span>Enem</span></a></li>
             </ul>
         </nav>
+
         <div class="sidebar-footer">
             <a href="#" class="nav-item" id="logoutBtn">
                 <i class="fas fa-sign-out-alt"></i>
@@ -54,6 +55,7 @@
                     <strong class="stat-value" id="totalAtividades">0</strong>
                 </div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
@@ -69,6 +71,7 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchAtividade" placeholder="Buscar atividades..." onkeyup="filterAtividades()">
             </div>
+
             <select id="statusFilter" class="filter-select" onchange="filterAtividades()">
                 <option value="">Todas</option>
                 <option value="pendente">Pendentes</option>
@@ -89,22 +92,37 @@
 <!-- Modal para Responder Atividade -->
 <div id="modalAtividade" class="modal">
     <div class="modal-content modal-large">
+
         <div class="modal-header">
-            <h2><i class="fas fa-edit"></i> <span id="modalTitulo">Responder Atividade</span></h2>
+            <h2>
+                <i class="fas fa-edit"></i>
+                <span id="modalTitulo">Responder Atividade</span>
+            </h2>
+
             <span class="close" onclick="closeModalAtividade()">&times;</span>
         </div>
+
+        <!-- INFORMAÇÕES DA ATIVIDADE -->
+        <div id="modalInfoAtividade"></div>
+
+        <!-- PERGUNTAS -->
         <div id="perguntasContainer" class="perguntas-container">
             <!-- As perguntas serão carregadas aqui -->
         </div>
+
+        <!-- FOOTER -->
         <div class="modal-footer">
             <button class="btn-submit" onclick="enviarRespostas()">
-                <i class="fas fa-paper-plane"></i> Enviar Respostas
+                <i class="fas fa-paper-plane"></i>
+                Enviar Respostas
             </button>
         </div>
+
     </div>
 </div>
 
 <script src="../JS/atividades.js"></script>
 <script src="../JS/menuSideBar.js"></script>
+
 </body>
 </html>

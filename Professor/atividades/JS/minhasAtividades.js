@@ -65,6 +65,7 @@ function renderizarAtividades(lista) {
         const badgeClass = resolverBadgeClass(dificuldade);
         const pontos = a.pontuacaoMaxima ?? 0;
         const data = a.dataCriacao ? formatarData(a.dataCriacao) : '—';
+        const disciplina = a.disciplina?.nome || 'Sem disciplina';
 
         return `
             <div class="atividade-card" id="card-${a.idAtividade}" 
@@ -78,12 +79,20 @@ function renderizarAtividades(lista) {
                 </div>
 
                 <div class="atividade-card-header">
-                    <span class="atividade-titulo">
-                        <i class="fas fa-file-alt" style="margin-right:8px; font-size:0.85rem;"></i>
-                        ${a.titulo || 'Sem título'}
-                    </span>
-                    <span class="dificuldade-badge ${badgeClass}">${dificuldade}</span>
+                    <div>
+                        <span class="atividade-titulo">
+                            <i class="fas fa-file-alt" style="margin-right:8px; font-size:0.85rem;"></i>
+                            ${a.titulo || 'Sem título'}
+                        </span>
+
+                        <div class="atividade-disciplina">
+                        <i class="fas fa-book"></i>
+                        ${disciplina}
+                    </div>
                 </div>
+
+    <span class="dificuldade-badge ${badgeClass}">${dificuldade}</span>
+</div>
 
                 <div class="atividade-meta">
                     <div class="meta-pontos">

@@ -25,7 +25,6 @@ async function carregarDadosAluno() {
         if (!response.ok) throw new Error('Erro ao carregar aluno');
 
         dadosAluno = await response.json();
-        document.getElementById('xpAluno').textContent = dadosAluno.xp || 0;
 
     } catch (error) {
         console.error('Erro ao carregar aluno:', error);
@@ -123,9 +122,22 @@ function renderizarAtividades() {
             <span class="pontuacao"><i class="fas fa-star"></i> Max: ${atividade.pontuacaoMaxima || 0} pts</span>
         </div>
         <div class="info">
-            <span><i class="fas fa-chart-line"></i> Nível: ${atividade.nivelDificuldade?.nome || 'Não definido'}</span>
-            <span class="status ${concluida ? 'concluida' : 'pendente'}">${concluida ? ' Respondida' : ' Pendente'}</span>
-        </div>
+    <span>
+        <i class="fas fa-chart-line"></i> 
+        Nível: ${atividade.nivelDificuldade?.nome || 'Não definido'}
+    </span>
+</div>
+
+<div class="info">
+    <span>
+        <i class="fas fa-book"></i> 
+        Disciplina: ${atividade.disciplina?.nome || 'Não definida'}
+    </span>
+
+    <span class="status ${concluida ? 'concluida' : 'pendente'}">
+        ${concluida ? ' Respondida' : ' Pendente'}
+    </span>
+</div>
         ${concluida ? `
             <div class="nota-aluno">
                 <span class="nota-label-card">Sua nota</span>
@@ -179,9 +191,49 @@ async function carregarPerguntas(idAtividade) {
         respostasTextuais = {};
 
         document.getElementById('modalTitulo').textContent = atividadeAtual.titulo;
+
+        document.getElementById('modalInfoAtividade').innerHTML = `
+    <div class="atividade-info-box">
+        <div class="atividade-info-item">
+            <i class="fas fa-book"></i>
+            <div>
+                <span>Disciplina</span>
+                <strong>${atividadeAtual.disciplina?.nome || 'Não definida'}</strong>
+            </div>
+        </div>
+
+        <div class="atividade-info-item">
+            <i class="fas fa-layer-group"></i>
+            <div>
+                <span>Dificuldade</span>
+                <strong>${atividadeAtual.nivelDificuldade?.nome || 'Não definida'}</strong>
+            </div>
+        </div>
+
+        <div class="atividade-info-item">
+            <i class="fas fa-star"></i>
+            <div>
+                <span>Pontuação</span>
+                <strong>${atividadeAtual.pontuacaoMaxima || 0} pts</strong>
+            </div>
+        </div>
+
+        <div class="atividade-info-item">
+            <i class="fas fa-calendar"></i>
+            <div>
+                <span>Criada em</span>
+                <strong>${formatarData(atividadeAtual.dataCriacao)}</strong>
+            </div>
+        </div>
+    </div>
+`;
+
         document.getElementById('perguntasContainer').innerHTML = renderizarPerguntas();
+
         document.getElementById('modalAtividade').style.display = 'block';
         document.body.style.overflow = 'hidden';
+
+
 
     } catch (error) {
         console.error('Erro ao carregar perguntas:', error);

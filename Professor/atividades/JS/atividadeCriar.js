@@ -247,9 +247,15 @@ async function criarAtividadeSeNecessario() {
 
     const titulo = document.getElementById('titulo')?.value.trim();
     const dificuldade = localStorage.getItem('idDificuldade');
+    const idDisciplina = localStorage.getItem('idDisciplina');
 
     if (!dificuldade || dificuldade === 'null') {
         showToast('Erro: nível de dificuldade não encontrado. Volte à tela anterior.', 'error');
+        return false;
+    }
+
+    if (!idDisciplina || idDisciplina === 'null') {
+        showToast('Erro: disciplina não encontrada. Volte à tela anterior.', 'error');
         return false;
     }
 
@@ -261,17 +267,30 @@ async function criarAtividadeSeNecessario() {
 
 
     try {
+
+        const payload = {
+            titulo,
+            idOrientador: ID_PROFESSOR_LOGADO,
+            pontuacaoMaxima: 0,
+            dataCriacao: new Date().toISOString(),
+
+            nivelDificuldade: {
+                idNivelDificuldade: parseInt(dificuldade)
+            },
+
+            disciplina: {
+                id: parseInt(idDisciplina)
+            }
+        };
+
+        console.log(payload);
+
         const res = await fetch(`${API_URL}/atividades`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                titulo,
-                idOrientador: ID_PROFESSOR_LOGADO,
-                pontuacaoMaxima: 0,
-                dataCriacao: new Date().toISOString(),
-                nivelDificuldade: { idNivelDificuldade: parseInt(dificuldade) }
-            })
+            body: JSON.stringify(payload)
         });
+
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -444,7 +463,7 @@ function carregarQuestao(index) {
 //  PUBLICAR ATIVIDADE
 // ============================================================
 async function publicarAtividade() {
-    const btn   = document.querySelector('.main-actions .btn-primary');
+    const btn = document.querySelector('.main-actions .btn-primary');
     const label = '<i class="fas fa-paper-plane"></i> Publicar Atividade';
     setLoading(btn, true, 'Publicando...');
 
@@ -454,7 +473,7 @@ async function publicarAtividade() {
     // Verifica se o professor preencheu algo na questão atual
     const enunciado = document.getElementById('enunciado')?.value.trim();
     const temOpcoes = Array.from(document.querySelectorAll('.opcao-input'))
-                           .some(i => i.value.trim() !== '');
+        .some(i => i.value.trim() !== '');
 
     const questaoAtualPreenchida = enunciado || temOpcoes;
 
@@ -489,24 +508,6 @@ async function publicarAtividade() {
     setTimeout(() => {
         window.location.href = 'minhasAtividades.html';
     }, 2000);
-}
-
-// ============================================================
-//  SALVAR RASCUNHO
-// ============================================================
-async function salvarRascunho() {
-    const btn = document.querySelector('.main-actions .btn-outline');
-    const label = '<i class="fas fa-save"></i> Salvar Rascunho';
-    setLoading(btn, true, 'Salvando Rascunho...');
-
-    const criou = await criarAtividadeSeNecessario();
-    if (!criou) { setLoading(btn, false, label); return; }
-
-    const salvo = await salvarQuestaoAtual();
-    if (!salvo) { setLoading(btn, false, label); return; }
-
-    showToast('Rascunho salvo com sucesso!');
-    setLoading(btn, false, label);
 }
 
 // ============================================================
