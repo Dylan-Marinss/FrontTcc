@@ -3,15 +3,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuToggle  = document.getElementById('menu-toggle');
 
     // ── Colapsar / expandir sidebar ──────────────────────────
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('active');
-            } else {
-                sidebar.classList.toggle('collapsed');
-            }
-        });
-    }
+     menuToggle.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            // Mobile: sidebar recolhe para 70px também
+            sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapsed');
+        } else {
+            // Desktop: comportamento normal
+            sidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('sidebar-collapsed');
+        }
+    });
+
 
     // ── Fechar sidebar ao clicar fora (mobile) ───────────────
     document.addEventListener('click', (e) => {
