@@ -2,7 +2,9 @@
 
 // ========== CONFIGURAÇÕES ==========
 const API_URL = 'http://localhost:8080';
-const ID_ALUNO_LOGADO = 1;
+const params = new URLSearchParams(window.location.search);
+const ID_ALUNO_LOGADO = parseInt(params.get('id')) || 1;
+
 
 // Variáveis globais
 let dadosAluno = null;

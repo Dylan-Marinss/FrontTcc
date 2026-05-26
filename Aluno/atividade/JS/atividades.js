@@ -14,6 +14,7 @@ let respostasTextuais = {};
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarDadosAluno();
     await carregarAtividades();
+    await popularFiltros();
     await carregarAtividadesRespondidas();
     renderizarAtividades();
 });
@@ -82,6 +83,8 @@ function renderizarAtividades() {
     const container = document.getElementById('atividadesList');
     const filtroStatus = document.getElementById('statusFilter')?.value || '';
     const busca = document.getElementById('searchAtividade')?.value.toLowerCase() || '';
+    const filtroDificuldade = document.getElementById('dificuldadeFilter')?.value || '';
+    const filtroDisciplina = document.getElementById('disciplinaFilter')?.value || '';
 
     let atividadesFiltradas = [...todasAtividades];
 
@@ -105,6 +108,18 @@ function renderizarAtividades() {
             </div>
         `;
         return;
+    }
+
+    if (filtroDificuldade) {
+        atividadesFiltradas = atividadesFiltradas.filter(a =>
+            a.nivelDificuldade?.nome === filtroDificuldade
+        );
+    }
+
+    if (filtroDisciplina) {
+        atividadesFiltradas = atividadesFiltradas.filter(a =>
+            a.disciplina?.nome === filtroDisciplina
+        );
     }
 
     container.innerHTML = atividadesFiltradas.map(atividade => {
@@ -377,3 +392,33 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+function popularFiltros() {
+    const dificuldades = [...new Set(
+        todasAtividades
+            .map(a => a.nivelDificuldade?.nome)
+            .filter(Boolean)
+    )];
+
+    const disciplinas = [...new Set(
+        todasAtividades
+            .map(a => a.disciplina?.nome)
+            .filter(Boolean)
+    )];
+
+    const difSelect = document.getElementById('dificuldadeFilter');
+    dificuldades.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        difSelect.appendChild(opt);
+    });
+
+    const discSelect = document.getElementById('disciplinaFilter');
+    disciplinas.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        discSelect.appendChild(opt);
+    });
+}
