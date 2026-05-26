@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EstudeX – Dúvidas dos Alunos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="../CSS/home.css">
   <link rel="stylesheet" href="../CSS/duvidas.css">
   <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
 </head>
+
 <body>
 
   <!-- SIDEBAR -->
@@ -21,26 +25,16 @@
 
     <nav class="sidebar-nav">
       <ul>
-        <li>
-          <a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item">
-            <i class="fas fa-user"></i><span>Perfil</span>
-          </a>
-        </li>
-        <li>
-          <a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item">
-            <i class="fas fa-tasks"></i><span>Atividades</span>
-          </a>
-        </li>
-        <li>
-          <a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item">
-            <i class="fas fa-users"></i><span>Turmas</span>
-          </a>
-        </li>
-        <li>
-          <a href="../HTML/duvidas.html" class="nav-item active">
-            <i class="fas fa-question-circle"></i><span>Dúvidas</span>
-          </a>
-        </li>
+        <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+        <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+        <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
+            <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+        <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+        <li><a href="../HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
       </ul>
     </nav>
 
@@ -193,4 +187,5 @@
   <script src="../JS/duvidas.js"></script>
   <script src="../../perfil/JS/menuSideBar.js"></script>
 </body>
+
 </html>

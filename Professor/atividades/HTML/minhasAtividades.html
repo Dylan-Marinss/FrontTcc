@@ -9,7 +9,9 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
 
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -33,26 +35,17 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                    <li>
-                        <a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
-                            <i class="fas fa-user"></i> <span>Perfil</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item active" id="nav-atividades">
-                            <i class="fas fa-tasks"></i> <span>Atividades</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
-                            <i class="fas fa-users"></i> <span>Turmas</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="../HTML/duvidas.html" class="nav-item" id="nav-duvidas">
-                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span>
-                        </a>
-                    </li>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"
+                            id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
+                            <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
                 </ul>
             </nav>
 
@@ -88,7 +81,8 @@
             <div class="action-bar">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..." onkeyup="filtrarAtividades()">
+                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
+                        onkeyup="filtrarAtividades()">
                 </div>
             </div>
 
@@ -108,11 +102,14 @@
     <div id="modalConfirmDelete" class="modal" style="display:none; align-items:center; justify-content:center;">
         <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
-            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir atividade?</h2>
+            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir
+                atividade?</h2>
             <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="fecharConfirmDelete()" class="btn-primary" style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
-                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary" style="background: #dc2626;">
+                <button onclick="fecharConfirmDelete()" class="btn-primary"
+                    style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
+                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary"
+                    style="background: #dc2626;">
                     <i class="fas fa-trash"></i> Sim, excluir
                 </button>
             </div>
@@ -132,7 +129,8 @@
                 <h2 style="font-family: var(--font-futuristic); color: var(--primary-color); font-size:1.1rem;">
                     <i class="fas fa-chart-bar"></i> Respostas da Atividade
                 </h2>
-                <button onclick="fecharModalRespostas()" style="background:transparent; border:none; color:#9ca3af; font-size:1.4rem; cursor:pointer;">
+                <button onclick="fecharModalRespostas()"
+                    style="background:transparent; border:none; color:#9ca3af; font-size:1.4rem; cursor:pointer;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
