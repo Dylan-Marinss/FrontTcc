@@ -219,6 +219,8 @@ function showAlert(message, type) {
 // ============================================================
 //  MODAL RESPOSTAS
 // ============================================================
+let todasRespostas = [];
+
 async function abrirModalRespostas(idAtividade, tituloAtividade) {
     const modal = document.getElementById('modalRespostas');
     const body = document.getElementById('modalRespostasBody');
@@ -238,8 +240,10 @@ async function abrirModalRespostas(idAtividade, tituloAtividade) {
     try {
         const res = await fetch(`${API_URL}/atividadesrespostas/atividade/${idAtividade}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const respostas = await res.json();
-        renderizarRespostas(respostas);
+        todasRespostas = await res.json(); 
+        console.log('Primeira resposta:', JSON.stringify(todasRespostas[0], null, 2)); 
+        popularFiltroSerie(todasRespostas); 
+        renderizarRespostas(todasRespostas);
     } catch (err) {
         console.error('Erro ao carregar respostas:', err);
         body.innerHTML = `
@@ -249,6 +253,33 @@ async function abrirModalRespostas(idAtividade, tituloAtividade) {
             </div>
         `;
     }
+}
+
+function popularFiltroSerie(respostas) {
+    const select = document.getElementById('filtroSerie');
+    if (!select) return;
+
+    const series = [...new Map(
+        respostas
+            .filter(r => r.aluno?.serie)
+            .map(r => [r.aluno.serie.id, r.aluno.serie])
+    ).values()];
+
+    select.innerHTML = '<option value="">Todas as turmas</option>';
+    series.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.nomeSerie;
+        select.appendChild(opt);
+    });
+}
+
+function aplicarFiltroSerie() {
+    const idFiltro = document.getElementById('filtroSerie').value;
+    const filtradas = idFiltro
+        ? todasRespostas.filter(r => String(r.aluno?.serie?.id) === idFiltro)
+        : todasRespostas;
+    renderizarRespostas(filtradas);
 }
 
 function renderizarRespostas(respostas) {
@@ -314,6 +345,9 @@ function fecharModalRespostas() {
     const modal = document.getElementById('modalRespostas');
     modal.classList.remove('active');
     setTimeout(() => modal.style.display = 'none', 200);
+    todasRespostas = [];
+    const select = document.getElementById('filtroSerie');
+    if (select) select.value = '';
 }
 
 function formatarDataHora(dataStr) {
