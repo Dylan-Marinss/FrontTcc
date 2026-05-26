@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Comunicados - EstudeX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../CSS/home.css">
+    <link rel="stylesheet" href="../CSS/professorComunicados.css">
+    <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
+</head>
+<body>
+    <div class="user-dashboard">
+          <!-- SIDEBAR (Menu Lateral) - VERSÃO PROFESSOR -->
+        <div class="sidebar professor-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"
+                            id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                            <li><a href="../HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
+                            <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../../atividades/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+
+
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="dashboard-content">
+            <!-- HEADER -->
+            <div class="header-top">
+                <div class="page-title">
+                    <i class="fas fa-bullhorn"></i>
+                    <h1>Meus Comunicados</h1>
+                </div>
+                <a href="professorComunicados.html" class="btn btn-primary-neon btn-sm">
+                    <i class="fas fa-plus"></i> Novo Comunicado
+                </a>
+            </div>
+
+            <!-- LISTAGEM -->
+            <div class="comunicados-container-wide">
+                <div class="filtros-lista">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Buscar em meus comunicados...">
+                    </div>
+                </div>
+
+                <div class="comunicados-grid" id="meus-comunicados-list">
+                    <!-- Preenchido via JS -->
+                </div>
+
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <i class="fas fa-bullhorn"></i>
+                    <h2>Nenhum comunicado enviado</h2>
+                    <p>Você ainda não enviou nenhum comunicado para suas turmas.</p>
+                    <a href="professorComunicados.html" class="btn btn-primary-neon" style="margin-top: 20px;">
+                        Enviar Primeiro Comunicado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EDIÇÃO -->
+    <div class="modal" id="modal-edit">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Comunicado</h2>
+                <button class="close-modal" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-edit">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label class="field-label">Título</label>
+                        <input type="text" id="edit-titulo" class="input-field" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Série / Turma</label>
+                        <select id="edit-turma" class="input-field select-field" required>
+                            <!-- Preenchido via JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Conteúdo</label>
+                        <textarea id="edit-conteudo" class="input-field textarea-large" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary-neon">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../JS/meusComunicados.js"></script>
+    <script src="../../perfil/JS/menuSideBar.js"></script>
+</body>
+</html>

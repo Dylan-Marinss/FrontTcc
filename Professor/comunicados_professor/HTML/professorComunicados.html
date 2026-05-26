@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Comunicado - EstudeX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../CSS/home.css">
+    <link rel="stylesheet" href="../CSS/professorComunicados.css">
+</head>
+<body>
+    <div class="user-dashboard">
+        <!-- SIDEBAR -->
+        <div class="sidebar professor-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
+                            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+                            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    <li><a href="../HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
+                            <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../../Professor/turma/HTML/professorTurma.html" class="nav-item" id="nav-turmas">
+                            <i class="fas fa-users"></i> <span>Turmas</span></a></li>
+                    <li><a href="../HTML/duvidas.html" class="nav-item" id="nav-duvidas">
+                            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="dashboard-content">
+            <!-- HEADER -->
+            <div class="header-top">
+                <div class="page-title">
+                    <i class="fas fa-bullhorn"></i>
+                    <h1>Criar Comunicado</h1>
+                </div>
+            </div>
+
+            <!-- CONTAINER AMPLO -->
+            <div class="comunicados-container-wide">
+                <!-- CARD DE INSTRUÇÃO (Estilo da imagem enviada) -->
+                <div class="instruction-card">
+                    <div class="instruction-header">
+                        <i class="fas fa-plus-circle"></i>
+                        <h2>Criar Novo Comunicado</h2>
+                    </div>
+                    <p>Preencha os dados abaixo para enviar um comunicado para seus alunos</p>
+                </div>
+
+                <div class="form-card">
+                    <form id="form-comunicado">
+                        <div class="section-subtitle">
+                            <i class="fas fa-info-circle"></i> Informações Básicas
+                        </div>
+
+                        <div class="form-row">
+                            <!-- Título -->
+                            <div class="form-group flex-2">
+                                <label class="field-label">Título do Comunicado *</label>
+                                <input type="text" id="titulo" class="input-field" placeholder="Ex: Aviso importante sobre a prova" maxlength="100" required>
+                                <span class="char-count"><span id="titulo-count">0</span>/100</span>
+                            </div>
+
+                            <!-- Seleção de Turma (Dropdown) -->
+                            <div class="form-group flex-1">
+                                <label class="field-label">Série / Turma *</label>
+                                <select id="turma-select" class="input-field select-field" required>
+                                    <option value="" disabled selected>Selecione a turma...</option>
+                                    <!-- Preenchido via JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Conteúdo -->
+                        <div class="form-group">
+                            <label class="field-label">Conteúdo do Comunicado *</label>
+                            <textarea id="conteudo" class="input-field textarea-large" placeholder="Digite o conteúdo do comunicado..." maxlength="2000" required></textarea>
+                            <span class="char-count"><span id="conteudo-count">0</span>/2000</span>
+                        </div>
+
+                        <!-- Botões (Estilo da imagem enviada) -->
+                        <div class="form-actions-row">
+                            <a href="meusComunicados.html" class="btn btn-secondary-outline">
+                                <i class="fas fa-list-ul"></i> Meus Comunicados
+                            </a>
+                            <button type="submit" class="btn btn-primary-neon">
+                                <i class="fas fa-paper-plane"></i> Criar Comunicado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast">
+        <i class="fas fa-circle-check" id="toast-icon"></i>
+        <span id="toast-msg"></span>
+    </div>
+
+    <script src="../JS/professorComunicados.js"></script>
+</body>
+</html>
