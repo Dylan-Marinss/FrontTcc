@@ -51,7 +51,7 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start; /* era space-between */
     box-shadow: 5px 0 20px var(--shadow-color);
     z-index: 1000;
     transition: width 0.3s ease;
@@ -152,6 +152,7 @@ body {
 }
 
 .sidebar-footer {
+    margin-top: auto;
     padding: 20px 0;
     border-top: 1px solid var(--border-color);
 }
