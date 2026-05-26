@@ -563,3 +563,18 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
 }
+/* ========== GRID SIMPLES (2 CARDS APENAS) ========== */
+.enem-grid-single {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+/* ========== Ajuste responsivo ========== */
+@media (max-width: 1024px) {
+    .enem-grid-single {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

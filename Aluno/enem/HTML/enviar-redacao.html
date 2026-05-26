@@ -1,43 +1,41 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EstudeX | Redação</title>
-
-    <link rel="stylesheet" href="../CSS/enviar.redacao.css">
-    <link rel="stylesheet" href="css/enem.css">
-    <link rel="stylesheet" href="css/themes.css">
-
+    <title>EstudeX | Enviar Redação</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../CSS/enviar.redacao.css">
 </head>
-
 <body>
 
- <section class="user-dashboard">
-        <!-- SIDEBAR (Menu Lateral) -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-                <span class="logo-text">EstudeX</span>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <ul>
-                    <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item"><i class="fas fa-home"></i> <span>Home</span></a></li>
-                    <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                    <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-                    <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                    <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
-                    <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item"><i class="fas fa-book"></i> <span>Enem</span></a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-footer">
+<section class="user-dashboard">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+            <span class="logo-text">EstudeX</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="../../../Home/HTML/home-Estudex.html" class="nav-item" id="nav-home"><i class="fas fa-home"></i> <span>Home</span></a></li>
+                <li><a href="../../../Aluno/perfil/HTML/perfil-Estudex.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../../Aluno/duvidas/HTML/duvidas-Estudex.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../../Aluno/atividade/HTML/atividades-Estudex.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                <li><a href="../../../Aluno/desempenho/HTML/desempenho-Estudex.html" class="nav-item" id="nav-desempenho"><i class="fas fa-chart-line"></i> <span>Desempenho</span></a></li>
+                <li><a href="../../../Aluno/enem/HTML/enem.html" class="nav-item" id="nav-enem"><i class="fas fa-book"></i> <span>Enem</span></a></li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
             <a href="#" class="nav-item" id="logoutBtn">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Sair</span>
@@ -45,49 +43,142 @@
         </div>
     </div>
 
-     <div class="main-content">
-
-        <div class="enem-container">
-            <div class="enem-card redacao-card">
-
-                <h2 class="card-title-light">
-                    <i class="fas fa-pen-fancy"></i> Tema da Semana
-                </h2>
-
-                <h3 class="tema-titulo">
-                    Os impactos das redes sociais na saúde mental dos jovens brasileiros
-                </h3>
-
-                <p class="texto-motivador">
-                    A sociedade contemporânea enfrenta desafios relacionados ao uso excessivo das
-                    plataformas digitais. Nesse contexto, torna-se fundamental analisar os efeitos
-                    psicológicos e sociais causados pelas redes sociais.
-                </p>
-
-                <textarea id="redacaoTexto" placeholder="Escreva sua redação aqui..."></textarea>
-
-                <div class="redacao-footer">
-                    <span id="contador">0 caracteres</span>
-                    <button class="btn-secondary" id="btnEnviar">
-                        <i class="fas fa-paper-plane"></i> Enviar para Correção
-                    </button>
-                </div>
-
-                <p class="aviso-minimo">
-                    Mínimo recomendado: 800 caracteres
-                </p>
-
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="dashboard-content">
+        <!-- CABEÇALHO -->
+        <div class="header-top">
+            <h1 class="page-title"><i class="fas fa-pen-fancy"></i> Enviar Redação</h1>
+            <div class="notifications-icon" id="notificationsIcon">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
             </div>
         </div>
 
-    </div>
+        <!-- Botão Voltar -->
+        <a href="enem.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Voltar para Central do ENEM
+        </a>
 
+        <!-- GRID PRINCIPAL -->
+        <div class="redacao-grid">
+            <!-- CARD: ENVIAR REDAÇÃO -->
+            <div class="card redacao-form-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-upload"></i> Enviar Nova Redação</h3>
+                </div>
+                
+                <div class="tema-semana" id="temaSemana">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                        <p>Carregando tema da semana...</p>
+                    </div>
+                </div>
+
+                <form id="redacaoForm" class="redacao-form">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Título da Redação</label>
+                        <input type="text" id="titulo" placeholder="Ex: Redação sobre o tema da semana" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> Sua Redação</label>
+                        <textarea id="conteudo" rows="15" placeholder="Escreva sua redação aqui..." required></textarea>
+                        <small><i class="fas fa-info-circle"></i> Mínimo de 10 linhas, máximo de 30 linhas</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> Enviar Redação
+                        </button>
+                        <button type="button" class="btn-clear" id="clearBtn">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CARD: DICAS PARA REDAÇÃO -->
+            <div class="card dicas-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-lightbulb"></i> Dicas para uma Redação Nota 1000</h3>
+                </div>
+                <div class="dicas-list">
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Leia atentamente o tema proposto</span>
+                    </div>
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Estruture seu texto em introdução, desenvolvimento e conclusão</span>
+                    </div>
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Utilize repertório sociocultural (citações, fatos históricos)</span>
+                    </div>
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Apresente uma proposta de intervenção para o problema</span>
+                    </div>
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Respeite os direitos humanos na sua proposta</span>
+                    </div>
+                    <div class="dica-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Revise seu texto para evitar erros de português</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: HISTÓRICO DE REDAÇÕES -->
+        <div class="card historico-card">
+            <div class="card-header">
+                <h3><i class="fas fa-history"></i> Histórico de Redações</h3>
+                <button class="btn-refresh" id="refreshHistorico">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div id="historicoList" class="historico-list">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Carregando suas redações...</p>
+                </div>
+            </div>
+        </div>
+    </main>
 </section>
 
+<!-- Modal de Notificações -->
+<div id="notificationsModal" class="modal">
+    <div class="modal-content modal-notifications">
+        <div class="modal-header">
+            <h2><i class="fas fa-bell"></i> Notificações</h2>
+            <span class="close-modal">&times;</span>
+        </div>
+        <div class="notifications-list">
+            <div class="notification-item unread">
+                <i class="fas fa-pen-fancy"></i>
+                <div class="notification-text">
+                    <strong>Redação corrigida!</strong>
+                    <p>Verifique sua nota e comentários</p>
+                    <small>Há 2 horas</small>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <i class="fas fa-calendar-alt"></i>
+                <div class="notification-text">
+                    <strong>Novo tema disponível</strong>
+                    <p>Tema da semana já está disponível</p>
+                    <small>Há 1 dia</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Seus scripts - COLOQUE NESTA ORDEM -->
-<script src="js/redacao-storage.js"></script>  <!-- PRIMEIRO: o storage -->
-<script src="../JS/enviar-redacao.js"></script>   <!-- DEPOIS: o script da redação -->
+<!-- Scripts -->
+<script src="../JS/enviar-redacao.js"></script>
 <script src="../JS/menuSideBar.js"></script>
 
 </body>
