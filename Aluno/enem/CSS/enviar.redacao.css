@@ -636,6 +636,22 @@ body {
     padding-top: 15px;
     border-top: 1px solid var(--border-color);
 }
+.btn-detalhes {
+    margin-top: 10px;
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--primary-color);
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: all 0.3s ease;
+}
+
+.btn-detalhes:hover {
+    background: rgba(187, 134, 252, 0.1);
+    border-color: var(--primary-color);
+}
 
 @keyframes modalFadeIn {
     from {

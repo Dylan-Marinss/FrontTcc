@@ -571,11 +571,297 @@ body {
     gap: 25px;
     margin-bottom: 25px;
 }
+/* ========== ESTILOS ADICIONAIS PARA HOME-GRID ========== */
+
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.next-actions-card,
+.recent-activities-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.next-actions-card:hover,
+.recent-activities-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(187, 134, 252, 0.15);
+}
+
+.card-title-light {
+    font-family: var(--font-futuristic);
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.card-title-light i {
+    color: var(--secondary-color);
+}
+
+.card-description {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.card-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background-color: rgba(187, 134, 252, 0.05);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+}
+
+.action-item:hover {
+    background-color: rgba(187, 134, 252, 0.1);
+    transform: translateX(5px);
+}
+
+.action-item i {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    width: 24px;
+}
+
+.action-item span {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.activity-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.activity-item {
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid;
+    background-color: rgba(187, 134, 252, 0.05);
+}
+
+.activity-item.completed {
+    border-left-color: var(--status-completed);
+}
+
+.activity-item.pending {
+    border-left-color: var(--status-pending);
+}
+
+.activity-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.activity-name {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.card-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.btn-view-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-view-all:hover {
+    color: var(--secondary-color);
+    gap: 12px;
+}
+
+/* Welcome Card (igual à Home) */
+.welcome-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, var(--bg-card) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 35px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.welcome-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(187, 134, 252, 0.15);
+}
+
+.welcome-content {
+    flex: 1;
+}
+
+.welcome-title {
+    font-family: var(--font-futuristic);
+    font-size: 1.6rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.welcome-description {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.welcome-icon {
+    font-size: 100px;
+    color: var(--primary-color);
+    opacity: 0.7;
+}
+
+.btn-primary-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: var(--bg-dark);
+    border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-primary-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(187, 134, 252, 0.4);
+}
+
+/* Progress Summary Card */
+.progress-summary-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.progress-indicators {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.indicator-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(187, 134, 252, 0.1), rgba(187, 134, 252, 0.2));
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.indicator-circle:hover {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+}
+
+.indicator-value {
+    font-family: var(--font-futuristic);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.indicator-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .welcome-icon {
+        font-size: 70px;
+    }
+    
+    .progress-indicators {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+    
 
 /* ========== Ajuste responsivo ========== */
 @media (max-width: 1024px) {
     .enem-grid-single {
         grid-template-columns: 1fr;
         gap: 20px;
+    }
+    .indicator-circle {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .indicator-value {
+        font-size: 1.2rem;
     }
 }
