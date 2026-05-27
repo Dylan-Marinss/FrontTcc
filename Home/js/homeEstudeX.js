@@ -89,22 +89,131 @@ async function carregarDadosAluno() {
     }
 }
 
-function initNotifications() {
+async function initNotifications() {
     const icon     = document.getElementById('notificationsIcon');
-    const modal    = document.getElementById('notificationsModal');
-    const closeBtn = document.querySelector('.close-modal');
+    const dropdown = document.getElementById('notificationsDropdown');
 
-    icon?.addEventListener('click', () => {
-        modal.style.display = 'block';
-        const badge = document.querySelector('.notification-badge');
+    icon?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        const badge = document.getElementById('notificationBadge');
         if (badge) badge.style.display = 'none';
     });
 
-    closeBtn?.addEventListener('click', () => { modal.style.display = 'none'; });
-
-    window.addEventListener('click', e => {
-        if (modal && e.target === modal) modal.style.display = 'none';
+    document.addEventListener('click', (e) => {
+        if (!icon?.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
     });
+
+    await carregarNotificacoes();
+}
+
+async function carregarNotificacoes() {
+    try {
+        // 1. Busca série do aluno
+        const resAluno = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
+        if (!resAluno.ok) throw new Error();
+        const aluno = await resAluno.json();
+        const idSerie = aluno.serie?.id;
+
+        // 2. Busca comunicados e respostas de dúvidas em paralelo
+        const [resComunicados, resRespostas, resDuvidas] = await Promise.all([
+            idSerie ? fetch(`${API_URL}/comunicados/serie/${idSerie}`) : Promise.resolve(null),
+            fetch(`${API_URL}/respostasDuvidas`),
+            fetch(`${API_URL}/duvidas`)
+        ]);
+
+        let notificacoes = [];
+
+        // 3. Comunicados
+        if (resComunicados?.ok) {
+            const comunicados = await resComunicados.json();
+            comunicados.forEach(c => {
+                notificacoes.push({
+                    tipo: 'comunicado',
+                    titulo: c.titulo || 'Novo comunicado',
+                    descricao: c.descricao || '',
+                    data: new Date(c.dataPublicacao || c.dataEnvio),
+                    icone: 'fas fa-bullhorn',
+                    cor: '#BB86FC'
+                });
+            });
+        }
+
+        // 4. Dúvidas respondidas do aluno
+        if (resRespostas?.ok && resDuvidas?.ok) {
+            const respostas = await resRespostas.json();
+            const duvidas   = await resDuvidas.json();
+
+            const minhasDuvidas = duvidas.filter(d => d.utilizador?.id === ID_ALUNO_LOGADO);
+            const idsDuvidas    = new Set(minhasDuvidas.map(d => d.idDuvida));
+
+            respostas
+                .filter(r => idsDuvidas.has(r.idDuvida))
+                .forEach(r => {
+                    const duvida = minhasDuvidas.find(d => d.idDuvida === r.idDuvida);
+                    notificacoes.push({
+                        tipo: 'resposta',
+                        titulo: `Dúvida respondida`,
+                        descricao: duvida?.titulo || 'Sua dúvida foi respondida',
+                        data: new Date(r.momento),
+                        icone: 'fas fa-comment-dots',
+                        cor: '#03DAC6'
+                    });
+                });
+        }
+
+        // 5. Ordena por data e pega as 5 mais recentes
+        notificacoes.sort((a, b) => b.data - a.data);
+        const recentes = notificacoes.slice(0, 5);
+
+        // 6. Atualiza badge
+        const badge = document.querySelector('.notification-badge');
+        if (badge) {
+            badge.textContent = recentes.length;
+            badge.style.display = recentes.length > 0 ? 'flex' : 'none';
+        }
+
+        // 7. Renderiza no modal
+        const lista = document.getElementById('notificationsList');
+        if (!lista) return;
+
+        if (recentes.length === 0) {
+            lista.innerHTML = `
+                <div style="text-align:center; padding:30px; color:var(--text-muted);">
+                    <i class="fas fa-bell-slash" style="font-size:2rem; margin-bottom:10px; display:block;"></i>
+                    Nenhuma notificação no momento.
+                </div>`;
+            return;
+        }
+
+        lista.innerHTML = recentes.map(n => `
+            <div class="notification-item unread">
+                <i class="${n.icone}" style="color:${n.cor}; font-size:1.2rem;"></i>
+                <div class="notification-text">
+                    <strong>${n.titulo}</strong>
+                    <p>${n.descricao.length > 60 ? n.descricao.substring(0, 60) + '...' : n.descricao}</p>
+                    <small>${formatarDataNotificacao(n.data)}</small>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error('[EstudeX] Erro ao carregar notificações:', err);
+    }
+}
+
+function formatarDataNotificacao(data) {
+    if (!data || isNaN(data)) return '—';
+    const agora = new Date();
+    const diff  = Math.floor((agora - data) / 1000);
+
+    if (diff < 60)           return 'Agora mesmo';
+    if (diff < 3600)         return `Há ${Math.floor(diff / 60)} min`;
+    if (diff < 86400)        return `Há ${Math.floor(diff / 3600)}h`;
+    if (diff < 86400 * 7)    return `Há ${Math.floor(diff / 86400)} dias`;
+    return data.toLocaleDateString('pt-BR');
 }
 
 function initActions() {

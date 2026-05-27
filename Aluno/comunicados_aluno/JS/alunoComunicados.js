@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 function configurarEventos() {
     document.getElementById('search-input').addEventListener('input', () => filtrarComunicados());
-    document.getElementById('filter-materia').addEventListener('change', () => filtrarComunicados());
-    document.getElementById('filter-professor').addEventListener('change', () => filtrarComunicados());
 
     document.getElementById('modal-comunicado').addEventListener('click', (e) => {
         if (e.target.id === 'modal-comunicado') fecharModal();
@@ -125,25 +123,60 @@ function resolverNome(valor) {
 //  POPULAR FILTROS — por disciplina
 // ============================================================
 function popularFiltros() {
-    const disciplinas = [
-        ...new Map(
-            comunicadosLista
-                .filter(c => c.disciplina)
-                .map(c => [c.disciplina.id, c.disciplina.nome])
-        ).entries()
-    ];
+    const disciplinasMap = new Map();
+    comunicadosLista.forEach(c => {
+        if (c.disciplina?.id != null)
+            disciplinasMap.set(String(c.disciplina.id), c.disciplina.nome);
+    });
 
-    const filterMateria = document.getElementById('filter-materia');
-    filterMateria.innerHTML = '<option value="">Todas as Disciplinas</option>' +
-        disciplinas.map(([id, nome]) => `<option value="${id}">${nome}</option>`).join('');
+    const wrapper = document.getElementById('customSelectDisciplina');
+    const optionsContainer = document.getElementById('customSelectDisciplinaOptions');
+    const trigger = wrapper.querySelector('.custom-select-trigger');
 
-    // Segundo filtro → responsável (professor)
-    const responsaveis = [...new Map(
-        comunicadosLista
-            .filter(c => c.nomeProfessor)
-            .map(c => [c.nomeProfessor, c.nomeProfessor])
-    ).entries()];
+    optionsContainer.innerHTML = '';
 
+    // Opção "Todas"
+    const geral = document.createElement('div');
+    geral.className = 'custom-option';
+    geral.textContent = 'Geral';
+    geral.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('filter-materia').value = 'geral';
+        document.getElementById('customSelectDisciplinaText').textContent = 'Geral';
+        optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+        geral.classList.add('selected');
+        wrapper.classList.remove('open');
+        filtrarComunicados();
+    });
+    optionsContainer.appendChild(geral);
+
+    disciplinasMap.forEach((nome, id) => {
+        const option = document.createElement('div');
+        option.className = 'custom-option';
+        option.textContent = nome;
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('filter-materia').value = id;
+            document.getElementById('customSelectDisciplinaText').textContent = nome;
+            optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            wrapper.classList.remove('open');
+            filtrarComunicados();
+        });
+        optionsContainer.appendChild(option);
+    });
+
+    trigger.addEventListener('click', () => {
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#customSelectDisciplina')) wrapper.classList.remove('open');
+    });
 }
 
 // ============================================================
@@ -180,17 +213,18 @@ function renderizarComunicados() {
 //  FILTRAR COMUNICADOS
 // ============================================================
 function filtrarComunicados() {
-    const searchTerm       = document.getElementById('search-input').value.toLowerCase();
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
     const filtroDisciplina = document.getElementById('filter-materia').value;
-    const filtroProf       = document.getElementById('filter-professor').value;
 
     comunicadosFiltrados = comunicadosLista.filter(com => {
-        const matchSearch     = (com.titulo || '').toLowerCase().includes(searchTerm)
-                             || (com.descricao || '').toLowerCase().includes(searchTerm);
-        const matchDisciplina = !filtroDisciplina || String(com.disciplina?.id) === filtroDisciplina;
-        const matchProf       = !filtroProf || com.nomeProfessor === filtroProf;
+        const matchSearch = (com.titulo || '').toLowerCase().includes(searchTerm)
+            || (com.descricao || '').toLowerCase().includes(searchTerm);
 
-        return matchSearch && matchDisciplina && matchProf;
+        const matchDisciplina = !filtroDisciplina
+            || filtroDisciplina === 'geral' && !com.disciplina?.id
+            || String(com.disciplina?.id ?? '') === filtroDisciplina;
+
+        return matchSearch && matchDisciplina;
     });
 
     renderizarComunicados();
@@ -203,11 +237,11 @@ function abrirModal(id) {
     const com = comunicadosLista.find(c => c.idComunicado === id);
     if (!com) return;
 
-    document.getElementById('modal-titulo').textContent    = com.titulo || 'Sem título';
+    document.getElementById('modal-titulo').textContent = com.titulo || 'Sem título';
     document.getElementById('modal-professor').textContent = com.nomeProfessor || 'Professor';
-    document.getElementById('modal-materia').textContent   = com.disciplina?.nome || 'Geral';
-    document.getElementById('modal-data').textContent      = formatarData(com.dataEnvio);
-    document.getElementById('modal-conteudo').textContent  = com.descricao || '';
+    document.getElementById('modal-materia').textContent = com.disciplina?.nome || 'Geral';
+    document.getElementById('modal-data').textContent = formatarData(com.dataEnvio);
+    document.getElementById('modal-conteudo').textContent = com.descricao || '';
 
     document.getElementById('modal-comunicado').classList.add('show');
     document.body.style.overflow = 'hidden';

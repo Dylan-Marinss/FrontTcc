@@ -79,6 +79,9 @@ async function carregarAtividadesRespondidas() {
 }
 
 // Renderizar lista de atividades
+const ITENS_POR_PAGINA = 12;
+let paginaAtual = 1;
+
 function renderizarAtividades() {
     const container = document.getElementById('atividadesList');
     const filtroStatus = document.getElementById('statusFilter')?.value || '';
@@ -100,16 +103,6 @@ function renderizarAtividades() {
         );
     }
 
-    if (atividadesFiltradas.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>Nenhuma atividade encontrada.</p>
-            </div>
-        `;
-        return;
-    }
-
     if (filtroDificuldade) {
         atividadesFiltradas = atividadesFiltradas.filter(a =>
             a.nivelDificuldade?.nome === filtroDificuldade
@@ -122,7 +115,24 @@ function renderizarAtividades() {
         );
     }
 
-    container.innerHTML = atividadesFiltradas.map(atividade => {
+    if (atividadesFiltradas.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Nenhuma atividade encontrada.</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Paginação
+    const totalPaginas = Math.ceil(atividadesFiltradas.length / ITENS_POR_PAGINA);
+    if (paginaAtual > totalPaginas) paginaAtual = 1;
+
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const atividadesPagina = atividadesFiltradas.slice(inicio, inicio + ITENS_POR_PAGINA);
+
+    container.innerHTML = atividadesPagina.map(atividade => {
         const concluida = isAtividadeConcluida(atividade.idAtividade);
         const resposta = atividadesRespondidas.find(
             r => r.atividade?.idAtividade === atividade.idAtividade && r.aluno?.id === ID_ALUNO_LOGADO
@@ -130,38 +140,89 @@ function renderizarAtividades() {
         const nota = resposta?.pontuacao ?? '—';
 
         return `
-    <div class="atividade-card" onclick="abrirAtividade(${atividade.idAtividade})">
-        <h3><i class="fas fa-file-alt" style="color: var(--primary-color); margin-right: 8px;"></i>${escapeHtml(atividade.titulo || 'Sem título')}</h3>
-        <div class="info">
-            <span><i class="fas fa-calendar-alt"></i> ${formatarData(atividade.dataCriacao)}</span>
-            <span class="pontuacao"><i class="fas fa-star"></i> Max: ${atividade.pontuacaoMaxima || 0} pts</span>
-        </div>
-        <div class="info">
-    <span>
-        <i class="fas fa-chart-line"></i> 
-        Nível: ${atividade.nivelDificuldade?.nome || 'Não definido'}
-    </span>
-</div>
-
-<div class="info">
-    <span>
-        <i class="fas fa-book"></i> 
-        Disciplina: ${atividade.disciplina?.nome || 'Não definida'}
-    </span>
-
-    <span class="status ${concluida ? 'concluida' : 'pendente'}">
-        ${concluida ? ' Respondida' : ' Pendente'}
-    </span>
-</div>
-        ${concluida ? `
-            <div class="nota-aluno">
-                <span class="nota-label-card">Sua nota</span>
-                <span class="nota-valor">${nota} / ${atividade.pontuacaoMaxima || 0}</span>
+            <div class="atividade-card" onclick="abrirAtividade(${atividade.idAtividade})">
+                <h3><i class="fas fa-file-alt" style="color: var(--primary-color); margin-right: 8px;"></i>${escapeHtml(atividade.titulo || 'Sem título')}</h3>
+                <div class="info">
+                    <span><i class="fas fa-calendar-alt"></i> ${formatarData(atividade.dataCriacao)}</span>
+                    <span class="pontuacao"><i class="fas fa-star"></i> Max: ${atividade.pontuacaoMaxima || 0} pts</span>
+                </div>
+                <div class="info">
+                    <span><i class="fas fa-chart-line"></i> Nível: ${atividade.nivelDificuldade?.nome || 'Não definido'}</span>
+                </div>
+                <div class="info">
+                    <span><i class="fas fa-book"></i> Disciplina: ${atividade.disciplina?.nome || 'Não definida'}</span>
+                    <span class="status ${concluida ? 'concluida' : 'pendente'}">
+                        ${concluida ? 'Respondida' : 'Pendente'}
+                    </span>
+                </div>
+                ${concluida ? `
+                    <div class="nota-aluno">
+                        <span class="nota-label-card">Sua nota</span>
+                        <span class="nota-valor">${nota} / ${atividade.pontuacaoMaxima || 0}</span>
+                    </div>
+                ` : ''}
             </div>
-        ` : ''}
-    </div>
-`;
+        `;
     }).join('');
+
+    // Paginação HTML
+    if (totalPaginas > 1) {
+        container.insertAdjacentHTML('afterend', '');
+        let paginacaoEl = document.getElementById('paginacao');
+        if (!paginacaoEl) {
+            paginacaoEl = document.createElement('div');
+            paginacaoEl.id = 'paginacao';
+            container.insertAdjacentElement('afterend', paginacaoEl);
+        }
+
+        paginacaoEl.innerHTML = `
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
+                margin-top: 30px;
+                font-family: var(--font-main);
+            ">
+                <button onclick="mudarPagina(${paginaAtual - 1})" 
+                    ${paginaAtual === 1 ? 'disabled' : ''}
+                    style="
+                        background: ${paginaAtual === 1 ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
+                        color: ${paginaAtual === 1 ? 'var(--text-muted)' : '#000'};
+                        border: none; padding: 10px 20px; border-radius: 30px;
+                        cursor: ${paginaAtual === 1 ? 'not-allowed' : 'pointer'};
+                        font-weight: 700; transition: all 0.3s;
+                    ">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+
+                <span style="color: var(--text-muted); font-size: 0.9rem;">
+                    Página <strong style="color: var(--primary-color);">${paginaAtual}</strong> de <strong style="color: var(--primary-color);">${totalPaginas}</strong>
+                </span>
+
+                <button onclick="mudarPagina(${paginaAtual + 1})"
+                    ${paginaAtual === totalPaginas ? 'disabled' : ''}
+                    style="
+                        background: ${paginaAtual === totalPaginas ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
+                        color: ${paginaAtual === totalPaginas ? 'var(--text-muted)' : '#000'};
+                        border: none; padding: 10px 20px; border-radius: 30px;
+                        cursor: ${paginaAtual === totalPaginas ? 'not-allowed' : 'pointer'};
+                        font-weight: 700; transition: all 0.3s;
+                    ">
+                    Próxima <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        `;
+    } else {
+        const paginacaoEl = document.getElementById('paginacao');
+        if (paginacaoEl) paginacaoEl.innerHTML = '';
+    }
+}
+
+function mudarPagina(novaPagina) {
+    paginaAtual = novaPagina;
+    renderizarAtividades();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Verificar se atividade foi concluída
@@ -173,6 +234,7 @@ function isAtividadeConcluida(idAtividade) {
 
 // Filtrar atividades
 function filterAtividades() {
+    paginaAtual = 1;
     renderizarAtividades();
 }
 

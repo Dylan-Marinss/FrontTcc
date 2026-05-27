@@ -2,28 +2,23 @@
 //  CONFIGURAÇÃO
 // ============================================================
 const API_URL = 'http://localhost:8080';
-const ID_ALUNO_LOGADO = 1; // substituir pelo ID real após login
+const ID_ALUNO_LOGADO = 1;
 
 // ============================================================
 //  ESTADO
 // ============================================================
 let todasRespostas = [];
 let respostasFiltradas = [];
-let lineChart = null;
+let lineChartInstance = null;
 let barChart = null;
 
-// Paleta de cores por disciplina (título da atividade)
+window.periodoDias = 30;
+window.filtrosDisciplinaGrafico = '';
+
+// Paleta de cores
 const CORES_DISCIPLINAS = [
-    '#BB86FC', // roxo principal
-    '#03DAC6', // ciano
-    '#FF6B6B', // vermelho
-    '#FFD93D', // amarelo
-    '#6BCB77', // verde
-    '#4D96FF', // azul
-    '#FF922B', // laranja
-    '#F06595', // rosa
-    '#74C0FC', // azul claro
-    '#A9E34B', // verde limão
+    '#BB86FC', '#03DAC6', '#FF6B6B', '#FFD93D', '#6BCB77',
+    '#4D96FF', '#FF922B', '#F06595', '#74C0FC', '#A9E34B',
 ];
 
 const mapaCores = {};
@@ -37,7 +32,6 @@ function obterCorDisciplina(titulo) {
     return mapaCores[titulo];
 }
 
-// Retorna o nome da disciplina se existir, senão usa o título da atividade
 function nomeDisciplina(r) {
     return r.atividade?.disciplina?.nome || r.atividade?.titulo || 'Sem disciplina';
 }
@@ -58,13 +52,8 @@ async function carregarDesempenho() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const todas = await res.json();
-
-        // Filtra apenas as respostas do aluno logado
         todasRespostas = todas.filter(r => r.aluno?.id === ID_ALUNO_LOGADO);
-
-        // Ordena por data de início
         todasRespostas.sort((a, b) => new Date(a.momentoInicio) - new Date(b.momentoInicio));
-
         respostasFiltradas = [...todasRespostas];
 
         popularFiltroAtividades();
@@ -83,75 +72,100 @@ async function carregarDesempenho() {
 }
 
 // ============================================================
-//  POPULAR FILTRO DE DISCIPLINAS
+//  POPULAR FILTROS
 // ============================================================
 function popularFiltroAtividades() {
-    // Extrai disciplinas únicas das respostas
     const disciplinas = [...new Map(
         todasRespostas
             .filter(r => r.atividade?.disciplina)
             .map(r => [r.atividade.disciplina.id, r.atividade.disciplina.nome])
     ).entries()].map(([id, nome]) => nome);
 
-    // Fallback: se nenhuma atividade tem disciplina ainda, usa título
     const itens = disciplinas.length > 0
         ? disciplinas
         : [...new Set(todasRespostas.map(r => r.atividade?.titulo || 'Sem título'))];
 
-    let container = document.getElementById('filtro-atividade-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'filtro-atividade-container';
-        container.style.cssText = 'margin-bottom: 20px; display: flex; align-items: center; gap: 12px;';
+    itens.forEach(t => obterCorDisciplina(t));
 
-        const label = document.createElement('label');
-        label.textContent = 'Filtrar por disciplina:';
-        label.style.cssText = 'color: var(--text-muted); font-size: 0.9rem;';
+    // Custom select de período
+    inicializarCustomSelect(
+        'customSelectPeriodo',
+        'customSelectPeriodoOptions',
+        'customSelectPeriodoText',
+        [
+            { value: 7, label: 'Últimos 7 dias' },
+            { value: 30, label: 'Últimos 30 dias' }
+        ],
+        30,
+        (valor) => {
+            window.periodoDias = parseInt(valor);
+            atualizarGraficoLinha();
+            atualizarGraficoBarra();
+        }
+    );
 
-        const select = document.createElement('select');
-        select.id = 'filtro-atividade';
-        select.style.cssText = `
-            background-color: var(--bg-card);
-            color: var(--text-light);
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            font-family: var(--font-main);
-            outline: none;
-        `;
-        select.addEventListener('change', aplicarFiltro);
+    // Custom select de disciplina
+    inicializarCustomSelect(
+        'customSelectDisciplinaGrafico',
+        'customSelectDisciplinaGraficoOptions',
+        'customSelectDisciplinaGraficoText',
+        [
+            { value: '', label: 'Todas as disciplinas' },
+            ...itens.map(nome => ({ value: nome, label: nome }))
+        ],
+        '',
+        (valor) => {
+            window.filtrosDisciplinaGrafico = valor;
+            atualizarGraficoLinha();
+            atualizarGraficoBarra();
+        }
+    );
+}
 
-        const optTodas = document.createElement('option');
-        optTodas.value = '';
-        optTodas.textContent = 'Todas as disciplinas';
-        select.appendChild(optTodas);
+function inicializarCustomSelect(wrapperId, optionsId, textId, opcoes, valorPadrao, onChange) {
+    const wrapper = document.getElementById(wrapperId);
+    const optionsContainer = document.getElementById(optionsId);
+    const trigger = wrapper.querySelector('.custom-select-trigger');
 
-        itens.forEach(nome => {
-            obterCorDisciplina(nome);
-            const opt = document.createElement('option');
-            opt.value = nome;
-            opt.textContent = nome;
-            select.appendChild(opt);
+    optionsContainer.innerHTML = '';
+
+    opcoes.forEach(({ value, label }) => {
+        const option = document.createElement('div');
+        option.className = 'custom-option' + (String(value) === String(valorPadrao) ? ' selected' : '');
+        option.textContent = label;
+        option.dataset.value = value;
+
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById(textId).textContent = label;
+            optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            wrapper.classList.remove('open');
+            onChange(value);
         });
 
-        container.appendChild(label);
-        container.appendChild(select);
+        optionsContainer.appendChild(option);
+    });
 
-        const chartsGrid = document.querySelector('.charts-grid');
-        chartsGrid.parentElement.insertBefore(container, chartsGrid);
-    }
+    trigger.addEventListener('click', () => {
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
 
-    itens.forEach(t => obterCorDisciplina(t));
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest(`#${wrapperId}`)) wrapper.classList.remove('open');
+    });
 }
 
 // ============================================================
 //  APLICAR FILTRO
-//  — não filtra os dados, só redesenha o gráfico com destaque
 // ============================================================
 function aplicarFiltro() {
     respostasFiltradas = [...todasRespostas];
+    paginaTabela = 1;
     atualizarTudo();
 }
 
@@ -184,13 +198,12 @@ function atualizarEstatisticas() {
 function atualizarCirculoDesempenho() {
     const total = respostasFiltradas.length;
     const somaNotas = respostasFiltradas.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
-    const somaMax   = respostasFiltradas.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
+    const somaMax = respostasFiltradas.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
     const totalPontos = somaNotas;
     const mediaPorAtividade = total > 0 ? (somaNotas / total).toFixed(1) : 0;
     const notasMaximas = respostasFiltradas.filter(r => r.pontuacao >= (r.atividade?.pontuacaoMaxima || 10)).length;
     const percentual = somaMax > 0 ? Math.round((somaNotas / somaMax) * 100) : 0;
 
-    // Classificação
     let classificacao = 'Iniciante';
     if (percentual >= 90) classificacao = 'Expert';
     else if (percentual >= 75) classificacao = 'Avançado';
@@ -203,124 +216,109 @@ function atualizarCirculoDesempenho() {
     document.getElementById('mediaPorAtividade').textContent = mediaPorAtividade;
     document.getElementById('notasMaximas').textContent = notasMaximas;
 
-    // Animação do círculo SVG
     const circunferencia = 282.7;
     const offset = circunferencia - (percentual / 100) * circunferencia;
     const circle = document.getElementById('performanceCircle');
-    if (circle) {
-        circle.style.strokeDashoffset = offset;
-    }
+    if (circle) circle.style.strokeDashoffset = offset;
 }
 
 // ============================================================
-//  GRÁFICO DE LINHA — Chart.js
-//  X = sequência de tentativas por disciplina (1ª, 2ª, 3ª…)
-//  Y = nota real obtida
-//  Disciplina selecionada no filtro = linha destacada
+//  GRÁFICO DE LINHA
 // ============================================================
-let lineChartInstance = null;
-
 function atualizarGraficoLinha() {
-    // Garante que o elemento é um <canvas>
     let el = document.getElementById('lineChart');
     if (!el) return;
-    if (el.tagName === 'DIV') {
-        el.outerHTML = '<canvas id="lineChart" class="chart-canvas"></canvas>';
-        el = document.getElementById('lineChart');
-    }
 
-    if (todasRespostas.length === 0) {
+    if (todasRespostas.length === 0) { el.style.display = 'none'; return; }
+    el.style.display = '';
+
+    const periodo = window.periodoDias || 30;
+    const filtroSelecionado = window.filtrosDisciplinaGrafico || '';
+
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - periodo);
+
+    let respostasPeriodo = todasRespostas.filter(r => {
+        const dataR = new Date(r.momentoFim || r.momentoInicio);
+        return dataR >= dataLimite;
+    });
+
+
+    const disciplinas = [...new Set(respostasPeriodo.map(r => nomeDisciplina(r)))];
+
+    if (disciplinas.length === 0) {
+        if (lineChartInstance) { lineChartInstance.destroy(); lineChartInstance = null; }
         el.style.display = 'none';
         return;
     }
     el.style.display = '';
 
-    const filtroSelecionado = document.getElementById('filtro-atividade')?.value || '';
-
-    // Uma série por disciplina
-    const disciplinas = [...new Set(todasRespostas.map(r => nomeDisciplina(r)))];
-
-    // Para cada disciplina, lista as notas em ordem cronológica
-    const porDisciplina = {};
-    disciplinas.forEach(d => {
-        porDisciplina[d] = todasRespostas
-            .filter(r => nomeDisciplina(r) === d)
-            .map(r => r.pontuacao ?? 0);
+    const todasDatas = [...new Set(
+        respostasPeriodo.map(r => new Date(r.momentoFim || r.momentoInicio).toLocaleDateString('pt-BR'))
+    )].sort((a, b) => {
+        const [da, ma, aa] = a.split('/');
+        const [db, mb, ab] = b.split('/');
+        return new Date(`${aa}-${ma}-${da}`) - new Date(`${ab}-${mb}-${db}`);
     });
 
-    // Eixo X: labels "1", "2", "3"… até o máximo de tentativas
-    const maxTentativas = Math.max(...disciplinas.map(d => porDisciplina[d].length));
-    const labels = Array.from({ length: maxTentativas }, (_, i) => String(i + 1));
-
-    // Nota máxima para escala do eixo Y
-    const notaMaxima = Math.max(...todasRespostas.map(r => r.atividade?.pontuacaoMaxima ?? 10));
-
-    // Monta datasets
     const datasets = disciplinas.map(d => {
         const cor = obterCorDisciplina(d);
         const destacada = !filtroSelecionado || filtroSelecionado === d;
 
-        const dados = Array.from({ length: maxTentativas }, (_, i) =>
-            porDisciplina[d][i] !== undefined ? porDisciplina[d][i] : null
-        );
+        const dados = todasDatas.map(data => {
+            const respostasDia = respostasPeriodo.filter(r => {
+                const dataR = new Date(r.momentoFim || r.momentoInicio).toLocaleDateString('pt-BR');
+                return nomeDisciplina(r) === d && dataR === data;
+            });
+            if (respostasDia.length === 0) return null;
+            const soma = respostasDia.reduce((acc, r) => acc + (r.pontuacao ?? 0), 0);
+            return parseFloat((soma / respostasDia.length).toFixed(1));
+        });
 
         return {
             label: d,
             data: dados,
-            borderColor: destacada ? cor : cor + '33',
-            backgroundColor: destacada ? cor + '22' : 'transparent',
-            borderWidth: destacada ? 3 : 1.5,
-            pointRadius: destacada ? 6 : 3,
-            pointHoverRadius: destacada ? 8 : 4,
-            pointBackgroundColor: destacada ? cor : cor + '33',
+            borderColor: destacada ? cor : cor + '22',
+            backgroundColor: 'transparent',
+            borderWidth: destacada ? 3 : 1,
+            pointRadius: destacada ? 6 : 2,
+            pointHoverRadius: destacada ? 8 : 3,
+            pointBackgroundColor: destacada ? cor : cor + '22',
             tension: 0.4,
             spanGaps: true,
         };
     });
 
+    const notaMaxima = Math.max(...respostasPeriodo.map(r => r.atividade?.pontuacaoMaxima ?? 10));
+
     if (lineChartInstance) lineChartInstance.destroy();
 
     lineChartInstance = new Chart(el, {
         type: 'line',
-        data: { labels, datasets },
+        data: { labels: todasDatas, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: {
-                        color: '#9E9E9E',
-                        font: { size: 11 },
-                        boxWidth: 12,
-                        padding: 16,
-                    }
+                    labels: { color: '#9E9E9E', font: { size: 11 }, boxWidth: 12, padding: 16 }
                 },
                 tooltip: {
                     callbacks: {
-                        title: ctx => `${ctx[0].dataset.label} — ${ctx[0].label}ª tentativa`,
-                        label: ctx => ` Nota: ${ctx.parsed.y}`
+                        title: ctx => `📅 ${ctx[0].label}`,
+                        label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}`
                     }
                 }
             },
             scales: {
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Nº da tentativa',
-                        color: '#9E9E9E',
-                        font: { size: 11 }
-                    },
-                    ticks: { color: '#9E9E9E', font: { size: 11 } },
+                    title: { display: true, text: 'Data', color: '#9E9E9E', font: { size: 11 } },
+                    ticks: { color: '#9E9E9E', font: { size: 10 }, maxRotation: 45 },
                     grid: { color: '#2a2a2a' },
                 },
                 y: {
-                    title: {
-                        display: true,
-                        text: 'Nota',
-                        color: '#9E9E9E',
-                        font: { size: 11 }
-                    },
+                    title: { display: true, text: 'Nota Média', color: '#9E9E9E', font: { size: 11 } },
                     min: 0,
                     max: notaMaxima,
                     ticks: { color: '#9E9E9E', stepSize: 1 },
@@ -332,40 +330,50 @@ function atualizarGraficoLinha() {
 }
 
 // ============================================================
-//  GRÁFICO DE BARRAS — Chart.js (distribuição de notas)
+//  GRÁFICO DE BARRAS
 // ============================================================
 function atualizarGraficoBarra() {
     const canvas = document.getElementById('barChart');
-    if (!canvas) return;
+    if (!canvas || canvas.tagName !== 'CANVAS') return;
 
-    // Garante que é um canvas
-    if (canvas.tagName !== 'CANVAS') return;
+    const periodo = window.periodoDias || 30;
+    const filtroDisciplina = window.filtrosDisciplinaGrafico || '';
 
-    const disciplinas = [...new Set(respostasFiltradas.map(r => nomeDisciplina(r)))];
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - periodo);
 
-    const labels = disciplinas;
-    const dados  = disciplinas.map(d => {
-        const group = respostasFiltradas.filter(r => nomeDisciplina(r) === d);
+    // NÃO filtra por disciplina aqui — só por período
+    const respostasFiltro = respostasFiltradas.filter(r => {
+        const dataR = new Date(r.momentoFim || r.momentoInicio);
+        return dataR >= dataLimite;
+    });
+
+    const disciplinas = [...new Set(respostasFiltro.map(r => nomeDisciplina(r)))];
+    const dados = disciplinas.map(d => {
+        const group = respostasFiltro.filter(r => nomeDisciplina(r) === d);
         const soma  = group.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
         const max   = group.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
         return max > 0 ? Math.round((soma / max) * 100) : 0;
     });
-
-    const cores = disciplinas.map(d => obterCorDisciplina(d));
-    const coresBorda = cores.map(c => c + 'CC');
 
     if (barChart) barChart.destroy();
 
     barChart = new Chart(canvas, {
         type: 'bar',
         data: {
-            labels,
+            labels: disciplinas,
             datasets: [{
                 label: 'Aproveitamento (%)',
                 data: dados,
-                backgroundColor: cores.map(c => c + '55'),
-                borderColor: coresBorda,
-                borderWidth: 2,
+                backgroundColor: disciplinas.map(d => {
+                    const cor = obterCorDisciplina(d);
+                    return (!filtroDisciplina || d === filtroDisciplina) ? cor + '99' : cor + '22';
+                }),
+                borderColor: disciplinas.map(d => {
+                    const cor = obterCorDisciplina(d);
+                    return (!filtroDisciplina || d === filtroDisciplina) ? cor + 'CC' : cor + '33';
+                }),
+                borderWidth: disciplinas.map(d => (!filtroDisciplina || d === filtroDisciplina) ? 2 : 1),
                 borderRadius: 6,
             }]
         },
@@ -374,22 +382,76 @@ function atualizarGraficoBarra() {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y}% de aproveitamento`
-                    }
-                }
+                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}% de aproveitamento` } }
             },
             scales: {
-                x: {
-                    ticks: { color: '#9E9E9E', font: { size: 11 } },
-                    grid:  { color: '#2a2a2a' },
-                },
+                x: { ticks: { color: '#9E9E9E', font: { size: 11 } }, grid: { color: '#2a2a2a' } },
                 y: {
-                    min: 0,
-                    max: 100,
+                    min: 0, max: 100,
                     ticks: { color: '#9E9E9E', callback: v => v + '%' },
-                    grid:  { color: '#2a2a2a' },
+                    grid: { color: '#2a2a2a' }
+                }
+            }
+        }
+    });
+}function atualizarGraficoBarra() {
+    const canvas = document.getElementById('barChart');
+    if (!canvas || canvas.tagName !== 'CANVAS') return;
+
+    const periodo = window.periodoDias || 30;
+    const filtroDisciplina = window.filtrosDisciplinaGrafico || '';
+
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - periodo);
+
+    // NÃO filtra por disciplina aqui — só por período
+    const respostasFiltro = respostasFiltradas.filter(r => {
+        const dataR = new Date(r.momentoFim || r.momentoInicio);
+        return dataR >= dataLimite;
+    });
+
+    const disciplinas = [...new Set(respostasFiltro.map(r => nomeDisciplina(r)))];
+    const dados = disciplinas.map(d => {
+        const group = respostasFiltro.filter(r => nomeDisciplina(r) === d);
+        const soma  = group.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
+        const max   = group.reduce((acc, r) => acc + (r.atividade?.pontuacaoMaxima || 10), 0);
+        return max > 0 ? Math.round((soma / max) * 100) : 0;
+    });
+
+    if (barChart) barChart.destroy();
+
+    barChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: disciplinas,
+            datasets: [{
+                label: 'Aproveitamento (%)',
+                data: dados,
+                backgroundColor: disciplinas.map(d => {
+                    const cor = obterCorDisciplina(d);
+                    return (!filtroDisciplina || d === filtroDisciplina) ? cor + '99' : cor + '22';
+                }),
+                borderColor: disciplinas.map(d => {
+                    const cor = obterCorDisciplina(d);
+                    return (!filtroDisciplina || d === filtroDisciplina) ? cor + 'CC' : cor + '33';
+                }),
+                borderWidth: disciplinas.map(d => (!filtroDisciplina || d === filtroDisciplina) ? 2 : 1),
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}% de aproveitamento` } }
+            },
+            scales: {
+                x: { ticks: { color: '#9E9E9E', font: { size: 11 } }, grid: { color: '#2a2a2a' } },
+                y: {
+                    min: 0, max: 100,
+                    ticks: { color: '#9E9E9E', callback: v => v + '%' },
+                    grid: { color: '#2a2a2a' }
                 }
             }
         }
@@ -399,6 +461,9 @@ function atualizarGraficoBarra() {
 // ============================================================
 //  TABELA DE HISTÓRICO
 // ============================================================
+const ITENS_POR_PAGINA_TABELA = 10;
+let paginaTabela = 1;
+
 function atualizarTabela() {
     const tbody = document.getElementById('atividadesTableBody');
     if (!tbody) return;
@@ -411,23 +476,30 @@ function atualizarTabela() {
                     <p>Nenhuma atividade encontrada.</p>
                 </td>
             </tr>`;
+        removePaginacaoTabela();
         return;
     }
 
-    tbody.innerHTML = respostasFiltradas.map(r => {
-        const titulo     = r.atividade?.titulo || 'Sem título';
+    const totalPaginas = Math.ceil(respostasFiltradas.length / ITENS_POR_PAGINA_TABELA);
+    if (paginaTabela > totalPaginas) paginaTabela = 1;
+
+    const inicio = (paginaTabela - 1) * ITENS_POR_PAGINA_TABELA;
+    const itensPagina = respostasFiltradas.slice(inicio, inicio + ITENS_POR_PAGINA_TABELA);
+
+    tbody.innerHTML = itensPagina.map(r => {
+        const titulo = r.atividade?.titulo || 'Sem título';
         const disciplina = nomeDisciplina(r);
-        const nota   = r.pontuacao ?? 0;
-        const max    = r.atividade?.pontuacaoMaxima ?? 10;
-        const perc   = max > 0 ? Math.round((nota / max) * 100) : 0;
-        const data   = formatarData(r.momentoFim || r.momentoInicio);
-        const cor    = obterCorDisciplina(disciplina);
+        const nota = r.pontuacao ?? 0;
+        const max = r.atividade?.pontuacaoMaxima ?? 10;
+        const perc = max > 0 ? Math.round((nota / max) * 100) : 0;
+        const data = formatarData(r.momentoFim || r.momentoInicio);
+        const cor = obterCorDisciplina(disciplina);
 
         let statusClass, statusLabel;
-        if (perc >= 90)      { statusClass = 'status-excellent'; statusLabel = 'Excelente'; }
-        else if (perc >= 70) { statusClass = 'status-good';      statusLabel = 'Bom'; }
-        else if (perc >= 50) { statusClass = 'status-average';   statusLabel = 'Regular'; }
-        else                 { statusClass = 'status-low';        statusLabel = 'Baixo'; }
+        if (perc >= 90) { statusClass = 'status-excellent'; statusLabel = 'Excelente'; }
+        else if (perc >= 70) { statusClass = 'status-good'; statusLabel = 'Bom'; }
+        else if (perc >= 50) { statusClass = 'status-average'; statusLabel = 'Regular'; }
+        else { statusClass = 'status-low'; statusLabel = 'Baixo'; }
 
         return `
             <tr>
@@ -450,6 +522,55 @@ function atualizarTabela() {
                 <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
             </tr>`;
     }).join('');
+
+    renderPaginacaoTabela(totalPaginas);
+}
+
+function renderPaginacaoTabela(totalPaginas) {
+    let paginacaoEl = document.getElementById('paginacao-tabela');
+    if (!paginacaoEl) {
+        paginacaoEl = document.createElement('div');
+        paginacaoEl.id = 'paginacao-tabela';
+        const tableContainer = document.querySelector('.table-container');
+        tableContainer.insertAdjacentElement('afterend', paginacaoEl);
+    }
+
+    if (totalPaginas <= 1) { paginacaoEl.innerHTML = ''; return; }
+
+    paginacaoEl.innerHTML = `
+        <div style="display:flex;justify-content:center;align-items:center;gap:15px;margin-top:20px;font-family:var(--font-main);">
+            <button onclick="mudarPaginaTabela(${paginaTabela - 1})"
+                ${paginaTabela === 1 ? 'disabled' : ''}
+                style="background:${paginaTabela === 1 ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg,#BB86FC,#a21fa2)'};
+                color:${paginaTabela === 1 ? 'var(--text-muted)' : '#000'};
+                border:none;padding:10px 20px;border-radius:30px;
+                cursor:${paginaTabela === 1 ? 'not-allowed' : 'pointer'};font-weight:700;">
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span style="color:var(--text-muted);font-size:0.9rem;">
+                Página <strong style="color:var(--primary-color);">${paginaTabela}</strong> de <strong style="color:var(--primary-color);">${totalPaginas}</strong>
+            </span>
+            <button onclick="mudarPaginaTabela(${paginaTabela + 1})"
+                ${paginaTabela === totalPaginas ? 'disabled' : ''}
+                style="background:${paginaTabela === totalPaginas ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg,#BB86FC,#a21fa2)'};
+                color:${paginaTabela === totalPaginas ? 'var(--text-muted)' : '#000'};
+                border:none;padding:10px 20px;border-radius:30px;
+                cursor:${paginaTabela === totalPaginas ? 'not-allowed' : 'pointer'};font-weight:700;">
+                Próxima <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    `;
+}
+
+function removePaginacaoTabela() {
+    const el = document.getElementById('paginacao-tabela');
+    if (el) el.innerHTML = '';
+}
+
+function mudarPaginaTabela(novaPagina) {
+    paginaTabela = novaPagina;
+    atualizarTabela();
+    document.querySelector('.data-card:last-child').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============================================================
@@ -461,10 +582,8 @@ function formatarData(dataString) {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
         return data.toLocaleDateString('pt-BR') + ' ' +
-               data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-        return dataString;
-    }
+            data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    } catch { return dataString; }
 }
 
 // ============================================================

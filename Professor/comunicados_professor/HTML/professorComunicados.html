@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar Comunicado - EstudeX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../CSS/home.css">
     <link rel="stylesheet" href="../CSS/professorComunicados.css">
     <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
 </head>
+
 <body>
     <div class="user-dashboard">
         <!-- SIDEBAR -->
@@ -23,9 +27,11 @@
                 <ul>
                     <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
                             <i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"
+                            id="nav-atividades">
                             <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                    <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
+                    <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item active"
+                            id="nav-comunicados">
                             <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
                     <li><a href="../../atividades/HTML/duvidas.html" class="nav-item" id="nav-duvidas">
                             <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
@@ -68,15 +74,21 @@
                         <div class="form-row">
                             <div class="form-group flex-2">
                                 <label class="field-label">Título do Comunicado *</label>
-                                <input type="text" id="titulo" class="input-field" placeholder="Ex: Aviso importante sobre a prova" maxlength="100" required>
+                                <input type="text" id="titulo" class="input-field"
+                                    placeholder="Ex: Aviso importante sobre a prova" maxlength="100" required>
                                 <span class="char-count"><span id="titulo-count">0</span>/100</span>
                             </div>
 
                             <div class="form-group flex-1">
                                 <label class="field-label">Série / Turma *</label>
-                                <select id="turma-select" class="input-field select-field" required>
-                                    <option value="" disabled selected>Selecione a turma...</option>
-                                </select>
+                                <div class="custom-select" id="customSelectTurma">
+                                    <div class="custom-select-trigger">
+                                        <span id="customSelectTurmaText">Selecione a turma...</span>
+                                        <span class="custom-select-arrow">▼</span>
+                                    </div>
+                                    <div class="custom-select-options" id="customSelectTurmaOptions"></div>
+                                </div>
+                                <input type="hidden" id="turma-select">
                             </div>
                         </div>
 
@@ -86,20 +98,26 @@
                                 <label class="field-label">
                                     <i class="fas fa-book" style="color:var(--primary-color, #BB86FC)"></i>
                                     Disciplina
-                                    <span style="font-weight:300; font-size:0.8rem; opacity:0.6;">(opcional — padrão: Geral)</span>
+                                    <span style="font-weight:300; font-size:0.8rem; opacity:0.6;">(opcional — padrão:
+                                        Geral)</span>
                                 </label>
-                                <select id="disciplina-select" class="input-field select-field">
-                                    <option value="">Geral</option>
-                                    <!-- Preenchido via JS -->
-                                </select>
+                                <div class="custom-select" id="customSelectDisciplina">
+                                    <div class="custom-select-trigger">
+                                        <span id="customSelectDisciplinaText">Geral</span>
+                                        <span class="custom-select-arrow">▼</span>
+                                    </div>
+                                    <div class="custom-select-options" id="customSelectDisciplinaOptions"></div>
+                                </div>
+                                <input type="hidden" id="disciplina-select">
                             </div>
                         </div>
 
                         <!-- Conteúdo -->
                         <div class="form-group">
                             <label class="field-label">Conteúdo do Comunicado *</label>
-                            <textarea id="conteudo" class="input-field textarea-large" placeholder="Digite o conteúdo do comunicado..." maxlength="2000" required></textarea>
-                            <span class="char-count"><span id="conteudo-count">0</span>/2000</span>
+                            <textarea id="conteudo" class="input-field textarea-large"
+                                placeholder="Digite o conteúdo do comunicado..." maxlength="2000" required></textarea>
+                            <span class="char-count"><span id="conteudo-count">0</span>/255</span>
                         </div>
 
                         <!-- Botões -->
@@ -126,4 +144,5 @@
     <script src="../JS/professorComunicados.js"></script>
     <script src="../../perfil/JS/menuSideBar.js"></script>
 </body>
+
 </html>

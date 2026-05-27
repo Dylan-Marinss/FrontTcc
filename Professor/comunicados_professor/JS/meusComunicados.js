@@ -2,27 +2,33 @@
 //  CONFIGURACAO
 // ============================================================
 const API_URL = 'http://localhost:8080';
-const ID_PROFESSOR_LOGADO = 6; 
+const ID_PROFESSOR_LOGADO = 6;
 
 // ============================================================
 //  ESTADO
 // ============================================================
 let meusComunicados = [];
-let turmasDisponiveis = [];
+let comunicadoIdParaDeletar = null;
 
 // ============================================================
 //  INICIALIZACAO
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-    carregarTurmas();
     carregarMeusComunicados();
     configurarEventos();
 });
 
 function configurarEventos() {
     document.getElementById('search-input').addEventListener('input', filtrarComunicados);
-    document.getElementById('form-edit').addEventListener('submit', salvarEdicao);
-    
+
+    document.getElementById('modalConfirmDelete').addEventListener('click', (e) => {
+        if (e.target.id === 'modalConfirmDelete') fecharConfirmDelete();
+    });
+
+    document.getElementById('modal-leitura').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-leitura') fecharModalLeitura();
+    });
+
     const menuToggle = document.getElementById('menu-toggle');
     if (menuToggle) {
         menuToggle.addEventListener('click', () => {
@@ -32,40 +38,41 @@ function configurarEventos() {
     }
 }
 
-async function carregarTurmas() {
-    try {
-        const res = await fetch(`${API_URL}/turmas?idProfessor=${ID_PROFESSOR_LOGADO}`);
-        if (res.ok) {
-            turmasDisponiveis = await res.json();
-            if (turmasDisponiveis.content) turmasDisponiveis = turmasDisponiveis.content;
-            
-            const select = document.getElementById('edit-turma');
-            select.innerHTML = turmasDisponiveis.map(t => `<option value="${t.id}">${t.nome}</option>`).join('');
-        }
-    } catch (e) {
-        turmasDisponiveis = [{id: 1, nome: '3º Ano A'}, {id: 2, nome: '3º Ano B'}];
-    }
-}
-
+// ============================================================
+//  CARREGAR COMUNICADOS
+// ============================================================
 async function carregarMeusComunicados() {
+    mostrarLoading(true);
     try {
-        const res = await fetch(`${API_URL}/comunicados?idProfessor=${ID_PROFESSOR_LOGADO}`);
-        if (res.ok) {
-            meusComunicados = await res.json();
-            if (meusComunicados.content) meusComunicados = meusComunicados.content;
-        } else {
-            throw new Error();
-        }
+        const resProf = await fetch(`${API_URL}/utilizadores/${ID_PROFESSOR_LOGADO}`);
+        if (!resProf.ok) throw new Error(`Erro ao buscar professor: HTTP ${resProf.status}`);
+        const professor = await resProf.json();
+        const nomeProfessor = professor.nome;
+
+        const res = await fetch(`${API_URL}/comunicados`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        let todos = await res.json();
+        if (todos.content) todos = todos.content;
+
+        meusComunicados = todos.filter(c =>
+            c.utilizadorResponsavel === nomeProfessor
+        );
+
     } catch (e) {
-        // Dados Mock
-        meusComunicados = [
-            { id: 1, titulo: 'Aviso de Prova', conteudo: 'Estudem para a prova de amanhã.', turmaId: 1, data: '25/05/2026' },
-            { id: 2, titulo: 'Trabalho em Grupo', conteudo: 'Os grupos devem ter 4 pessoas.', turmaId: 2, data: '24/05/2026' }
-        ];
+        console.error('Erro ao carregar comunicados:', e);
+        mostrarErro('Não foi possível carregar os comunicados.');
+    } finally {
+        mostrarLoading(false);
     }
+
     renderizarLista();
+    popularFiltroSerie();
 }
 
+// ============================================================
+//  RENDERIZAR LISTA
+// ============================================================
 function renderizarLista(lista = meusComunicados) {
     const container = document.getElementById('meus-comunicados-list');
     const empty = document.getElementById('empty-state');
@@ -77,76 +84,214 @@ function renderizarLista(lista = meusComunicados) {
     }
 
     empty.style.display = 'none';
-    container.innerHTML = lista.map(com => {
-        const turma = turmasDisponiveis.find(t => t.id == com.turmaId);
-        return `
-            <div class="comunicado-card">
-                <div class="card-header">
-                    <h3 class="card-title">${com.titulo}</h3>
-                    <span class="card-turma">${turma ? turma.nome : 'Turma ' + com.turmaId}</span>
-                </div>
-                <div class="card-body">${com.conteudo}</div>
-                <div class="card-footer">
-                    <span class="card-date"><i class="fas fa-calendar-alt"></i> ${com.data}</span>
-                    <div class="card-actions">
-                        <button class="btn-icon" onclick="abrirEdicao(${com.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn-icon delete" onclick="deletarComunicado(${com.id})" title="Excluir">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
+    container.innerHTML = lista.map(com => `
+        <div class="comunicado-card" id="card-${com.idComunicado}" 
+    onclick="abrirModalLeitura(${com.idComunicado})"
+    style="cursor:pointer;">
+    <div class="card-actions">
+        <button class="btn-card-action btn-deletar" title="Excluir"
+            onclick="event.stopPropagation(); deletarComunicado(${com.idComunicado})">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+            <div class="card-header">
+                <h3 class="card-title">${com.titulo || 'Sem título'}</h3>
             </div>
-        `;
-    }).join('');
+            <div class="card-body">${com.descricao || ''}</div>
+            <div class="card-footer">
+                <span class="card-date">
+                    <i class="fas fa-calendar-alt"></i> ${formatarData(com.dataEnvio)}
+                </span>
+                <span class="card-date">
+                    <i class="fas fa-book"></i> ${com.disciplina?.nome || 'Geral'}
+                </span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function abrirModalLeitura(id) {
+    const com = meusComunicados.find(c => c.idComunicado === id);
+    if (!com) return;
+
+    document.getElementById('leitura-titulo').textContent = com.titulo || 'Sem título';
+    document.getElementById('leitura-data').textContent = formatarData(com.dataEnvio);
+    document.getElementById('leitura-disciplina').textContent = com.disciplina?.nome || 'Geral';
+    document.getElementById('leitura-serie').textContent = com.serie?.nomeSerie || 'Sem série';
+    document.getElementById('leitura-descricao').textContent = com.descricao || '';
+
+    document.getElementById('modal-leitura').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModalLeitura() {
+    document.getElementById('modal-leitura').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+// ============================================================
+//  FILTRAR
+// ============================================================
+
+let filtroSerieAtivo = '';
+
+function popularFiltroSerie() {
+    const seriesMap = new Map();
+    meusComunicados.forEach(c => {
+        if (c.serie?.id) seriesMap.set(String(c.serie.id), c.serie.nomeSerie);
+    });
+
+    const wrapper = document.getElementById('customSelectFiltroSerie');
+    const optionsContainer = document.getElementById('customSelectFiltroSerieOptions');
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+
+    // Opção "Todas"
+    optionsContainer.innerHTML = '';
+    const todas = document.createElement('div');
+    todas.className = 'custom-option selected';
+    todas.textContent = 'Todas as Séries';
+    todas.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filtroSerieAtivo = '';
+        document.getElementById('customSelectFiltroSerieText').textContent = 'Todas as Séries';
+        optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+        todas.classList.add('selected');
+        wrapper.classList.remove('open');
+        filtrarComunicados();
+    });
+    optionsContainer.appendChild(todas);
+
+    seriesMap.forEach((nome, id) => {
+        const option = document.createElement('div');
+        option.className = 'custom-option';
+        option.textContent = nome;
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            filtroSerieAtivo = id;
+            document.getElementById('customSelectFiltroSerieText').textContent = nome;
+            optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            wrapper.classList.remove('open');
+            filtrarComunicados();
+        });
+        optionsContainer.appendChild(option);
+    });
+
+    trigger.addEventListener('click', () => {
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top   = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left  = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#customSelectFiltroSerie')) wrapper.classList.remove('open');
+    });
 }
 
 function filtrarComunicados() {
     const term = document.getElementById('search-input').value.toLowerCase();
-    const filtrados = meusComunicados.filter(c => 
-        c.titulo.toLowerCase().includes(term) || 
-        c.conteudo.toLowerCase().includes(term)
-    );
+
+    const filtrados = meusComunicados.filter(c => {
+        const matchSearch = (c.titulo    || '').toLowerCase().includes(term) ||
+                            (c.descricao || '').toLowerCase().includes(term);
+        const matchSerie  = !filtroSerieAtivo || String(c.serie?.id) === filtroSerieAtivo;
+        return matchSearch && matchSerie;
+    });
+
     renderizarLista(filtrados);
 }
 
-function abrirEdicao(id) {
-    const com = meusComunicados.find(c => c.id == id);
-    if (!com) return;
+function filtrarComunicados() {
+    const term = document.getElementById('search-input').value.toLowerCase();
 
-    document.getElementById('edit-id').value = com.id;
-    document.getElementById('edit-titulo').value = com.titulo;
-    document.getElementById('edit-turma').value = com.turmaId;
-    document.getElementById('edit-conteudo').value = com.conteudo;
+    const filtrados = meusComunicados.filter(c => {
+        const matchSearch = (c.titulo    || '').toLowerCase().includes(term) ||
+                            (c.descricao || '').toLowerCase().includes(term);
+        const matchSerie  = !filtroSerieAtivo || String(c.serie?.id) === filtroSerieAtivo;
+        return matchSearch && matchSerie;
+    });
 
-    document.getElementById('modal-edit').classList.add('show');
+    renderizarLista(filtrados);
 }
 
-function fecharModal() {
-    document.getElementById('modal-edit').classList.remove('show');
+// ============================================================
+//  DELETAR
+// ============================================================
+function deletarComunicado(id) {
+    comunicadoIdParaDeletar = id;
+    const modal = document.getElementById('modalConfirmDelete');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('active')));
 }
 
-async function salvarEdicao(e) {
-    e.preventDefault();
-    const id = document.getElementById('edit-id').value;
-    const titulo = document.getElementById('edit-titulo').value;
-    const turmaId = document.getElementById('edit-turma').value;
-    const conteudo = document.getElementById('edit-conteudo').value;
+function fecharConfirmDelete() {
+    comunicadoIdParaDeletar = null;
+    const modal = document.getElementById('modalConfirmDelete');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 200);
+}
 
-    // Lógica de atualização na API aqui
-    const index = meusComunicados.findIndex(c => c.id == id);
-    if (index !== -1) {
-        meusComunicados[index] = { ...meusComunicados[index], titulo, turmaId, conteudo };
-        renderizarLista();
-        fecharModal();
-        alert('Comunicado atualizado com sucesso!');
+async function confirmarDelete() {
+    if (!comunicadoIdParaDeletar) return;
+
+    const btnConfirmar = document.getElementById('btnConfirmarDelete');
+    btnConfirmar.disabled = true;
+    btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
+
+    try {
+        const res = await fetch(`${API_URL}/comunicados/${comunicadoIdParaDeletar}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const card = document.getElementById(`card-${comunicadoIdParaDeletar}`);
+        if (card) {
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => card.remove(), 300);
+        }
+
+        meusComunicados = meusComunicados.filter(c => c.idComunicado !== comunicadoIdParaDeletar);
+        fecharConfirmDelete();
+
+    } catch (e) {
+        console.error('Erro ao excluir:', e);
+        alert('Erro ao excluir o comunicado.');
+    } finally {
+        btnConfirmar.disabled = false;
+        btnConfirmar.innerHTML = '<i class="fas fa-trash"></i> Sim, excluir';
     }
 }
 
-async function deletarComunicado(id) {
-    if (confirm('Tem certeza que deseja excluir este comunicado?')) {
-        meusComunicados = meusComunicados.filter(c => c.id != id);
-        renderizarLista();
-    }
+// ============================================================
+//  UTILITÁRIOS
+// ============================================================
+function formatarData(valor) {
+    if (!valor) return '—';
+    const d = new Date(valor);
+    if (isNaN(d)) return valor;
+    return d.toLocaleDateString('pt-BR');
+}
+
+function mostrarLoading(show) {
+    if (!show) return;
+    document.getElementById('meus-comunicados-list').innerHTML = `
+        <div style="text-align:center; padding:3rem; color:var(--text-muted, #aaa);">
+            <i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i>
+            <p style="margin-top:1rem;">Carregando comunicados...</p>
+        </div>
+    `;
+}
+
+function mostrarErro(msg) {
+    document.getElementById('meus-comunicados-list').innerHTML = `
+        <div style="text-align:center; padding:3rem; color:#FF3D00;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;"></i>
+            <p style="margin-top:1rem;">${msg}</p>
+        </div>
+    `;
 }

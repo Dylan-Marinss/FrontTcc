@@ -670,3 +670,49 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
 }
+
+/* ========== DROPDOWN NOTIFICAÇÕES ========== */
+#notificationsDropdown {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    z-index: 3000;
+    overflow: hidden;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+#notificationsDropdown.show {
+    display: block;
+}
+
+.notif-dropdown-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-futuristic);
+    font-size: 0.85rem;
+    color: var(--primary-color);
+}
+
+.notif-dropdown-header i {
+    color: var(--secondary-color);
+    margin-right: 8px;
+}
+
+.notif-dropdown-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

@@ -44,18 +44,63 @@ function configurarEventos() {
 // ============================================================
 //  CARREGAR TURMAS
 // ============================================================
+function inicializarCustomSelect(wrapperId, optionsId, hiddenId, textId, opcoes, placeholder) {
+    const wrapper = document.getElementById(wrapperId);
+    const optionsContainer = document.getElementById(optionsId);
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+
+    // Adiciona opção padrão se houver placeholder
+    optionsContainer.innerHTML = '';
+
+    opcoes.forEach(({ value, label }) => {
+        const option = document.createElement('div');
+        option.className = 'custom-option';
+        option.dataset.value = value;
+        option.textContent = label;
+
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById(hiddenId).value = value;
+            document.getElementById(textId).textContent = label;
+
+            optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            wrapper.classList.remove('open');
+        });
+
+        optionsContainer.appendChild(option);
+    });
+
+    trigger.addEventListener('click', () => {
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top  = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest(`#${wrapperId}`)) wrapper.classList.remove('open');
+    });
+}
+
 async function carregarTurmas() {
     try {
         const res = await fetch(`${API_URL}/series`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error();
+        let series = await res.json();
+        if (series.content) series = series.content;
 
-        turmasDisponiveis = await res.json();
-        if (turmasDisponiveis.content) turmasDisponiveis = turmasDisponiveis.content;
-
-        popularTurmas();
-    } catch (err) {
-        console.error('Erro ao carregar turmas:', err);
-        showToast('Erro ao carregar turmas. Verifique a conexão.', 'error');
+        inicializarCustomSelect(
+            'customSelectTurma',
+            'customSelectTurmaOptions',
+            'turma-select',
+            'customSelectTurmaText',
+            series.map(s => ({ value: s.id, label: s.nomeSerie })),
+            'Selecione a turma...'
+        );
+    } catch (e) {
+        console.error('Erro ao carregar turmas:', e);
     }
 }
 
@@ -77,23 +122,23 @@ function popularTurmas() {
 //  CARREGAR DISCIPLINAS
 // ============================================================
 async function carregarDisciplinas() {
-    const select = document.getElementById('disciplina-select');
-
     try {
         const res = await fetch(`${API_URL}/disciplinas`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
+        if (!res.ok) throw new Error();
         const disciplinas = await res.json();
-        const lista = disciplinas.content || disciplinas;
 
-        // "Geral" como primeira opção (valor vazio = sem disciplina)
-        select.innerHTML = '<option value="">Geral</option>' +
-            lista.map(d => `<option value="${d.id}">${d.nome}</option>`).join('');
+        const opcoes = [{ value: '', label: 'Geral' }, ...disciplinas.map(d => ({ value: d.id, label: d.nome }))];
 
-    } catch (err) {
-        console.error('Erro ao carregar disciplinas:', err);
-        // Mantém só o "Geral" em caso de falha
-        select.innerHTML = '<option value="">Geral</option>';
+        inicializarCustomSelect(
+            'customSelectDisciplina',
+            'customSelectDisciplinaOptions',
+            'disciplina-select',
+            'customSelectDisciplinaText',
+            opcoes,
+            'Geral'
+        );
+    } catch (e) {
+        console.error('Erro ao carregar disciplinas:', e);
     }
 }
 
@@ -149,7 +194,6 @@ async function enviarComunicado(e) {
             // Se disciplinaId estiver vazio ("Geral"), não envia o campo → fica null no banco
             ...(disciplinaId ? { disciplina: { id: parseInt(disciplinaId) } } : {}),
             dataEnvio: agora.toISOString().split('T')[0],
-            dataPublicacao: agora.toISOString()
         };
 
         const res = await fetch(`${API_URL}/comunicados`, {
@@ -160,9 +204,7 @@ async function enviarComunicado(e) {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        showToast('Comunicado publicado com sucesso!', 'success');
-        limparFormulario();
-        await carregarDisciplinas(); // reseta o select de disciplina
+        mostrarSucesso();
 
     } catch (err) {
         console.error('Erro ao publicar comunicado:', err);
@@ -170,6 +212,60 @@ async function enviarComunicado(e) {
     } finally {
         setLoading(btn, false, '<i class="fas fa-paper-plane"></i> Criar Comunicado');
     }
+}
+
+function mostrarSucesso() {
+    const toast = document.createElement('div');
+    toast.id = 'toast-sucesso';
+    toast.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1e1e1e;
+            border: 1px solid #00E676;
+            border-radius: 16px;
+            padding: 20px 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 280px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            animation: slideInRight 0.4s ease;
+        ">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-check-circle" style="color:#00E676; font-size:1.4rem;"></i>
+                <span style="color:#00E676; font-weight:700; font-family:'Orbitron',sans-serif; font-size:0.9rem;">
+                    Comunicado criado!
+                </span>
+            </div>
+            <p style="color:#9E9E9E; font-size:0.85rem; margin:0;">
+                Seu comunicado foi publicado com sucesso.
+            </p>
+            <div style="width:100%; background:#333; border-radius:4px; height:4px; overflow:hidden;">
+                <div id="toast-progress" style="
+                    height:100%;
+                    background:#00E676;
+                    width:100%;
+                    transition: width 3s linear;
+                "></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+
+    // Inicia a barra de progresso
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            document.getElementById('toast-progress').style.width = '0%';
+        });
+    });
+
+    // Redireciona após 3s
+    setTimeout(() => {
+        window.location.href = 'meusComunicados.html';
+    }, 3000);
 }
 
 // ============================================================
@@ -209,5 +305,5 @@ function showToast(msg, tipo) {
 
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
