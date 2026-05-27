@@ -345,6 +345,40 @@ function salvarResposta(idPergunta, valor) {
     respostasTextuais[idPergunta] = valor;
 }
 
+const XP_POR_DIFICULDADE = {
+    'Fácil':  50,
+    'Médio':  100,
+    'Difícil': 200
+};
+
+async function concederXP(atividade) {
+    try {
+        const nomeDificuldade = atividade.nivelDificuldade?.nome;
+        const xpGanho = XP_POR_DIFICULDADE[nomeDificuldade] || 50;
+
+        // Busca dados atuais do aluno
+        const resAluno = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
+        if (!resAluno.ok) throw new Error();
+        const aluno = await resAluno.json();
+
+        const novoXP = (aluno.xp || 0) + xpGanho;
+
+        // Atualiza o XP via PUT
+        const resPut = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...aluno, xp: novoXP })
+        });
+
+        if (!resPut.ok) throw new Error();
+
+        console.log(`[XP] +${xpGanho} XP (${nomeDificuldade}) → Total: ${novoXP}`);
+
+    } catch (e) {
+        console.error('[XP] Erro ao conceder XP:', e);
+    }
+}
+
 // Enviar respostas
 async function enviarRespostas() {
     // Verificar se todas as perguntas foram respondidas
@@ -379,6 +413,8 @@ async function enviarRespostas() {
         });
 
         if (!response.ok) throw new Error('Erro ao salvar respostas');
+        
+        await concederXP(atividadeAtual);
 
         showAlert(`✅ Atividade enviada! Aguarde a correção do professor.`, 'success');
 
@@ -394,6 +430,8 @@ async function enviarRespostas() {
         submitBtn.disabled = false;
     }
 }
+
+
 
 // Fechar modal
 function closeModalAtividade() {

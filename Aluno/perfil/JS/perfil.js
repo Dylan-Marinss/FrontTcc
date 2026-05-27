@@ -96,7 +96,6 @@ function atualizarPerfil() {
     }
 
     atualizarEstatisticas();
-    atualizarConquistas(xpTotal);
 }
 
 // ========== CÁLCULO DE NÍVEL ==========
@@ -133,42 +132,136 @@ function atualizarEstatisticas() {
     const total = atividadesRespondidas.length;
     document.getElementById('atividadesConcluidas').textContent = total;
 
-    let somaNotas = 0, somaMaximas = 0;
+    let somaNotas = 0, somaMaximas = 0, somaPontos = 0;
+    const atividadesPorDisciplina = {};
+
     atividadesRespondidas.forEach(r => {
         somaNotas   += r.pontuacao || 0;
         somaMaximas += r.atividade?.pontuacaoMaxima || 100;
+        somaPontos  += r.pontuacao || 0;
+
+        const disc = r.atividade?.disciplina?.nome;
+        if (disc) atividadesPorDisciplina[disc] = (atividadesPorDisciplina[disc] || 0) + 1;
     });
 
     const taxa = somaMaximas > 0 ? (somaNotas / somaMaximas) * 100 : 0;
-    document.getElementById('taxaAcerto').textContent  = `${taxa.toFixed(1)}%`;
+    document.getElementById('taxaAcerto').textContent   = `${taxa.toFixed(1)}%`;
     document.getElementById('melhorSequencia').textContent = Math.min(total, 5);
+    document.getElementById('totalPontos').textContent  = somaPontos;
+
+    const xpTotal = dadosAluno?.xp || 0;
+    montarConquistas(xpTotal, total, atividadesPorDisciplina);
 }
 
 
 // ========== CONQUISTAS ==========
-function atualizarConquistas(xp) {
-    const conquistas = [
-        { nome: 'Iniciante',  icone: 'fa-star',   xpNecessario: 0    },
-        { nome: 'Dedicado',   icone: 'fa-trophy',  xpNecessario: 200  },
-        { nome: 'Explorador', icone: 'fa-rocket',  xpNecessario: 500  },
-        { nome: 'Mestre',     icone: 'fa-brain',   xpNecessario: 1000 },
-        { nome: 'Em Chamas',  icone: 'fa-fire',    xpNecessario: 2000 },
-        { nome: 'Lendário',   icone: 'fa-crown',   xpNecessario: 3500 },
+let todasConquistas = [];
+let paginaConquistas = 1;
+const CONQUISTAS_POR_PAGINA = 16;
+
+function montarConquistas(xp, totalAtividades, atividadesPorDisciplina) {
+    todasConquistas = [
+        // Por XP
+        { nome: 'Iniciante',   icone: 'fa-star',          xpNecessario: 0,     tipo: 'xp', criterio: 0 },
+        { nome: 'Aprendiz',    icone: 'fa-seedling',       xpNecessario: 100,   tipo: 'xp', criterio: 100 },
+        { nome: 'Estudante',   icone: 'fa-book-open',      xpNecessario: 300,   tipo: 'xp', criterio: 300 },
+        { nome: 'Dedicado',    icone: 'fa-trophy',         xpNecessario: 600,   tipo: 'xp', criterio: 600 },
+        { nome: 'Explorador',  icone: 'fa-rocket',         xpNecessario: 1000,  tipo: 'xp', criterio: 1000 },
+        { nome: 'Veterano',    icone: 'fa-shield-alt',     xpNecessario: 1500,  tipo: 'xp', criterio: 1500 },
+        { nome: 'Expert',      icone: 'fa-bolt',           xpNecessario: 2500,  tipo: 'xp', criterio: 2500 },
+        { nome: 'Mestre',      icone: 'fa-brain',          xpNecessario: 4000,  tipo: 'xp', criterio: 4000 },
+        { nome: 'Em Chamas',   icone: 'fa-fire',           xpNecessario: 6000,  tipo: 'xp', criterio: 6000 },
+        { nome: 'Lendário',    icone: 'fa-crown',          xpNecessario: 9000,  tipo: 'xp', criterio: 9000 },
+        { nome: 'Mítico',      icone: 'fa-dragon',         xpNecessario: 15000, tipo: 'xp', criterio: 15000 },
+
+        // Por atividades concluídas
+        { nome: 'Primeiro Passo', icone: 'fa-shoe-prints', tipo: 'atividades', criterio: 1 },
+        { nome: 'Persistente',    icone: 'fa-dumbbell',    tipo: 'atividades', criterio: 10 },
+        { nome: 'Maratonista',    icone: 'fa-running',     tipo: 'atividades', criterio: 25 },
+        { nome: 'Centurião',      icone: 'fa-landmark',    tipo: 'atividades', criterio: 50 },
+        { nome: 'Inabalável',     icone: 'fa-mountain',    tipo: 'atividades', criterio: 100 },
+
+        // Por disciplina (5 atividades)
+        { nome: 'Matemático',  icone: 'fa-square-root-alt', tipo: 'disciplina', criterio: 'Matemática' },
+        { nome: 'Escritor',    icone: 'fa-pen-nib',         tipo: 'disciplina', criterio: 'Português' },
+        { nome: 'Historiador', icone: 'fa-scroll',          tipo: 'disciplina', criterio: 'História' },
+        { nome: 'Cientista',   icone: 'fa-microscope',      tipo: 'disciplina', criterio: 'Biologia' },
+        { nome: 'Físico',      icone: 'fa-atom',            tipo: 'disciplina', criterio: 'Física' },
+        { nome: 'Químico',     icone: 'fa-flask',           tipo: 'disciplina', criterio: 'Química' },
+        { nome: 'Geógrafo',    icone: 'fa-globe-americas',  tipo: 'disciplina', criterio: 'Geografia' },
+        { nome: 'Filósofo',    icone: 'fa-yin-yang',        tipo: 'disciplina', criterio: 'Filosofia' },
+        { nome: 'Linguista',   icone: 'fa-language',        tipo: 'disciplina', criterio: 'Inglês' },
     ];
 
-    conquistas.forEach(c => { c.unlocked = xp >= c.xpNecessario; });
+    // Define se está desbloqueada
+    todasConquistas = todasConquistas.map(c => {
+        let unlocked = false;
+        if (c.tipo === 'xp')         unlocked = xp >= c.criterio;
+        if (c.tipo === 'atividades') unlocked = totalAtividades >= c.criterio;
+        if (c.tipo === 'disciplina') unlocked = (atividadesPorDisciplina[c.criterio] || 0) >= 5;
 
+        let descricao = '';
+        if (c.tipo === 'xp')         descricao = `${c.criterio} XP`;
+        if (c.tipo === 'atividades') descricao = `${c.criterio} atividade${c.criterio > 1 ? 's' : ''}`;
+        if (c.tipo === 'disciplina') descricao = `5 atividades de ${c.criterio}`;
+
+        return { ...c, unlocked, descricao };
+    });
+
+    // Renderiza preview no perfil (só as 6 primeiras)
     const grid = document.getElementById('achievementsGrid');
-    grid.innerHTML = conquistas.map(c => `
+    grid.innerHTML = todasConquistas.slice(0, 6).map(c => `
         <div class="achievement-item ${c.unlocked ? 'unlocked' : 'locked'}">
             <i class="fas ${c.icone}"></i>
             <span>${c.nome}</span>
-            ${!c.unlocked ? `<small style="font-size:0.7rem">${c.xpNecessario} XP</small>` : ''}
+            ${!c.unlocked ? `<small style="font-size:0.7rem">${c.descricao}</small>` : ''}
         </div>
     `).join('');
 
-    window.conquistasList = conquistas;
+    window.conquistasList = todasConquistas;
 }
+
+function renderizarModalConquistas(pagina) {
+    paginaConquistas = pagina;
+    const totalPaginas = Math.ceil(todasConquistas.length / CONQUISTAS_POR_PAGINA);
+    const inicio = (pagina - 1) * CONQUISTAS_POR_PAGINA;
+    const itensPagina = todasConquistas.slice(inicio, inicio + CONQUISTAS_POR_PAGINA);
+
+    document.getElementById('achievementsFullGrid').innerHTML = itensPagina.map(c => `
+        <div class="achievement-item ${c.unlocked ? 'unlocked' : 'locked'}" style="flex-direction:column; text-align:center; padding:15px; gap:8px;">
+            <i class="fas ${c.icone}" style="font-size:1.8rem;"></i>
+            <span style="font-size:0.85rem; font-weight:600;">${c.nome}</span>
+            <small style="font-size:0.7rem; color:var(--text-muted);">${c.descricao}</small>
+            ${c.unlocked ? '<small style="color:#00E676; font-size:0.7rem;"><i class="fas fa-check"></i> Desbloqueado</small>' : ''}
+        </div>
+    `).join('');
+
+    const paginacaoEl = document.getElementById('achievementsPaginacao');
+    if (totalPaginas <= 1) { paginacaoEl.innerHTML = ''; return; }
+
+    paginacaoEl.innerHTML = `
+        <button onclick="renderizarModalConquistas(${pagina - 1})"
+            ${pagina === 1 ? 'disabled' : ''}
+            style="background:${pagina === 1 ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg,#BB86FC,#a21fa2)'};
+            color:${pagina === 1 ? 'var(--text-muted)' : '#000'};
+            border:none; padding:8px 18px; border-radius:20px;
+            cursor:${pagina === 1 ? 'not-allowed' : 'pointer'}; font-weight:700;">
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span style="color:var(--text-muted); font-size:0.85rem;">
+            ${pagina} / ${totalPaginas}
+        </span>
+        <button onclick="renderizarModalConquistas(${pagina + 1})"
+            ${pagina === totalPaginas ? 'disabled' : ''}
+            style="background:${pagina === totalPaginas ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg,#BB86FC,#a21fa2)'};
+            color:${pagina === totalPaginas ? 'var(--text-muted)' : '#000'};
+            border:none; padding:8px 18px; border-radius:20px;
+            cursor:${pagina === totalPaginas ? 'not-allowed' : 'pointer'}; font-weight:700;">
+            Próxima <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+}
+
 
 // ========== EVENTOS ==========
 function inicializarEventos() {
@@ -206,17 +299,8 @@ function inicializarEventos() {
     const closeModal          = document.querySelector('.close-modal');
 
     viewAchievementsBtn?.addEventListener('click', () => {
-        if (window.conquistasList) {
-            document.getElementById('achievementsFullGrid').innerHTML =
-                window.conquistasList.map(c => `
-                    <div class="achievement-item ${c.unlocked ? 'unlocked' : 'locked'}">
-                        <i class="fas ${c.icone}"></i>
-                        <span>${c.nome}</span>
-                        <small>${c.xpNecessario} XP</small>
-                    </div>
-                `).join('');
-            achievementsModal.style.display = 'block';
-        }
+        renderizarModalConquistas(1);
+        achievementsModal.style.display = 'block';
     });
 
     closeModal?.addEventListener('click', () => {
