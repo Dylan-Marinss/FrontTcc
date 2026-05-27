@@ -173,13 +173,12 @@ async function carregarAlunos(turmaId, turmaNome) {
         }
 
         container.innerHTML = alunos.map(aluno => `
-    <div class="aluno-card" onclick="irParaPerfilAluno(${aluno.id})" style="cursor:pointer;">
+    <div class="aluno-card">
         <div class="aluno-avatar">${getIniciais(aluno.nome)}</div>
         <div class="aluno-info">
             <h4>${aluno.nome}</h4>
             ${aluno.email ? `<p><i class="fas fa-envelope"></i> ${aluno.email}</p>` : ''}
         </div>
-        <i class="fas fa-chevron-right" style="color:var(--text-muted); margin-left:auto;"></i>
     </div>
 `).join('');
 
@@ -232,7 +231,3 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarSelos();
     carregarTurmas();
 });
-
-function irParaPerfilAluno(idAluno) {
-            window.location.href = `../../../Aluno/perfil/HTML/perfil-Estudex.html?id=${idAluno}`;
-        }

@@ -42,7 +42,6 @@
 
         <!-- CONTEÚDO PRINCIPAL -->
         <div class="dashboard-content">
-            <!-- HEADER -->
             <div class="header-top">
                 <div class="page-title">
                     <i class="fas fa-bullhorn"></i>
@@ -50,9 +49,7 @@
                 </div>
             </div>
 
-            <!-- CONTAINER AMPLO -->
             <div class="comunicados-container-wide">
-                <!-- CARD DE INSTRUÇÃO (Estilo da imagem enviada) -->
                 <div class="instruction-card">
                     <div class="instruction-header">
                         <i class="fas fa-plus-circle"></i>
@@ -67,19 +64,32 @@
                             <i class="fas fa-info-circle"></i> Informações Básicas
                         </div>
 
+                        <!-- LINHA 1: Título + Turma -->
                         <div class="form-row">
-                            <!-- Título -->
                             <div class="form-group flex-2">
                                 <label class="field-label">Título do Comunicado *</label>
                                 <input type="text" id="titulo" class="input-field" placeholder="Ex: Aviso importante sobre a prova" maxlength="100" required>
                                 <span class="char-count"><span id="titulo-count">0</span>/100</span>
                             </div>
 
-                            <!-- Seleção de Turma (Dropdown) -->
                             <div class="form-group flex-1">
                                 <label class="field-label">Série / Turma *</label>
                                 <select id="turma-select" class="input-field select-field" required>
                                     <option value="" disabled selected>Selecione a turma...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- LINHA 2: Disciplina -->
+                        <div class="form-row">
+                            <div class="form-group flex-1">
+                                <label class="field-label">
+                                    <i class="fas fa-book" style="color:var(--primary-color, #BB86FC)"></i>
+                                    Disciplina
+                                    <span style="font-weight:300; font-size:0.8rem; opacity:0.6;">(opcional — padrão: Geral)</span>
+                                </label>
+                                <select id="disciplina-select" class="input-field select-field">
+                                    <option value="">Geral</option>
                                     <!-- Preenchido via JS -->
                                 </select>
                             </div>
@@ -92,7 +102,7 @@
                             <span class="char-count"><span id="conteudo-count">0</span>/2000</span>
                         </div>
 
-                        <!-- Botões (Estilo da imagem enviada) -->
+                        <!-- Botões -->
                         <div class="form-actions-row">
                             <a href="meusComunicados.html" class="btn btn-secondary-outline">
                                 <i class="fas fa-list-ul"></i> Meus Comunicados

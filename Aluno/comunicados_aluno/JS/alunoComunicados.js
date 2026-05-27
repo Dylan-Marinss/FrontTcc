@@ -2,13 +2,15 @@
 //  CONFIGURACAO
 // ============================================================
 const API_URL = 'http://localhost:8080';
-const ID_ALUNO_LOGADO = 1; 
+const ID_ALUNO_LOGADO = 1;
 
 // ============================================================
 //  ESTADO
 // ============================================================
 let comunicadosLista = [];
 let comunicadosFiltrados = [];
+let idSerieAluno = null;
+let professoresCache = {}; // { id: nome }
 
 // ============================================================
 //  INICIALIZACAO
@@ -41,71 +43,112 @@ function configurarEventos() {
 
 // ============================================================
 //  CARREGAR COMUNICADOS
+//  Fluxo: busca aluno → pega idSerie → busca comunicados da série
+//         busca utilizador do professor pelo id para exibir o nome
 // ============================================================
 async function carregarComunicados() {
+    mostrarLoading(true);
+
     try {
-        const res = await fetch(`${API_URL}/comunicados/aluno/${ID_ALUNO_LOGADO}`);
-        
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        comunicadosLista = await res.json();
+        // 1. Busca o aluno para pegar a série dele
+        const resAluno = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
+        if (!resAluno.ok) throw new Error(`Erro ao buscar aluno: HTTP ${resAluno.status}`);
+        const aluno = await resAluno.json();
+
+        idSerieAluno = aluno.serie?.id;
+        if (!idSerieAluno) throw new Error('Aluno não possui série associada.');
+
+        // 2. Busca todos os comunicados da série do aluno
+        const resComunicados = await fetch(`${API_URL}/comunicados/serie/${idSerieAluno}`);
+        if (!resComunicados.ok) throw new Error(`Erro ao buscar comunicados: HTTP ${resComunicados.status}`);
+
+        comunicadosLista = await resComunicados.json();
         if (comunicadosLista.content) comunicadosLista = comunicadosLista.content;
+
+        // 3. Busca o nome do professor (utilizadorResponsavel guarda o ID como string)
+        //    Se vier o nome direto, pula essa etapa
+        await resolverNomesProfessores();
 
         comunicadosFiltrados = [...comunicadosLista];
         popularFiltros();
         renderizarComunicados();
 
     } catch (err) {
-        console.error('Erro ao carregar comunicados:', err);
-        
-        // Dados de exemplo atualizados (sem prioridade/lido)
-        comunicadosLista = [
-            {
-                id: 1,
-                titulo: 'Aviso sobre a Prova',
-                conteudo: 'A prova será realizada no próximo dia 15. Estudem os capítulos 3 e 4 do livro.',
-                professor: 'João Silva',
-                materia: 'Matemática',
-                dataCriacao: '15/05/2026'
-            },
-            {
-                id: 2,
-                titulo: 'Entrega de Trabalhos',
-                conteudo: 'Lembrem-se que a entrega do trabalho final é até sexta-feira.',
-                professor: 'Maria Santos',
-                materia: 'Português',
-                dataCriacao: '14/05/2026'
-            },
-            {
-                id: 3,
-                titulo: 'Aula de Laboratório',
-                conteudo: 'Amanhã teremos aula prática no laboratório 2.',
-                professor: 'Pedro Costa',
-                materia: 'Ciências',
-                dataCriacao: '13/05/2026'
-            }
-        ];
-
-        comunicadosFiltrados = [...comunicadosLista];
-        popularFiltros();
-        renderizarComunicados();
+        console.error('Erro:', err);
+        mostrarErro('Não foi possível carregar os comunicados. Verifique a conexão.');
+    } finally {
+        mostrarLoading(false);
     }
 }
 
-function popularFiltros() {
-    const materias = [...new Set(comunicadosLista.map(c => c.materia))];
-    const professores = [...new Set(comunicadosLista.map(c => c.professor))];
+// ============================================================
+//  RESOLVER NOMES DOS PROFESSORES
+//  utilizadorResponsavel pode ser o nome direto ou um id numérico
+//  Se for numérico, busca o nome via /utilizadores/{id}
+// ============================================================
+async function resolverNomesProfessores() {
+    const idsNumericos = [
+        ...new Set(
+            comunicadosLista
+                .map(c => c.utilizadorResponsavel)
+                .filter(v => v && !isNaN(v))
+                .map(v => parseInt(v))
+        )
+    ];
 
-    const filterMateria = document.getElementById('filter-materia');
-    const filterProfessor = document.getElementById('filter-professor');
+    // Busca todos em paralelo
+    await Promise.all(idsNumericos.map(async (id) => {
+        try {
+            const res = await fetch(`${API_URL}/utilizadores/${id}`);
+            if (!res.ok) return;
+            const user = await res.json();
+            professoresCache[id] = user.nome || `Professor ${id}`;
+        } catch {
+            professoresCache[id] = `Professor ${id}`;
+        }
+    }));
 
-    filterMateria.innerHTML = '<option value="">Todas as Matérias</option>' + 
-        materias.map(m => `<option value="${m}">${m}</option>`).join('');
-
-    filterProfessor.innerHTML = '<option value="">Todos os Professores</option>' + 
-        professores.map(p => `<option value="${p}">${p}</option>`).join('');
+    // Substitui o id pelo nome na lista
+    comunicadosLista = comunicadosLista.map(c => ({
+        ...c,
+        nomeProfessor: resolverNome(c.utilizadorResponsavel)
+    }));
 }
 
+function resolverNome(valor) {
+    if (!valor) return 'Professor';
+    if (!isNaN(valor)) return professoresCache[parseInt(valor)] || `Professor ${valor}`;
+    return valor; // já é string com nome
+}
+
+// ============================================================
+//  POPULAR FILTROS — por disciplina
+// ============================================================
+function popularFiltros() {
+    const disciplinas = [
+        ...new Map(
+            comunicadosLista
+                .filter(c => c.disciplina)
+                .map(c => [c.disciplina.id, c.disciplina.nome])
+        ).entries()
+    ];
+
+    const filterMateria = document.getElementById('filter-materia');
+    filterMateria.innerHTML = '<option value="">Todas as Disciplinas</option>' +
+        disciplinas.map(([id, nome]) => `<option value="${id}">${nome}</option>`).join('');
+
+    // Segundo filtro → responsável (professor)
+    const responsaveis = [...new Map(
+        comunicadosLista
+            .filter(c => c.nomeProfessor)
+            .map(c => [c.nomeProfessor, c.nomeProfessor])
+    ).entries()];
+
+}
+
+// ============================================================
+//  RENDERIZAR COMUNICADOS
+// ============================================================
 function renderizarComunicados() {
     const list = document.getElementById('comunicados-list');
     const emptyState = document.getElementById('empty-state');
@@ -117,45 +160,54 @@ function renderizarComunicados() {
     }
 
     emptyState.style.display = 'none';
+
     list.innerHTML = comunicadosFiltrados.map(com => `
-        <div class="comunicado-card" onclick="abrirModal(${com.id})">
+        <div class="comunicado-card" onclick="abrirModal(${com.idComunicado})">
             <div class="comunicado-header">
-                <h3 class="comunicado-titulo">${com.titulo}</h3>
-                <span class="materia-badge">${com.materia}</span>
+                <h3 class="comunicado-titulo">${com.titulo || 'Sem título'}</h3>
+                <span class="materia-badge">${com.disciplina?.nome || 'Geral'}</span>
             </div>
-            <p class="comunicado-conteudo-preview">${com.conteudo}</p>
+            <p class="comunicado-conteudo-preview">${com.descricao || ''}</p>
             <div class="comunicado-footer">
-                <span><i class="fas fa-user"></i> ${com.professor}</span>
-                <span><i class="fas fa-calendar-alt"></i> ${com.dataCriacao}</span>
+                <span><i class="fas fa-user"></i> ${com.nomeProfessor || 'Professor'}</span>
+                <span><i class="fas fa-calendar-alt"></i> ${formatarData(com.dataEnvio)}</span>
             </div>
         </div>
     `).join('');
 }
 
+// ============================================================
+//  FILTRAR COMUNICADOS
+// ============================================================
 function filtrarComunicados() {
-    const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const materiaFilter = document.getElementById('filter-materia').value;
-    const professorFilter = document.getElementById('filter-professor').value;
+    const searchTerm       = document.getElementById('search-input').value.toLowerCase();
+    const filtroDisciplina = document.getElementById('filter-materia').value;
+    const filtroProf       = document.getElementById('filter-professor').value;
 
     comunicadosFiltrados = comunicadosLista.filter(com => {
-        const matchSearch = com.titulo.toLowerCase().includes(searchTerm) || com.conteudo.toLowerCase().includes(searchTerm);
-        const matchMateria = !materiaFilter || com.materia === materiaFilter;
-        const matchProfessor = !professorFilter || com.professor === professorFilter;
-        return matchSearch && matchMateria && matchProfessor;
+        const matchSearch     = (com.titulo || '').toLowerCase().includes(searchTerm)
+                             || (com.descricao || '').toLowerCase().includes(searchTerm);
+        const matchDisciplina = !filtroDisciplina || String(com.disciplina?.id) === filtroDisciplina;
+        const matchProf       = !filtroProf || com.nomeProfessor === filtroProf;
+
+        return matchSearch && matchDisciplina && matchProf;
     });
 
     renderizarComunicados();
 }
 
+// ============================================================
+//  MODAL
+// ============================================================
 function abrirModal(id) {
-    const com = comunicadosLista.find(c => c.id === id);
+    const com = comunicadosLista.find(c => c.idComunicado === id);
     if (!com) return;
 
-    document.getElementById('modal-titulo').textContent = com.titulo;
-    document.getElementById('modal-professor').textContent = com.professor;
-    document.getElementById('modal-materia').textContent = com.materia;
-    document.getElementById('modal-data').textContent = com.dataCriacao;
-    document.getElementById('modal-conteudo').textContent = com.conteudo;
+    document.getElementById('modal-titulo').textContent    = com.titulo || 'Sem título';
+    document.getElementById('modal-professor').textContent = com.nomeProfessor || 'Professor';
+    document.getElementById('modal-materia').textContent   = com.disciplina?.nome || 'Geral';
+    document.getElementById('modal-data').textContent      = formatarData(com.dataEnvio);
+    document.getElementById('modal-conteudo').textContent  = com.descricao || '';
 
     document.getElementById('modal-comunicado').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -164,4 +216,33 @@ function abrirModal(id) {
 function fecharModal() {
     document.getElementById('modal-comunicado').classList.remove('show');
     document.body.style.overflow = 'auto';
+}
+
+// ============================================================
+//  UTILITÁRIOS
+// ============================================================
+function formatarData(valor) {
+    if (!valor) return '—';
+    const d = new Date(valor);
+    if (isNaN(d)) return valor;
+    return d.toLocaleDateString('pt-BR');
+}
+
+function mostrarLoading(show) {
+    if (!show) return;
+    document.getElementById('comunicados-list').innerHTML = `
+        <div style="text-align:center; padding:3rem; color:var(--text-muted, #aaa);">
+            <i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i>
+            <p style="margin-top:1rem;">Carregando comunicados...</p>
+        </div>
+    `;
+}
+
+function mostrarErro(msg) {
+    document.getElementById('comunicados-list').innerHTML = `
+        <div style="text-align:center; padding:3rem; color:#FF3D00;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;"></i>
+            <p style="margin-top:1rem;">${msg}</p>
+        </div>
+    `;
 }
