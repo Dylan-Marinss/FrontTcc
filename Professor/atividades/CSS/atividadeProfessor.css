@@ -543,7 +543,8 @@ textarea.form-control {
 }
 
 /* ========== BOTÕES ========== */
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
     padding: 12px 25px;
     border-radius: 12px;
     font-size: 0.95rem;
@@ -619,7 +620,9 @@ textarea.form-control {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Animações */
@@ -628,6 +631,7 @@ textarea.form-control {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -644,48 +648,48 @@ textarea.form-control {
     .main-content {
         padding: 15px;
     }
-    
+
     .page-title {
         font-size: 1.6rem;
     }
-    
+
     .page-title i {
         font-size: 1.5rem;
     }
-    
+
     .page-subtitle {
         font-size: 0.9rem;
         padding-left: 0;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .form-checkbox {
         flex-direction: column;
         gap: 15px;
     }
-    
+
     .form-actions {
         flex-direction: column;
     }
-    
+
     .form-actions button {
         width: 100%;
         justify-content: center;
     }
-    
+
     .assertiva-container {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .atividade-card {
         padding: 20px;
     }
-    
+
     .header-card {
         padding: 25px 20px !important;
     }
@@ -696,17 +700,17 @@ textarea.form-control {
         font-size: 1.3rem;
         flex-wrap: wrap;
     }
-    
+
     .section-title {
         font-size: 1.1rem;
     }
-    
+
     .questao-header {
         flex-direction: column;
         gap: 10px;
         align-items: flex-start;
     }
-    
+
     .btn-remover-questao {
         align-self: flex-end;
     }
@@ -783,7 +787,7 @@ textarea.form-control {
     max-height: 220px;
     overflow-y: auto;
     display: none;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .custom-select-wrapper.open .custom-select-list {
@@ -798,8 +802,13 @@ textarea.form-control {
     transition: background 0.15s ease;
 }
 
-.custom-select-item:first-child { border-radius: 12px 12px 0 0; }
-.custom-select-item:last-child  { border-radius: 0 0 12px 12px; }
+.custom-select-item:first-child {
+    border-radius: 12px 12px 0 0;
+}
+
+.custom-select-item:last-child {
+    border-radius: 0 0 12px 12px;
+}
 
 .custom-select-item:hover {
     background: rgba(187, 134, 252, 0.15);
@@ -813,9 +822,88 @@ textarea.form-control {
 }
 
 /* Scrollbar do dropdown */
-.custom-select-list::-webkit-scrollbar { width: 6px; }
-.custom-select-list::-webkit-scrollbar-track { background: transparent; }
+.custom-select-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-select-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 .custom-select-list::-webkit-scrollbar-thumb {
     background: var(--primary-color);
     border-radius: 4px;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 35px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    animation: fadeInUp 0.3s ease;
+}
+
+.modal-title {
+    font-family: var(--font-futuristic);
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-title i {
+    color: var(--secondary-color);
+}
+
+.modal-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+}
+
+.upload-area {
+    border: 2px dashed var(--primary-color);
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    margin-bottom: 25px;
+    background: rgba(187, 134, 252, 0.05);
+}
+
+.upload-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-color);
+}
+
+.upload-label i {
+    font-size: 2.5rem;
+}
+
+.upload-label span {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }

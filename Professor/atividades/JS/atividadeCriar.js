@@ -1,6 +1,5 @@
-
 const API_URL = 'http://localhost:8080';
-const ID_PROFESSOR_LOGADO = 6; // substituir pelo ID real após login
+const ID_PROFESSOR_LOGADO = 6;
 
 // ============================================================
 //  ESTADO
@@ -8,7 +7,7 @@ const ID_PROFESSOR_LOGADO = 6; // substituir pelo ID real após login
 let idAtividadeCriada = null;
 let questoes = [];
 let questaoAtual = 0;
-let opcaoCorretaIndex = null; // índice da alternativa marcada como correta
+let opcaoCorretaIndex = null;
 
 // ============================================================
 //  INICIALIZAÇÃO
@@ -36,10 +35,53 @@ function initSidebar() {
     });
 }
 
-// ============================================================
-//  LETRAS DAS ALTERNATIVAS
-// ============================================================
 const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+
+// ============================================================
+//  INDEXEDDB - BUSCAR E LIMPAR PDF
+// ============================================================
+function buscarPDFIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("EstudeXDB", 1);
+
+        request.onupgradeneeded = function(e) {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("arquivos")) {
+                db.createObjectStore("arquivos", { keyPath: "id" });
+            }
+        };
+
+        request.onsuccess = function(e) {
+            const db = e.target.result;
+            const tx = db.transaction("arquivos", "readonly");
+            const store = tx.objectStore("arquivos");
+            const get = store.get("pdfAtividade");
+
+            get.onsuccess = () => resolve(get.result?.arquivo || null);
+            get.onerror = () => reject(get.error);
+        };
+
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function limparPDFIndexedDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("EstudeXDB", 1);
+
+        request.onsuccess = function(e) {
+            const db = e.target.result;
+            const tx = db.transaction("arquivos", "readwrite");
+            const store = tx.objectStore("arquivos");
+            store.delete("pdfAtividade");
+
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        };
+
+        request.onerror = () => reject(request.error);
+    });
+}
 
 // ============================================================
 //  ADICIONAR ALTERNATIVA
@@ -60,21 +102,8 @@ function adicionarOpcao() {
 
     row.innerHTML = `
         <div class="opcao-letra" id="letra-${idx}" title="Clique para marcar como correta">${LETRAS[idx]}</div>
-        <input
-            type="radio"
-            name="correta"
-            class="opcao-radio"
-            id="radio-${idx}"
-            value="${idx}"
-            title="Marcar alternativa ${LETRAS[idx]} como correta"
-        >
-        <input
-            type="text"
-            class="opcao-input"
-            id="opcao-input-${idx}"
-            placeholder="Alternativa ${LETRAS[idx]}..."
-            autocomplete="off"
-        >
+        <input type="radio" name="correta" class="opcao-radio" id="radio-${idx}" value="${idx}">
+        <input type="text" class="opcao-input" id="opcao-input-${idx}" placeholder="Alternativa ${LETRAS[idx]}..." autocomplete="off">
         <button class="btn-remove" onclick="removerOpcao(this)" title="Remover alternativa">
             <i class="fas fa-xmark"></i>
         </button>
@@ -82,13 +111,11 @@ function adicionarOpcao() {
 
     container.appendChild(row);
 
-    // ── Evento: clique no RADIO ──────────────────────────────
     const radio = row.querySelector('.opcao-radio');
     radio.addEventListener('change', () => {
         if (radio.checked) marcarCorreta(idx);
     });
 
-    // ── Evento: clique na LETRA (alternativa ao radio) ───────
     const letra = row.querySelector('.opcao-letra');
     letra.addEventListener('click', () => {
         radio.checked = true;
@@ -110,8 +137,6 @@ function removerOpcao(btn) {
     }
 
     const row = btn.closest('.opcao-row');
-
-    // Se a alternativa removida era a correta, reseta o estado
     const idx = parseInt(row.dataset.idx);
     if (idx === opcaoCorretaIndex) {
         opcaoCorretaIndex = null;
@@ -124,7 +149,7 @@ function removerOpcao(btn) {
 }
 
 // ============================================================
-//  RENUMERAR OPÇÕES (após remoção)
+//  RENUMERAR OPÇÕES
 // ============================================================
 function renumerarOpcoes() {
     opcaoCorretaIndex = null;
@@ -137,7 +162,6 @@ function renumerarOpcoes() {
         letra.id = `letra-${i}`;
         letra.textContent = LETRAS[i];
         letra.classList.remove('correta');
-        // Recria o evento para o novo índice
         letra.onclick = null;
         letra.addEventListener('click', () => {
             const radio = row.querySelector('.opcao-radio');
@@ -163,13 +187,11 @@ function renumerarOpcoes() {
 }
 
 // ============================================================
-//  MARCAR CORRETA — função central
-//  Chamada tanto pelo radio quanto pelo clique na letra
+//  MARCAR CORRETA
 // ============================================================
 function marcarCorreta(idx) {
     opcaoCorretaIndex = idx;
 
-    // Remove destaques de todas as linhas
     document.querySelectorAll('.opcao-row').forEach((row, i) => {
         const letra = row.querySelector('.opcao-letra');
         const radio = row.querySelector('.opcao-radio');
@@ -197,20 +219,17 @@ function atualizarIndicadorCorreta() {
     const texto = document.getElementById('correta-status-texto');
 
     if (opcaoCorretaIndex !== null) {
-        // Esconde a dica, mostra o status de sucesso
         if (hint) hint.style.display = 'none';
         if (status) status.style.display = 'flex';
-        if (texto) texto.textContent =
-            `Alternativa ${LETRAS[opcaoCorretaIndex]} marcada como correta`;
+        if (texto) texto.textContent = `Alternativa ${LETRAS[opcaoCorretaIndex]} marcada como correta`;
     } else {
-        // Mostra a dica, esconde o status
         if (hint) hint.style.display = 'flex';
         if (status) status.style.display = 'none';
     }
 }
 
 // ============================================================
-//  ATUALIZAR CONTADOR DE ALTERNATIVAS
+//  ATUALIZAR CONTADOR
 // ============================================================
 function atualizarContador() {
     const total = document.getElementById('opcoes-container').children.length;
@@ -240,7 +259,7 @@ function atualizarProgresso() {
 }
 
 // ============================================================
-//  CRIAR ATIVIDADE (somente na primeira questão)
+//  CRIAR ATIVIDADE
 // ============================================================
 async function criarAtividadeSeNecessario() {
     if (idAtividadeCriada) return true;
@@ -265,25 +284,15 @@ async function criarAtividadeSeNecessario() {
         return false;
     }
 
-
     try {
-
         const payload = {
             titulo,
             idOrientador: ID_PROFESSOR_LOGADO,
             pontuacaoMaxima: 0,
             dataCriacao: new Date().toISOString(),
-
-            nivelDificuldade: {
-                idNivelDificuldade: parseInt(dificuldade)
-            },
-
-            disciplina: {
-                id: parseInt(idDisciplina)
-            }
+            nivelDificuldade: { idNivelDificuldade: parseInt(dificuldade) },
+            disciplina: { id: parseInt(idDisciplina) }
         };
-
-        console.log(payload);
 
         const res = await fetch(`${API_URL}/atividades`, {
             method: 'POST',
@@ -291,13 +300,11 @@ async function criarAtividadeSeNecessario() {
             body: JSON.stringify(payload)
         });
 
-
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const atividade = await res.json();
         idAtividadeCriada = atividade.idAtividade;
 
-        // Bloqueia campos após criação
         ['titulo', 'dificuldade'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
@@ -314,7 +321,6 @@ async function criarAtividadeSeNecessario() {
 
 // ============================================================
 //  SALVAR QUESTÃO ATUAL
-//  REGRA: NÃO deixa salvar sem alternativa correta marcada
 // ============================================================
 async function salvarQuestaoAtual() {
     const enunciado = document.getElementById('enunciado')?.value.trim();
@@ -338,13 +344,8 @@ async function salvarQuestaoAtual() {
         return null;
     }
 
-    // ─── VALIDAÇÃO CRÍTICA: correta obrigatória ───────────────
     if (opcaoCorretaIndex === null) {
-        showToast(
-            'Marque a alternativa correta antes de salvar a questão.',
-            'error'
-        );
-        // Rola até a área de alternativas e agita o hint
+        showToast('Marque a alternativa correta antes de salvar a questão.', 'error');
         const hint = document.getElementById('correta-hint');
         if (hint) {
             hint.style.display = 'flex';
@@ -360,7 +361,6 @@ async function salvarQuestaoAtual() {
     }
 
     try {
-        // 1. Salva a pergunta
         const resPergunta = await fetch(`${API_URL}/atividadesPergunta`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -373,7 +373,6 @@ async function salvarQuestaoAtual() {
         const pergunta = await resPergunta.json();
         const idPergunta = pergunta.id ?? pergunta.idPergunta;
 
-        // 2. Salva as opções
         for (let i = 0; i < opcoes.length; i++) {
             const resOpcao = await fetch(`${API_URL}/perguntasopcoes`, {
                 method: 'POST',
@@ -448,7 +447,6 @@ function carregarQuestao(index) {
         if (inputEl) inputEl.value = texto;
     });
 
-    // Marca a correta após renderizar todas as opções
     if (q.correta !== null && q.correta !== undefined) {
         const radio = document.getElementById(`radio-${q.correta}`);
         if (radio) radio.checked = true;
@@ -470,7 +468,6 @@ async function publicarAtividade() {
     const criou = await criarAtividadeSeNecessario();
     if (!criou) { setLoading(btn, false, label); return; }
 
-    // Verifica se o professor preencheu algo na questão atual
     const enunciado = document.getElementById('enunciado')?.value.trim();
     const temOpcoes = Array.from(document.querySelectorAll('.opcao-input'))
         .some(i => i.value.trim() !== '');
@@ -478,11 +475,9 @@ async function publicarAtividade() {
     const questaoAtualPreenchida = enunciado || temOpcoes;
 
     if (questaoAtualPreenchida) {
-        // Tem conteúdo digitado — tenta salvar antes de publicar
         const salvo = await salvarQuestaoAtual();
         if (!salvo) { setLoading(btn, false, label); return; }
     } else if (questoes.filter(Boolean).length === 0) {
-        // Formulário vazio E nenhuma questão salva ainda
         showToast('Adicione ao menos uma questão antes de publicar.', 'error');
         setLoading(btn, false, label);
         return;
@@ -502,6 +497,37 @@ async function publicarAtividade() {
         setLoading(btn, false, label);
         return;
     }
+
+    // Envia o PDF se existir
+    const temMaterial = localStorage.getItem("temMaterial");
+    if (temMaterial) {
+        try {
+            const arquivo = await buscarPDFIndexedDB();
+            if (arquivo) {
+                const bytes = await arquivo.arrayBuffer();
+
+                const resPDF = await fetch(`${API_URL}/atividadeconteudo/${idAtividadeCriada}/arquivo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    body: bytes
+                });
+
+                if (!resPDF.ok) throw new Error(`PDF HTTP ${resPDF.status}`);
+
+                await limparPDFIndexedDB();
+                console.log("PDF enviado com sucesso!");
+            }
+        } catch (err) {
+            console.error('[EstudeX] Erro ao enviar PDF:', err);
+            showToast('Atividade publicada, mas erro ao enviar PDF.', 'error');
+        }
+    }
+
+    // Limpa o localStorage
+    localStorage.removeItem("temMaterial");
+    localStorage.removeItem("idDificuldade");
+    localStorage.removeItem("idDisciplina");
+    localStorage.removeItem("idSerie");
 
     showToast('Atividade publicada com sucesso!');
     setLoading(btn, false, label);
@@ -525,7 +551,6 @@ function cancelar() {
     window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
 }
 
-
 // ============================================================
 //  UTILITÁRIOS
 // ============================================================
@@ -535,7 +560,7 @@ function limparFormulario() {
     if (enunciadoEl) enunciadoEl.value = '';
     if (container) container.innerHTML = '';
     opcaoCorretaIndex = null;
-    atualizarIndicadorCorreta(); // reseta o indicador
+    atualizarIndicadorCorreta();
     adicionarOpcao();
     atualizarContador();
     window.scrollTo({ top: 0, behavior: 'smooth' });

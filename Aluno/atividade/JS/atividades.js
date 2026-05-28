@@ -248,7 +248,19 @@ async function abrirAtividade(idAtividade) {
         return;
     }
 
-    window.location.href = `responderAtividade.html?id=${idAtividade}`;
+    try {
+        const response = await fetch(`${API_URL}/atividadeconteudo/${idAtividade}/temArquivo`);
+        const temPDF = await response.json();
+
+        if (temPDF) {
+            window.location.href = `visualizarPDF.html?id=${idAtividade}`;
+        } else {
+            window.location.href = `responderAtividade.html?id=${idAtividade}`;
+        }
+    } catch (error) {
+        console.error("Erro ao verificar PDF:", error);
+        window.location.href = `responderAtividade.html?id=${idAtividade}`;
+    }
 }
 
 // Carregar perguntas da atividade
