@@ -1,17 +1,22 @@
-// enviar-redacao.js - APENAS funções da página de redação (SEM código da sidebar)
+// enviar-redacao.js - Página de Envio de Redação com API
 
 // ========== CONFIGURAÇÕES ==========
 const MICRO_API_URL = 'http://localhost:3001/api/redacao';
+const API_URL = 'http://localhost:8080';
+const ID_ALUNO_LOGADO = 1; // ID do aluno logado
+
+// Variáveis globais
+let temaAtual = null;
 
 // ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarTemaSemana();
-    await carregarHistoricoMockado();
+    await carregarHistoricoRedacoes();
     inicializarEventos();
     inicializarNotificacoes();
 });
 
-// ========== CARREGAR TEMA DA SEMANA (SÓ NODE.JS) ==========
+// ========== CARREGAR TEMA DA SEMANA (IA) ==========
 async function carregarTemaSemana() {
     const temaContainer = document.getElementById('temaSemana');
     
@@ -31,16 +36,17 @@ async function carregarTemaSemana() {
             const data = await response.json();
             
             if (data.sucesso) {
+                temaAtual = data.tema;
                 temaContainer.innerHTML = `
                     <div class="tema-titulo">
-                        <i class="fas fa-magic"></i> Tema Aleatório (Gerado por IA)
+                        <i class="fas fa-magic"></i> Tema da Redação (Gerado por IA)
                     </div>
                     <div class="tema-conteudo">
                         ${escapeHtml(data.tema)}
                     </div>
                     <div class="tema-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                         <button onclick="carregarTemaAleatorio()" class="btn-novo-tema">
-                            <i class="fas fa-dice"></i> Novo tema aleatório
+                            <i class="fas fa-dice"></i> Novo tema
                         </button>
                         <button onclick="carregarTemaPorCategoria('tecnologia')" class="btn-categoria">
                             <i class="fas fa-microchip"></i> Tecnologia
@@ -63,39 +69,38 @@ async function carregarTemaSemana() {
             }
         }
         
-        // Fallback caso o servidor Node não esteja rodando
+        // Fallback
+        temaAtual = "Os desafios da educação brasileira no século XXI";
         temaContainer.innerHTML = `
             <div class="tema-titulo">
-                <i class="fas fa-exclamation-triangle"></i> Servidor IA offline
+                <i class="fas fa-star"></i> Tema da Redação
             </div>
             <div class="tema-conteudo">
-                Os desafios da educação brasileira no século XXI
+                ${temaAtual}
             </div>
             <button onclick="carregarTemaAleatorio()" class="btn-novo-tema" style="margin-top: 15px;">
-                <i class="fas fa-sync-alt"></i> Tentar conectar com IA
+                <i class="fas fa-sync-alt"></i> Gerar tema com IA
             </button>
-            <div class="tema-titulo" style="margin-top: 10px; color: #FFC107;">
-                <i class="fas fa-info-circle"></i> Execute "npm start" na pasta microservicoEnem
-            </div>
         `;
         
     } catch (error) {
         console.error('Erro ao carregar tema:', error);
+        temaAtual = "Os desafios da educação brasileira no século XXI";
         temaContainer.innerHTML = `
             <div class="tema-titulo">
-                <i class="fas fa-exclamation-triangle"></i> Erro de conexão
+                <i class="fas fa-star"></i> Tema da Redação
             </div>
             <div class="tema-conteudo">
-                Não foi possível conectar ao servidor de IA.
+                ${temaAtual}
             </div>
             <button onclick="carregarTemaAleatorio()" class="btn-novo-tema" style="margin-top: 15px;">
-                <i class="fas fa-sync-alt"></i> Tentar novamente
+                <i class="fas fa-sync-alt"></i> Tentar gerar com IA
             </button>
         `;
     }
 }
 
-// Gerar tema aleatório
+// Gerar tema aleatório via IA
 async function carregarTemaAleatorio() {
     const temaContainer = document.getElementById('temaSemana');
     
@@ -113,16 +118,17 @@ async function carregarTemaAleatorio() {
         const data = await response.json();
         
         if (data.sucesso) {
+            temaAtual = data.tema;
             temaContainer.innerHTML = `
                 <div class="tema-titulo">
-                    <i class="fas fa-magic"></i> Tema Aleatório (Gerado por IA)
+                    <i class="fas fa-magic"></i> Tema da Redação (Gerado por IA)
                 </div>
                 <div class="tema-conteudo">
                     ${escapeHtml(data.tema)}
                 </div>
                 <div class="tema-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="carregarTemaAleatorio()" class="btn-novo-tema">
-                        <i class="fas fa-dice"></i> Novo tema aleatório
+                        <i class="fas fa-dice"></i> Novo tema
                     </button>
                     <button onclick="carregarTemaPorCategoria('tecnologia')" class="btn-categoria">
                         <i class="fas fa-microchip"></i> Tecnologia
@@ -150,7 +156,7 @@ async function carregarTemaAleatorio() {
                 <i class="fas fa-exclamation-triangle"></i> Erro ao gerar tema
             </div>
             <div class="tema-conteudo">
-                Não foi possível conectar ao servidor de IA.
+                ${temaAtual}
             </div>
             <button onclick="carregarTemaAleatorio()" class="btn-novo-tema" style="margin-top: 15px;">
                 <i class="fas fa-sync-alt"></i> Tentar novamente
@@ -169,13 +175,12 @@ async function carregarTemaPorCategoria(categoria) {
         meioambiente: 'Meio Ambiente',
         educacao: 'Educação',
         saude: 'Saúde',
-        cultura: 'Cultura',
-        politica: 'Política'
+        cultura: 'Cultura'
     };
     
     temaContainer.innerHTML = `
         <div class="tema-titulo">
-            <i class="fas fa-spinner fa-pulse"></i> Gerando tema sobre ${categoriasNomes[categoria] || categoria}...
+            <i class="fas fa-spinner fa-pulse"></i> Gerando tema sobre ${categoriasNomes[categoria]}...
         </div>
         <div class="tema-conteudo" style="text-align: center;">
             A IA está criando um tema especial para você!
@@ -187,16 +192,17 @@ async function carregarTemaPorCategoria(categoria) {
         const data = await response.json();
         
         if (data.sucesso) {
+            temaAtual = data.tema;
             temaContainer.innerHTML = `
                 <div class="tema-titulo">
-                    <i class="fas fa-tag"></i> Tema sobre ${categoriasNomes[categoria] || categoria}
+                    <i class="fas fa-tag"></i> Tema sobre ${categoriasNomes[categoria]}
                 </div>
                 <div class="tema-conteudo">
                     ${escapeHtml(data.tema)}
                 </div>
                 <div class="tema-actions" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <button onclick="carregarTemaAleatorio()" class="btn-novo-tema">
-                        <i class="fas fa-dice"></i> Tema aleatório
+                        <i class="fas fa-dice"></i> Novo tema aleatório
                     </button>
                     <button onclick="carregarTemaPorCategoria('${categoria}')" class="btn-categoria">
                         <i class="fas fa-sync-alt"></i> Outro tema de ${categoriasNomes[categoria]}
@@ -207,24 +213,74 @@ async function carregarTemaPorCategoria(categoria) {
         }
     } catch (error) {
         console.error('Erro:', error);
-        carregarTemaAleatorio();
+        await carregarTemaAleatorio();
     }
 }
 
-// Histórico mockado (já que não tem API)
-async function carregarHistoricoMockado() {
+// ========== CARREGAR HISTÓRICO DO ALUNO (API) ==========
+async function carregarHistoricoRedacoes() {
     const container = document.getElementById('historicoList');
     
-    container.innerHTML = `
-        <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <p>Você ainda não enviou nenhuma redação.</p>
-            <p>Escreva sua primeira redação acima!</p>
-        </div>
-    `;
+    try {
+        const response = await fetch(`${API_URL}/redacoes/aluno/${ID_ALUNO_LOGADO}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar histórico');
+        }
+        
+        const redacoes = await response.json();
+        
+        if (redacoes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>Você ainda não enviou nenhuma redação.</p>
+                    <p>Escreva sua primeira redação acima!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = redacoes.map(redacao => {
+            const dataEnvio = formatarData(redacao.dataEnvio);
+            const isCorrigida = redacao.pontuacaoObtida !== null && redacao.pontuacaoObtida !== undefined;
+            const nota = redacao.pontuacaoObtida || 0;
+            
+            return `
+                <div class="redacao-item" onclick="verDetalhesRedacao(${redacao.idRedacao})">
+                    <div class="redacao-titulo">
+                        <span>${escapeHtml(redacao.titulo || 'Sem título')}</span>
+                        <span class="redacao-data">${dataEnvio}</span>
+                    </div>
+                    <div class="redacao-tema-mini">
+                        <i class="fas fa-tag"></i> ${escapeHtml((redacao.tema || '').substring(0, 60))}...
+                    </div>
+                    <div>
+                        <span class="redacao-status ${isCorrigida ? 'status-corrigida' : 'status-pendente'}">
+                            ${isCorrigida ? `✅ Corrigida - Nota: ${nota}/1000` : '⏳ Aguardando correção'}
+                        </span>
+                    </div>
+                    ${redacao.comentarios && isCorrigida ? `
+                        <div class="redacao-observacao">
+                            <i class="fas fa-comment"></i> ${escapeHtml(redacao.comentarios.substring(0, 80))}...
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar histórico. Tente novamente.</p>
+            </div>
+        `;
+    }
 }
 
-// Enviar redação (salva no localStorage por enquanto)
+// ========== ENVIAR REDAÇÃO (SALVAR NA API) ==========
 async function enviarRedacao(event) {
     event.preventDefault();
     
@@ -243,64 +299,91 @@ async function enviarRedacao(event) {
         return;
     }
     
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
-    submitBtn.disabled = true;
-    
-    // Simular envio (salvar no localStorage)
-    setTimeout(() => {
-        const redacoes = JSON.parse(localStorage.getItem('redacoes') || '[]');
-        redacoes.unshift({
-            id: Date.now(),
-            titulo: titulo,
-            conteudo: conteudo,
-            data: new Date().toLocaleDateString('pt-BR'),
-            status: 'pendente'
-        });
-        localStorage.setItem('redacoes', JSON.stringify(redacoes));
-        
-        mostrarNotificacao('✅ Redação enviada com sucesso! Aguarde a correção.', 'success');
-        
-        document.getElementById('titulo').value = '';
-        document.getElementById('conteudo').value = '';
-        
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        
-        carregarHistoricoLocal();
-    }, 1000);
-}
-
-// Carregar histórico do localStorage
-function carregarHistoricoLocal() {
-    const container = document.getElementById('historicoList');
-    const redacoes = JSON.parse(localStorage.getItem('redacoes') || '[]');
-    
-    if (redacoes.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>Você ainda não enviou nenhuma redação.</p>
-                <p>Escreva sua primeira redação acima!</p>
-            </div>
-        `;
+    if (!temaAtual) {
+        mostrarNotificacao('Aguarde o tema ser carregado.', 'error');
         return;
     }
     
-    container.innerHTML = redacoes.map(red => `
-        <div class="redacao-item">
-            <div class="redacao-titulo">
-                <span>${escapeHtml(red.titulo)}</span>
-                <span class="redacao-data">${red.data}</span>
-            </div>
-            <div>
-                <span class="redacao-status status-pendente">
-                    ⏳ Aguardando correção
-                </span>
-            </div>
-        </div>
-    `).join('');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
+    submitBtn.disabled = true;
+    
+    try {
+        // Criar objeto da redação conforme a entidade Redacao
+        const redacaoData = {
+            aluno: { idUtilizador: ID_ALUNO_LOGADO },
+            tema: temaAtual,
+            titulo: titulo,
+            textoRedacao: conteudo,
+            dataEnvio: new Date().toISOString(),
+            pontuacaoObtida: null,
+            comentarios: null
+        };
+        
+        const response = await fetch(`${API_URL}/redacoes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(redacaoData)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'Erro ao enviar redação');
+        }
+        
+        mostrarNotificacao('✅ Redação enviada com sucesso! Aguarde a correção do professor.', 'success');
+        
+        // Limpar formulário
+        document.getElementById('titulo').value = '';
+        document.getElementById('conteudo').value = '';
+        
+        // Recarregar histórico
+        await carregarHistoricoRedacoes();
+        
+        // Gerar novo tema automaticamente
+        await carregarTemaAleatorio();
+        
+    } catch (error) {
+        console.error('Erro ao enviar:', error);
+        mostrarNotificacao('❌ Erro ao enviar redação. Tente novamente.', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
 }
 
+// ========== VER DETALHES DA REDAÇÃO ==========
+async function verDetalhesRedacao(idRedacao) {
+    try {
+        const response = await fetch(`${API_URL}/redacoes/${idRedacao}`);
+        if (!response.ok) throw new Error('Erro ao carregar detalhes');
+        
+        const redacao = await response.json();
+        const dataEnvio = formatarData(redacao.dataEnvio);
+        const isCorrigida = redacao.pontuacaoObtida !== null && redacao.pontuacaoObtida !== undefined;
+        
+        let mensagem = `📝 ${redacao.titulo}\n\n`;
+        mensagem += `📅 Enviado: ${dataEnvio}\n`;
+        mensagem += `📌 Tema: ${redacao.tema}\n\n`;
+        mensagem += `📄 Conteúdo:\n${redacao.textoRedacao}\n\n`;
+        
+        if (isCorrigida) {
+            mensagem += `⭐ NOTA: ${redacao.pontuacaoObtida}/1000\n\n`;
+            if (redacao.comentarios) {
+                mensagem += `💬 COMENTÁRIOS DO PROFESSOR:\n${redacao.comentarios}`;
+            }
+        } else {
+            mensagem += `⏳ Status: Aguardando correção do professor.`;
+        }
+        
+        alert(mensagem);
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao carregar detalhes da redação', 'error');
+    }
+}
+
+// ========== LIMPAR FORMULÁRIO ==========
 function limparFormulario() {
     if (confirm('Tem certeza que deseja limpar o formulário? Todo o texto será perdido.')) {
         document.getElementById('titulo').value = '';
@@ -309,7 +392,7 @@ function limparFormulario() {
     }
 }
 
-// Notificações
+// ========== NOTIFICAÇÕES ==========
 function inicializarNotificacoes() {
     const notificationIcon = document.getElementById('notificationsIcon');
     const modal = document.getElementById('notificationsModal');
@@ -366,7 +449,7 @@ function mostrarNotificacao(message, type) {
     }, 4000);
 }
 
-// Eventos
+// ========== EVENTOS ==========
 function inicializarEventos() {
     const form = document.getElementById('redacaoForm');
     if (form) {
@@ -381,7 +464,7 @@ function inicializarEventos() {
     const refreshBtn = document.getElementById('refreshHistorico');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            carregarHistoricoLocal();
+            carregarHistoricoRedacoes();
             mostrarNotificacao('Histórico atualizado!', 'info');
         });
     }
@@ -399,6 +482,18 @@ function inicializarEventos() {
     }
 }
 
+// ========== FUNÇÕES UTILITÁRIAS ==========
+function formatarData(dataString) {
+    if (!dataString) return 'Data não disponível';
+    try {
+        const data = new Date(dataString);
+        if (isNaN(data.getTime())) return dataString;
+        return data.toLocaleDateString('pt-BR');
+    } catch {
+        return dataString;
+    }
+}
+
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -406,10 +501,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Carregar histórico ao iniciar
-carregarHistoricoLocal();
-
-// Estilos para animações
+// Adicionar estilos para animações
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -420,5 +512,19 @@ style.textContent = `
         from { opacity: 1; transform: translateX(0); }
         to { opacity: 0; transform: translateX(100%); }
     }
+    .redacao-tema-mini {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin: 5px 0;
+    }
+    .redacao-tema-mini i {
+        color: var(--primary-color);
+        margin-right: 4px;
+    }
 `;
 document.head.appendChild(style);
+
+// Expor funções globalmente
+window.carregarTemaAleatorio = carregarTemaAleatorio;
+window.carregarTemaPorCategoria = carregarTemaPorCategoria;
+window.verDetalhesRedacao = verDetalhesRedacao;

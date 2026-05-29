@@ -17,20 +17,40 @@
 <body>
 
 <section class="user-dashboard">
-    <!-- SIDEBAR (Menu Lateral) - MESMO PADRÃO -->
+    <!-- SIDEBAR - COM SUBMENU -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-            <span class="logo-text">EstudeX <span class="badge-prof">Prof</span></span>
+            <span class="logo-text">EstudeX</span>
         </div>
         
         <nav class="sidebar-nav">
             <ul>
-                <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                <li><a href="../../../Professor/redacoes/HTML/professor-redacoes.html" class="nav-item active"><i class="fas fa-pen-fancy"></i> <span>Redações</span></a></li>
-                <li><a href="../../../Professor/comunicados/HTML/professorComunicados.html" class="nav-item"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
-                <li><a href="../../../Professor/duvidas/HTML/duvidas.html" class="nav-item"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                
+                <!-- Item com submenu -->
+                <li class="nav-item-has-submenu" id="redacoesSubmenu">
+                    <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
+                        <i class="fas fa-pen-fancy"></i> <span>Redações</span>
+                        <i class="fas fa-chevron-down submenu-arrow"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="../../redacoes/HTML/professor-redacoes.html" class="submenu-item active">
+                                <i class="fas fa-check-circle"></i> <span>Corrigir Redação</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="../../redacoes/HTML/professor-criar-redacao.html" class="submenu-item">
+                                <i class="fas fa-plus-circle"></i> <span>Criar Redação</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li><a href="../../comunicados_professor/HTML/meusComunicados.html" class="nav-item" id="nav-comunicados"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                <li><a href="../../duvidas/HTML/duvidas.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
             </ul>
         </nav>
         
@@ -46,7 +66,7 @@
     <main class="dashboard-content">
         <!-- CABEÇALHO -->
         <div class="header-top">
-            <h1 class="page-title"><i class="fas fa-pen-fancy"></i> Redações dos Alunos</h1>
+            <h1 class="page-title"><i class="fas fa-pen-fancy"></i> Corrigir Redações</h1>
             <div class="notifications-icon">
                 <i class="fas fa-bell"></i>
                 <span class="notification-badge">3</span>
@@ -81,15 +101,11 @@
             </select>
             <select id="turmaFilter" class="filter-select" onchange="filtrarRedacoes()">
                 <option value="todas">Todas as turmas</option>
-                <option value="turma1">Turma A - 3º Ano</option>
-                <option value="turma2">Turma B - 2º Ano</option>
-                <option value="turma3">Turma C - 1º Ano</option>
             </select>
         </div>
 
         <!-- LISTA DE REDAÇÕES -->
         <div class="redacoes-container" id="redacoesContainer">
-            <!-- Cards serão carregados via JS -->
             <div class="loading-state">
                 <i class="fas fa-spinner fa-pulse"></i>
                 <p>Carregando redações...</p>
@@ -107,7 +123,6 @@
         </div>
         
         <div class="modal-body">
-            <!-- Informações da Redação -->
             <div class="info-redacao">
                 <div class="info-row">
                     <span class="info-label">Aluno:</span>
@@ -131,13 +146,11 @@
                 </div>
             </div>
 
-            <!-- Redação do Aluno -->
             <div class="redacao-aluno">
                 <h4><i class="fas fa-file-alt"></i> Redação do Aluno</h4>
                 <div class="redacao-texto" id="modalTexto"></div>
             </div>
 
-            <!-- Área de Correção -->
             <div class="correcao-area">
                 <h4><i class="fas fa-star"></i> Correção</h4>
                 
@@ -203,9 +216,8 @@
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="../JS/professor-redacoes.js"></script>
-<script src="../../../JS/menuSideBar.js"></script>
+<script src="../../../global/JS/menuSideBar.js"></script>
 
 </body>
 </html>

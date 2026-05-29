@@ -13,32 +13,47 @@
         rel="stylesheet">
     <!-- CSS externo -->
     <link rel="stylesheet" href="../CSS/professorTurma.css">
-    <link rel="stylesheet" href="../CSS/professorSidebar.css">
 </head>
 
 <body>
-    <div class="app-container">
+    <section class="user-dashboard">
+        <!-- SIDEBAR - PADRONIZADA COM SUBMENU -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
                 <span class="logo-text">EstudeX</span>
             </div>
-
+            
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item"><i
-                                class="fas fa-user"></i> <span>Perfil</span></a></li>
-                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item"><i
-                                class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                    <li><a href="../../../Professor/redacoes/HTML/professor-redacoes.html" class="nav-item active"><i
-                                class="fas fa-pen-fancy"></i> <span>Redações</span></a></li>
-                    <li><a href="../../../Professor/comunicados/HTML/professorComunicados.html" class="nav-item"><i
-                                class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
-                    <li><a href="../../../Professor/duvidas/HTML/duvidas.html" class="nav-item"><i
-                                class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                    <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item active" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
+                    
+                    <!-- Item com submenu -->
+                    <li class="nav-item-has-submenu" id="redacoesSubmenu">
+                        <a href="javascript:void(0)" class="nav-item" id="nav-redacoes">
+                            <i class="fas fa-pen-fancy"></i> <span>Redações</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="../../../Professor/redacoes/HTML/professor-redacoes.html" class="submenu-item">
+                                    <i class="fas fa-check-circle"></i> <span>Corrigir Redação</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../../../Professor/redacoes/HTML/professor-criar-redacao.html" class="submenu-item">
+                                    <i class="fas fa-plus-circle"></i> <span>Criar Redação</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="../../../Professor/comunicados/HTML/professorComunicados.html" class="nav-item" id="nav-comunicados"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../../Professor/duvidas/HTML/duvidas.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
                 </ul>
             </nav>
-
+            
             <div class="sidebar-footer">
                 <a href="#" class="nav-item" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
@@ -48,10 +63,9 @@
         </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
-        <main class="main-content">
+        <main class="dashboard-content">
             <!-- HEADER DO PERFIL -->
             <header class="profile-header" id="profileHeader">
-                <!-- Perfil do professor será carregado aqui -->
                 <div class="loading-spinner">
                     <i class="fas fa-spinner fa-spin"></i> Carregando perfil...
                 </div>
@@ -64,7 +78,6 @@
                     <span class="ver-todas" id="verTodosSelos">Ver todas →</span>
                 </div>
                 <div class="selos-container" id="selosContainer">
-                    <!-- Selos serão carregados aqui -->
                     <div class="loading-spinner small">
                         <i class="fas fa-spinner fa-spin"></i>
                     </div>
@@ -75,7 +88,6 @@
             <section class="turmas-section">
                 <h3><i class="fas fa-users-between-lines"></i> Minhas Turmas</h3>
                 <div class="turmas-grid" id="turmasGrid">
-                    <!-- Turmas serão carregadas via JavaScript -->
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i> Carregando turmas...
                     </div>
@@ -94,26 +106,23 @@
                     <!-- Alunos serão carregados via JavaScript -->
                 </div>
             </section>
-
         </main>
-    </div>
+    </section>
 
-    <!-- Modal para detalhes (opcional) -->
+    <!-- Modal para detalhes -->
     <div class="modal" id="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle"></h3>
                 <span class="modal-close" id="modalClose">&times;</span>
             </div>
-            <div class="modal-body" id="modalBody">
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
     <!-- JavaScript externo -->
     <script src="../JS/professorTurma.js"></script>
-    <script src="../JS/menuSideBar.js"></script>
-
+    <script src="../../../global/JS/menuSideBar.js"></script>
 </body>
 
 </html>
