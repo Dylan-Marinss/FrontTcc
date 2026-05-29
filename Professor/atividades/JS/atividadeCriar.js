@@ -303,7 +303,7 @@ async function criarAtividadeSeNecessario() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const atividade = await res.json();
-        idAtividadeCriada = atividade.idAtividade;
+        idAtividadeCriada = atividade.idAtividade ?? atividade.id;
 
         ['titulo', 'dificuldade'].forEach(id => {
             const el = document.getElementById(id);
@@ -536,20 +536,14 @@ async function publicarAtividade() {
     }, 2000);
 }
 
+
 // ============================================================
 //  CANCELAR
 // ============================================================
 function cancelar() {
-    const temConteudo =
-        questoes.length > 0 ||
-        document.getElementById('enunciado')?.value.trim() ||
-        document.getElementById('titulo')?.value.trim();
-
-    if (temConteudo) {
-        if (!confirm('Tem certeza que deseja cancelar? As alterações não salvas serão perdidas.')) return;
-    }
-    window.location.href = '../../../Professor/dashboard/HTML/professorDashboard.html';
+    abrirModalCancelar();
 }
+
 
 // ============================================================
 //  UTILITÁRIOS
@@ -593,4 +587,39 @@ function showToast(msg, tipo = 'success') {
     toast.classList.add('show');
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// ============================================================
+//  MODAL DE CANCELAMENTO
+// ============================================================
+function abrirModalCancelar() {
+    document.getElementById('modal-cancelar').style.display = 'flex';
+}
+
+function fecharModalCancelar() {
+    document.getElementById('modal-cancelar').style.display = 'none';
+}
+
+async function confirmarCancelar() {
+    fecharModalCancelar();
+
+    if (idAtividadeCriada) {
+        try {
+            const res = await fetch(`${API_URL}/atividades/${idAtividadeCriada}`, {
+                method: 'DELETE'
+            });
+            console.log(`[EstudeX] DELETE /atividades/${idAtividadeCriada} → status ${res.status}`);
+        } catch (err) {
+            console.error('[EstudeX] Erro ao deletar atividade:', err);
+        }
+    }
+
+    try { await limparPDFIndexedDB(); } catch (_) {}
+
+    localStorage.removeItem("temMaterial");
+    localStorage.removeItem("idDificuldade");
+    localStorage.removeItem("idDisciplina");
+    localStorage.removeItem("idSerie");
+
+    window.location.href = '../HTML/atividades.html';
 }

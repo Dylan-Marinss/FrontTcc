@@ -14,6 +14,77 @@
 
   <link rel="stylesheet" href="../CSS/atividadeCriar.css">
   <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
+
+  <style>
+    /* MODAL CANCELAR */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: var(--card-bg, #1e1e2e);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(255, 61, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+    }
+
+    .modal-icon i {
+      font-size: 1.5rem;
+      color: #ff3d00;
+    }
+
+    .modal-box h3 {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary, #fff);
+    }
+
+    .modal-box p {
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--text-secondary, #aaa);
+      margin-bottom: 1.75rem;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .modal-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  </style>
 </head>
 
 <body>
@@ -94,7 +165,6 @@
           <input type="text" id="titulo" class="input-field" placeholder="Ex: Revisão de Cálculo I">
         </div>
 
-
       </div>
 
       <div class="divider"></div>
@@ -111,12 +181,8 @@
             Questão 1
           </span>
 
-          <!-- CORREÇÃO AQUI -->
           <div class="progress-bar-bg">
-
-            <div class="progress-bar-fill" id="questao-progress" style="width:5%">
-            </div>
-
+            <div class="progress-bar-fill" id="questao-progress" style="width:5%"></div>
           </div>
 
         </div>
@@ -139,16 +205,11 @@
 
           <div class="opcoes-header-left">
 
-            <i class="fas fa-list-check" style="color:var(--secondary-color)">
-            </i>
+            <i class="fas fa-list-check" style="color:var(--secondary-color)"></i>
 
-            <span class="opcoes-titulo">
-              Alternativas
-            </span>
+            <span class="opcoes-titulo">Alternativas</span>
 
-            <span class="opcoes-count" id="count-label">
-              1 / 5
-            </span>
+            <span class="opcoes-count" id="count-label">1 / 5</span>
 
           </div>
 
@@ -193,17 +254,13 @@
         <div class="form-actions-question">
 
           <button class="btn btn-secondary" id="btn-anterior" onclick="questaoAnterior()" disabled>
-
             <i class="fas fa-arrow-left"></i>
             Anterior
-
           </button>
 
           <button class="btn btn-primary" id="btn-proxima" onclick="proximaQuestao()">
-
             <i class="fas fa-save"></i>
             Próxima Questão
-
           </button>
 
         </div>
@@ -212,23 +269,17 @@
 
       <div class="divider"></div>
 
-
-
       <!-- BOTÕES -->
       <div class="main-actions">
 
         <button class="btn btn-secondary" onclick="cancelar()">
-
           <i class="fas fa-xmark"></i>
           Cancelar
-
         </button>
 
         <button class="btn btn-primary" onclick="publicarAtividade()">
-
           <i class="fas fa-paper-plane"></i>
           Publicar Atividade
-
         </button>
 
       </div>
@@ -239,12 +290,33 @@
 
   <!-- TOAST -->
   <div class="toast" id="toast">
-
-    <i class="fas fa-circle-check" id="toast-icon">
-    </i>
-
+    <i class="fas fa-circle-check" id="toast-icon"></i>
     <span id="toast-msg"></span>
+  </div>
 
+  <!-- MODAL CANCELAR -->
+  <div class="modal-overlay" id="modal-cancelar">
+    <div class="modal-box">
+
+      <div class="modal-icon">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
+
+      <h3>Cancelar criação?</h3>
+      <p>Todas as questões e informações preenchidas serão perdidas. Essa ação não pode ser desfeita.</p>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="fecharModalCancelar()">
+          <i class="fas fa-arrow-left"></i>
+          Voltar
+        </button>
+        <button class="btn btn-primary" style="background:var(--accent-color, #ff3d00)" onclick="confirmarCancelar()">
+          <i class="fas fa-xmark"></i>
+          Sim, cancelar
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <script src="../JS/atividadeCriar.js"></script>
