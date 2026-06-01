@@ -18,22 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initSidebar();
 });
 
-// ============================================================
-//  SIDEBAR
-// ============================================================
-function initSidebar() {
-    const menuToggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    if (!menuToggle || !sidebar) return;
-
-    menuToggle.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-            sidebar.classList.toggle('active');
-        } else {
-            sidebar.classList.toggle('collapsed');
-        }
-    });
-}
 
 const LETRAS = ['A', 'B', 'C', 'D', 'E'];
 

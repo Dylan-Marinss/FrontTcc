@@ -9,13 +9,6 @@ const ID_PROFESSOR_LOGADO = 6;
 // ============================================================
 let meusComunicados = [];
 let comunicadoIdParaDeletar = null;
-let filtroSerieAtivo = '';
-
-// ============================================================
-//  PAGINAÇÃO
-// ============================================================
-const ITENS_POR_PAGINA = 12;
-let paginaAtual = 1;
 
 // ============================================================
 //  INICIALIZACAO
@@ -26,10 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function configurarEventos() {
-    document.getElementById('search-input').addEventListener('input', () => {
-        paginaAtual = 1;
-        filtrarComunicados();
-    });
+    document.getElementById('search-input').addEventListener('input', filtrarComunicados);
 
     document.getElementById('modalConfirmDelete').addEventListener('click', (e) => {
         if (e.target.id === 'modalConfirmDelete') fecharConfirmDelete();
@@ -39,13 +29,7 @@ function configurarEventos() {
         if (e.target.id === 'modal-leitura') fecharModalLeitura();
     });
 
-    const menuToggle = document.getElementById('menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            document.querySelector('.dashboard-content').classList.toggle('collapsed');
-        });
-    }
+
 }
 
 // ============================================================
@@ -65,7 +49,9 @@ async function carregarMeusComunicados() {
         let todos = await res.json();
         if (todos.content) todos = todos.content;
 
-        meusComunicados = todos.filter(c => c.utilizadorResponsavel === nomeProfessor);
+        meusComunicados = todos.filter(c =>
+            c.utilizadorResponsavel === nomeProfessor
+        );
 
     } catch (e) {
         console.error('Erro ao carregar comunicados:', e);
@@ -83,34 +69,25 @@ async function carregarMeusComunicados() {
 // ============================================================
 function renderizarLista(lista = meusComunicados) {
     const container = document.getElementById('meus-comunicados-list');
-    const empty     = document.getElementById('empty-state');
+    const empty = document.getElementById('empty-state');
 
     if (lista.length === 0) {
         container.innerHTML = '';
         empty.style.display = 'block';
-        renderizarPaginacao(0);
         return;
     }
 
     empty.style.display = 'none';
-
-    // Paginação
-    const totalPaginas = Math.ceil(lista.length / ITENS_POR_PAGINA);
-    if (paginaAtual > totalPaginas) paginaAtual = 1;
-
-    const inicio  = (paginaAtual - 1) * ITENS_POR_PAGINA;
-    const paginada = lista.slice(inicio, inicio + ITENS_POR_PAGINA);
-
-    container.innerHTML = paginada.map(com => `
-        <div class="comunicado-card" id="card-${com.idComunicado}"
-            onclick="abrirModalLeitura(${com.idComunicado})"
-            style="cursor:pointer;">
-            <div class="card-actions">
-                <button class="btn-card-action btn-deletar" title="Excluir"
-                    onclick="event.stopPropagation(); deletarComunicado(${com.idComunicado})">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+    container.innerHTML = lista.map(com => `
+        <div class="comunicado-card" id="card-${com.idComunicado}" 
+    onclick="abrirModalLeitura(${com.idComunicado})"
+    style="cursor:pointer;">
+    <div class="card-actions">
+        <button class="btn-card-action btn-deletar" title="Excluir"
+            onclick="event.stopPropagation(); deletarComunicado(${com.idComunicado})">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
             <div class="card-header">
                 <h3 class="card-title">${com.titulo || 'Sem título'}</h3>
             </div>
@@ -125,89 +102,17 @@ function renderizarLista(lista = meusComunicados) {
             </div>
         </div>
     `).join('');
-
-    renderizarPaginacao(totalPaginas);
 }
 
-// ============================================================
-//  PAGINAÇÃO - RENDER
-// ============================================================
-function renderizarPaginacao(totalPaginas) {
-    let paginacaoEl = document.getElementById('paginacao');
-    if (!paginacaoEl) {
-        paginacaoEl = document.createElement('div');
-        paginacaoEl.id = 'paginacao';
-        document.getElementById('meus-comunicados-list').insertAdjacentElement('afterend', paginacaoEl);
-    }
-
-    if (totalPaginas <= 1) {
-        paginacaoEl.innerHTML = '';
-        return;
-    }
-
-    const btnStyle = (desabilitado) => `
-        background: ${desabilitado ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
-        color: ${desabilitado ? 'var(--text-muted)' : '#000'};
-        border: none;
-        padding: 10px 20px;
-        border-radius: 30px;
-        cursor: ${desabilitado ? 'not-allowed' : 'pointer'};
-        font-weight: 700;
-        font-family: var(--font-futuristic, Orbitron, sans-serif);
-        font-size: 0.75rem;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    `;
-
-    paginacaoEl.innerHTML = `
-        <div style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 30px;
-            font-family: var(--font-main, Poppins, sans-serif);
-        ">
-            <button onclick="mudarPagina(${paginaAtual - 1})"
-                ${paginaAtual === 1 ? 'disabled' : ''}
-                style="${btnStyle(paginaAtual === 1)}">
-                <i class="fas fa-chevron-left"></i> Anterior
-            </button>
-
-            <span style="color: var(--text-muted); font-size: 0.9rem;">
-                Página <strong style="color: var(--primary-color);">${paginaAtual}</strong>
-                de <strong style="color: var(--primary-color);">${totalPaginas}</strong>
-            </span>
-
-            <button onclick="mudarPagina(${paginaAtual + 1})"
-                ${paginaAtual === totalPaginas ? 'disabled' : ''}
-                style="${btnStyle(paginaAtual === totalPaginas)}">
-                Próxima <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-    `;
-}
-
-function mudarPagina(novaPagina) {
-    paginaAtual = novaPagina;
-    filtrarComunicados();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ============================================================
-//  MODAL LEITURA
-// ============================================================
 function abrirModalLeitura(id) {
     const com = meusComunicados.find(c => c.idComunicado === id);
     if (!com) return;
 
-    document.getElementById('leitura-titulo').textContent     = com.titulo || 'Sem título';
-    document.getElementById('leitura-data').textContent       = formatarData(com.dataEnvio);
+    document.getElementById('leitura-titulo').textContent = com.titulo || 'Sem título';
+    document.getElementById('leitura-data').textContent = formatarData(com.dataEnvio);
     document.getElementById('leitura-disciplina').textContent = com.disciplina?.nome || 'Geral';
-    document.getElementById('leitura-serie').textContent      = com.serie?.nomeSerie || 'Sem série';
-    document.getElementById('leitura-descricao').textContent  = com.descricao || '';
+    document.getElementById('leitura-serie').textContent = com.serie?.nomeSerie || 'Sem série';
+    document.getElementById('leitura-descricao').textContent = com.descricao || '';
 
     document.getElementById('modal-leitura').classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -219,27 +124,29 @@ function fecharModalLeitura() {
 }
 
 // ============================================================
-//  FILTRO SÉRIE (custom select)
+//  FILTRAR
 // ============================================================
+
+let filtroSerieAtivo = '';
+
 function popularFiltroSerie() {
     const seriesMap = new Map();
     meusComunicados.forEach(c => {
         if (c.serie?.id) seriesMap.set(String(c.serie.id), c.serie.nomeSerie);
     });
 
-    const wrapper          = document.getElementById('customSelectFiltroSerie');
+    const wrapper = document.getElementById('customSelectFiltroSerie');
     const optionsContainer = document.getElementById('customSelectFiltroSerieOptions');
-    const trigger          = wrapper.querySelector('.custom-select-trigger');
+    const trigger = wrapper.querySelector('.custom-select-trigger');
 
+    // Opção "Todas"
     optionsContainer.innerHTML = '';
-
     const todas = document.createElement('div');
     todas.className = 'custom-option selected';
     todas.textContent = 'Todas as Séries';
     todas.addEventListener('click', (e) => {
         e.stopPropagation();
         filtroSerieAtivo = '';
-        paginaAtual = 1;
         document.getElementById('customSelectFiltroSerieText').textContent = 'Todas as Séries';
         optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
         todas.classList.add('selected');
@@ -255,7 +162,6 @@ function popularFiltroSerie() {
         option.addEventListener('click', (e) => {
             e.stopPropagation();
             filtroSerieAtivo = id;
-            paginaAtual = 1;
             document.getElementById('customSelectFiltroSerieText').textContent = nome;
             optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
             option.classList.add('selected');
@@ -278,9 +184,19 @@ function popularFiltroSerie() {
     });
 }
 
-// ============================================================
-//  FILTRAR
-// ============================================================
+function filtrarComunicados() {
+    const term = document.getElementById('search-input').value.toLowerCase();
+
+    const filtrados = meusComunicados.filter(c => {
+        const matchSearch = (c.titulo    || '').toLowerCase().includes(term) ||
+                            (c.descricao || '').toLowerCase().includes(term);
+        const matchSerie  = !filtroSerieAtivo || String(c.serie?.id) === filtroSerieAtivo;
+        return matchSearch && matchSerie;
+    });
+
+    renderizarLista(filtrados);
+}
+
 function filtrarComunicados() {
     const term = document.getElementById('search-input').value.toLowerCase();
 
@@ -322,11 +238,19 @@ async function confirmarDelete() {
         const res = await fetch(`${API_URL}/comunicados/${comunicadoIdParaDeletar}`, {
             method: 'DELETE'
         });
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const card = document.getElementById(`card-${comunicadoIdParaDeletar}`);
+        if (card) {
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => card.remove(), 300);
+        }
 
         meusComunicados = meusComunicados.filter(c => c.idComunicado !== comunicadoIdParaDeletar);
         fecharConfirmDelete();
-        filtrarComunicados();
 
     } catch (e) {
         console.error('Erro ao excluir:', e);

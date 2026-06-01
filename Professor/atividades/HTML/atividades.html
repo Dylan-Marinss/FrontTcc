@@ -6,65 +6,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EstudeX | Professor - Criar Atividade</title>
 
-    <link rel="stylesheet" href="../CSS/themes.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../../global/CSS/theme.css">
     <link rel="stylesheet" href="../CSS/atividadeProfessor.css">
     <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
 
+    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+
 </head>
 
 <body>
 
     <section class="user-dashboard">
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-      <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-      <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
-    </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                
-                <li class="nav-item-has-submenu" id="redacoesSubmenu">
-                    <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
-                        <i class="fas fa-pen-fancy"></i> <span>Redações</span>
-                        <i class="fas fa-chevron-down submenu-arrow"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li>
-                            <a href="../../redacoes/HTML/professor-redacoes.html" class="submenu-item active">
-                                <i class="fas fa-check-circle"></i> <span>Corrigir Redação</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="../../redacoes/HTML/professor-criar-redacao.html" class="submenu-item">
-                                <i class="fas fa-plus-circle"></i> <span>Criar Redação</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li><a href="../../comunicados_professor/HTML/meusComunicados.html" class="nav-item" id="nav-comunicados"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
-                <li><a href="../../atividades/HTML/duvidas.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-            </ul>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <a href="../../../Login/HTML/login.html" class="nav-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sair</span>
-            </a>
-        </div>
-    </div>
+        <!-- SIDEBAR (Menu Lateral) - VERSÃO PROFESSOR -->
+        <div class="sidebar professor-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
 
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item"><i class="fas fa-user"></i>
+                            <span>Perfil</span></a></li>
+                    <li><a href="../../atividades/HTML/atividades.html" class="nav-item"><i class="fas fa-tasks"></i>
+                            <span>Atividades</span></a></li>
+                    <li><a href="../../redacao/HTML/professor-redacoes.html" class="nav-item active"><i
+                                class="fas fa-pen-fancy"></i> <span>Redações</span></a></li>
+                    <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item"><i
+                                class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../atividades/HTML/duvidas.html" class="nav-item"><i
+                                class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="../../../Login/HTML/login.html" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+
+
+        </div>
+
+        <!-- MAIN CONTENT -->
         <div class="main-content">
             <div class="atividade-container">
 
+                <!-- Cabeçalho da página -->
                 <div class="atividade-card header-card">
                     <h1 class="page-title">
                         <i class="fas fa-plus-circle"></i> Criar Nova Atividade
@@ -74,14 +74,16 @@
                     </p>
                 </div>
 
+                <!-- Card Principal - Criar Atividade -->
                 <div class="atividade-card create-card">
 
+                    <!-- Informações Básicas da Atividade -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <i class="fas fa-info-circle"></i> Informações Básicas
                         </h2>
 
-                        <div class="form-row form-row-3">
+                        <div class="form-row">
                             <div class="form-group">
                                 <label for="tipoAtividade"><i class="fas fa-tag"></i> Tipo de Atividade *</label>
                                 <select id="tipoAtividade" class="form-control" required>
@@ -92,28 +94,54 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="dificuldadeQuestao"><i class="fas fa-chart-line"></i> Dificuldade</label>
+                                <label for="dificuldade"><i class="fas fa-chart-line"></i> Dificuldade</label>
                                 <select id="dificuldadeQuestao" class="form-control">
                                     <option value="">Carregando dificuldades...</option>
+                                </select>
+                            </div>
+
+
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="serie"><i class="fas fa-users"></i> Turma *</label>
+                                <select id="serie" class="form-control" required>
+                                    <option value="">Carregando turmas...</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="disciplina"><i class="fas fa-book"></i> Disciplina *</label>
                                 <select id="disciplina" class="form-control" required>
-                                    <option value="">Carregando disciplinas...</option>
+                                    <option value="">Selecione a disciplina</option>
+                                    <option value="matematica">Matemática</option>
+                                    <option value="portugues">Português</option>
+                                    <option value="historia">História</option>
+                                    <option value="geografia">Geografia</option>
+                                    <option value="ciencias">Ciências</option>
+                                    <option value="fisica">Física</option>
+                                    <option value="quimica">Química</option>
+                                    <option value="biologia">Biologia</option>
+                                    <option value="ingles">Inglês</option>
+                                    <option value="redacao">Redação</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
+
+
+                    <!-- Botões de Ação -->
                     <div class="form-actions">
-                        <button type="button" id="btnConsultarAtividade" class="btn-primary">
+                        <button type="button" id="btnConsultarAtividade" class="btn-primary"
+                            onclick="window.location.href='minhasAtividades.html'">
                             <i class="fas fa-tasks"></i> Minhas Atividades
                         </button>
                         <button type="button" id="btnSalvarAtividade" class="btn-primary">
                             <i class="fas fa-save"></i> Criar Atividade
                         </button>
+
                     </div>
                 </div>
             </div>
@@ -149,6 +177,10 @@
 
     <script src="../JS/atividadeProfessor.js"></script>
     <script src="../../perfil/JS/menuSideBar.js"></script>
+    <script src="../../../global/JS/theme.js"></script>
+
+
 
 </body>
+
 </html>

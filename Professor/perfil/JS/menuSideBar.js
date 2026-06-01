@@ -1,26 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const sidebar     = document.getElementById('sidebar');
-    const menuToggle  = document.getElementById('menu-toggle');
+    const sidebar    = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
 
-    // ── Colapsar / expandir sidebar ──────────────────────────
-     menuToggle.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-            // Mobile: sidebar recolhe para 70px também
-            sidebar.classList.toggle('collapsed');
-            document.body.classList.toggle('sidebar-collapsed');
-        } else {
-            // Desktop: comportamento normal
-            sidebar.classList.toggle('collapsed');
-            document.body.classList.toggle('sidebar-collapsed');
-        }
+    if (!sidebar || !menuToggle) return;
+
+    // ── Colapsar / expandir ───────────────────────────────────
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        document.body.classList.toggle('sidebar-collapsed');
     });
 
-
-    // ── Fechar sidebar ao clicar fora (mobile) ───────────────
+    // ── Fechar sidebar ao clicar fora (mobile) ────────────────
     document.addEventListener('click', (e) => {
         if (
             window.innerWidth <= 768 &&
-            sidebar &&
             sidebar.classList.contains('active') &&
             !sidebar.contains(e.target)
         ) {
@@ -28,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ── Marcar item ativo pela URL atual ─────────────────────
+    // ── Marcar item ativo pela URL atual ──────────────────────
     const currentPage = window.location.pathname.split('/').pop();
 
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
@@ -39,3 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+// ── Toggle submenu Redações ───────────────────────────────
+
+const redacoesSubmenu = document.getElementById('redacoesSubmenu');
+if (redacoesSubmenu) {
+    const trigger = redacoesSubmenu.querySelector('#nav-redacoes');
+    trigger.addEventListener('click', () => {
+        redacoesSubmenu.classList.toggle('open');
+    });
+
+    if (redacoesSubmenu.querySelector('.submenu-item.active')) {
+        redacoesSubmenu.classList.add('open');
+    }
+}

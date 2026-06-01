@@ -203,13 +203,6 @@ function escapeAttr(str = '') {
 // ─── Inicialização ────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Menu toggle (corrige ID: HTML usa "menu-toggle")
-    const menuToggle = document.getElementById('menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-    }
 
     // Fechar seção de alunos
     document.getElementById('fecharAlunos')?.addEventListener('click', () => {

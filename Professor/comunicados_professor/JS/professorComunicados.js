@@ -32,13 +32,6 @@ function configurarEventos() {
         document.getElementById('conteudo-count').textContent = e.target.value.length;
     });
 
-    const menuToggle = document.getElementById('menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            document.querySelector('.dashboard-content').classList.toggle('collapsed');
-        });
-    }
 }
 
 // ============================================================

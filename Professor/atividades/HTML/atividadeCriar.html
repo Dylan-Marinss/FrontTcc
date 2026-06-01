@@ -15,20 +15,17 @@
   <link rel="stylesheet" href="../CSS/atividadeCriar.css">
   <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
 
-  <style>
-    /* LAYOUT FIX */
-    body { display: flex; }
-    .user-dashboard { display: flex; width: 100%; min-height: 100vh; }
-    .dashboard-content { flex: 1; margin-left: 250px; width: calc(100% - 250px); min-height: 100vh; }
-    .sidebar.collapsed ~ .dashboard-content { margin-left: 70px; width: calc(100% - 70px); }
+  <link rel="stylesheet" href="../../../global/CSS/theme.css">
 
+
+
+  <style>
     /* MODAL CANCELAR */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
       z-index: 1000;
       align-items: center;
       justify-content: center;
@@ -92,6 +89,7 @@
       justify-content: center;
     }
   </style>
+>>>>>>> e86545fd34dfcf061b5c642fbe117c67d432fdfa
 </head>
 
 <body>
@@ -111,14 +109,16 @@
     <nav class="sidebar-nav">
       <ul>
 
-        <li><a href="../../../Professor/perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil">
-            <i class="fas fa-user"></i> <span>Perfil</span></a></li>
-        <li><a href="../../../Professor/atividades/HTML/atividades.html" class="nav-item" id="nav-atividades">
-            <i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-        <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item active" id="nav-comunicados">
-            <i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
-        <li><a href="../HTML/duvidas.html" class="nav-item" id="nav-duvidas">
-            <i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+        <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item"><i class="fas fa-user"></i>
+            <span>Perfil</span></a></li>
+        <li><a href="../../atividades/HTML/atividades.html" class="nav-item"><i class="fas fa-tasks"></i>
+            <span>Atividades</span></a></li>
+        <li><a href="../../redacao/HTML/professor-redacoes.html" class="nav-item active"><i
+              class="fas fa-pen-fancy"></i> <span>Redações</span></a></li>
+        <li><a href="../../comunicados_professor/HTML/professorComunicados.html" class="nav-item"><i
+              class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+        <li><a href="../../atividades/HTML/duvidas.html" class="nav-item"><i class="fas fa-question-circle"></i>
+            <span>Dúvidas</span></a></li>
 
       </ul>
     </nav>
@@ -328,6 +328,7 @@
 
   <script src="../JS/atividadeCriar.js"></script>
   <script src="../../perfil/JS/menuSideBar.js"></script>
+  <script src="../../../global/JS/theme.js"></script>
 
 </body>
 

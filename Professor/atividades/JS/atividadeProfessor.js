@@ -4,8 +4,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const API_URL = "http://localhost:8080";
 
+    const selectSerie = document.getElementById("serie");
     const selectDificuldade = document.getElementById("dificuldadeQuestao");
-    const selectDisciplina  = document.getElementById("disciplina");
+    const selectDisciplina = document.getElementById("disciplina");
+
+    // =========================================
+    // CARREGAR TURMAS
+    // =========================================
+    async function carregarTurmas() {
+        try {
+            const response = await fetch(`${API_URL}/series`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const series = await response.json();
+            selectSerie.innerHTML = '<option value="">Selecione a turma</option>';
+            series.forEach(serie => {
+                const option = document.createElement("option");
+                option.value = serie.idSerie || serie.id;
+                option.textContent = serie.nomeSerie;
+                selectSerie.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Erro ao carregar turmas:", error);
+            selectSerie.innerHTML = '<option value="">Erro ao carregar turmas</option>';
+        }
+    }
 
     // =========================================
     // CARREGAR DIFICULDADES
@@ -16,14 +38,14 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const dificuldades = await response.json();
             selectDificuldade.innerHTML = '<option value="">Selecione a dificuldade</option>';
-            dificuldades.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d.idNivelDificuldade;
-                opt.textContent = d.nome;
-                selectDificuldade.appendChild(opt);
+            dificuldades.forEach(dificuldade => {
+                const option = document.createElement("option");
+                option.value = dificuldade.idNivelDificuldade;
+                option.textContent = dificuldade.nome;
+                selectDificuldade.appendChild(option);
             });
-        } catch (err) {
-            console.error("Erro ao carregar dificuldades:", err);
+        } catch (error) {
+            console.error("Erro ao carregar dificuldades:", error);
             selectDificuldade.innerHTML = '<option value="">Erro ao carregar dificuldades</option>';
         }
     }
@@ -37,14 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const disciplinas = await response.json();
             selectDisciplina.innerHTML = '<option value="">Selecione a disciplina</option>';
-            disciplinas.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d.idDisciplina || d.id;
-                opt.textContent = d.nome;
-                selectDisciplina.appendChild(opt);
+            disciplinas.forEach(disciplina => {
+                const option = document.createElement("option");
+                option.value = disciplina.idDisciplina || disciplina.id;
+                option.textContent = disciplina.nome;
+                selectDisciplina.appendChild(option);
             });
-        } catch (err) {
-            console.error("Erro ao carregar disciplinas:", err);
+        } catch (error) {
+            console.error("Erro ao carregar disciplinas:", error);
             selectDisciplina.innerHTML = '<option value="">Erro ao carregar disciplinas</option>';
         }
     }
@@ -68,6 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const tx = db.transaction("arquivos", "readwrite");
                 const store = tx.objectStore("arquivos");
                 store.put({ id: "pdfAtividade", arquivo });
+
                 tx.oncomplete = () => resolve();
                 tx.onerror = () => reject(tx.error);
             };
@@ -148,8 +171,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
     // INICIAR
     // =========================================
+    carregarTurmas();
     carregarDificuldades();
     carregarDisciplinas();
+    criarDropdownCustom(selectSerie);
     criarDropdownCustom(selectDificuldade);
     criarDropdownCustom(selectDisciplina);
 
@@ -157,15 +182,17 @@ document.addEventListener("DOMContentLoaded", function () {
     // BOTÃO CRIAR ATIVIDADE
     // =========================================
     document.getElementById("btnSalvarAtividade").addEventListener("click", function () {
+        const idSerie = selectSerie.value;
         const idDificuldade = selectDificuldade.value;
-        const idDisciplina  = selectDisciplina.value;
+        const idDisciplina = document.getElementById("disciplina").value;
 
+        if (!idSerie) { alert("Selecione a turma."); return; }
         if (!idDificuldade) { alert("Selecione a dificuldade."); return; }
-        if (!idDisciplina)  { alert("Selecione a disciplina.");  return; }
+        if (!idDisciplina) { alert("Selecione a disciplina."); return; }
 
+        localStorage.setItem("idSerie", idSerie);
         localStorage.setItem("idDificuldade", idDificuldade);
-        localStorage.setItem("idDisciplina",  idDisciplina);
-        localStorage.removeItem("idSerie");
+        localStorage.setItem("idDisciplina", idDisciplina);
 
         document.getElementById("modalMaterial").style.display = "flex";
     });
@@ -173,6 +200,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================
     // MODAL MATERIAL DE APOIO
     // =========================================
+
     document.getElementById("btnSimMaterial").addEventListener("click", function () {
         document.getElementById("uploadArea").style.display = "block";
         this.style.display = "none";
@@ -183,6 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("uploadTexto").textContent = this.files[0].name;
 
             const uploadArea = document.getElementById("uploadArea");
+
             const botoesAntigos = document.getElementById("botoesArquivo");
             if (botoesAntigos) botoesAntigos.remove();
 
@@ -236,7 +265,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("modalMaterial").addEventListener("click", function (e) {
-        if (e.target === this) this.style.display = "none";
+        if (e.target === this) {
+            this.style.display = "none";
+        }
     });
 
     // =========================================
