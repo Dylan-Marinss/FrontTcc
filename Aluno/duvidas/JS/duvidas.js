@@ -26,10 +26,82 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarDadosAluno();
     await carregarDisciplinas();
     await carregarMinhasDuvidas();
+    inicializarFiltroStatus();
     inicializarSidebar();
     inicializarFechamentoModais();
     injetarAnimacoes();
+
+    // Busca em tempo real
+    document.getElementById('searchDuvida')?.addEventListener('input', () => {
+        paginaAtual = 1;
+        filterDuvidas();
+    });
 });
+
+// ============================================================
+//  UTILITÁRIO: montar um custom select genérico
+//  Parâmetros:
+//    wrapperId   — id do div.custom-select
+//    optionsId   — id do div.custom-select-options
+//    textId      — id do span que exibe o label atual
+//    hiddenId    — id do input hidden que guarda o valor
+//    items       — [{ value, label }]
+//    placeholder — texto inicial (value = '')
+//    onChange    — callback(value) disparado ao selecionar
+// ============================================================
+function montarCustomSelect({ wrapperId, optionsId, textId, hiddenId, items, placeholder, onChange }) {
+    const wrapper = document.getElementById(wrapperId);
+    const optionsContainer = document.getElementById(optionsId);
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+
+    optionsContainer.innerHTML = '';
+
+    // Opção placeholder
+    const placeholderOpt = criarOpcao(placeholder, '', optionsContainer, textId, hiddenId, wrapper, onChange);
+    placeholderOpt.classList.add('selected');
+    optionsContainer.appendChild(placeholderOpt);
+
+    // Demais opções
+    items.forEach(({ value, label }) => {
+        optionsContainer.appendChild(
+            criarOpcao(label, value, optionsContainer, textId, hiddenId, wrapper, onChange)
+        );
+    });
+
+    // Abrir/fechar ao clicar no trigger
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top   = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left  = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#' + wrapperId)) wrapper.classList.remove('open');
+    });
+}
+
+function criarOpcao(label, value, container, textId, hiddenId, wrapper, onChange) {
+    const option = document.createElement('div');
+    option.className = 'custom-option';
+    option.textContent = label;
+    option.dataset.value = value;
+
+    option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById(hiddenId).value = value;
+        document.getElementById(textId).textContent = label;
+        container.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        wrapper.classList.remove('open');
+        if (onChange) onChange(value);
+    });
+
+    return option;
+}
 
 // ============================================================
 //  DADOS
@@ -38,7 +110,6 @@ async function carregarDadosAluno() {
     try {
         const response = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
         dadosAluno = await response.json();
 
         const serieElement = document.getElementById('serieAluno');
@@ -55,47 +126,32 @@ async function carregarDisciplinas() {
         const response = await fetch(`${API_URL}/disciplinas`);
         const disciplinas = await response.json();
 
+        // ── Modal Nova Dúvida ──
         const trigger = document.querySelector('#customSelectDisciplina .custom-select-trigger');
+        const wrapper  = document.getElementById('customSelectDisciplina');
+        const options  = document.getElementById('customSelectOptions');
 
         trigger.addEventListener('click', () => {
-            const wrapper = document.getElementById('customSelectDisciplina');
-            const options = document.getElementById('customSelectOptions');
-            const rect = trigger.getBoundingClientRect();
-
             if (options.children.length === 0) {
                 disciplinas.forEach(d => {
-                    const option = document.createElement('div');
-                    option.className = 'custom-option';
-                    option.dataset.value = d.id;
-                    option.textContent = d.nome;
-
-                    option.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        document.getElementById('disciplina').value = d.id;
-                        document.getElementById('customSelectText').textContent = d.nome;
-
-                        options.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
-                        option.classList.add('selected');
-
-                        wrapper.classList.remove('open');
-                    });
-
-                    options.appendChild(option);
+                    options.appendChild(
+                        criarOpcao(d.nome, d.id, options, 'customSelectText', 'disciplina', wrapper, null)
+                    );
                 });
             }
-
-            options.style.top  = (rect.bottom + 4) + 'px';
-            options.style.left = rect.left + 'px';
+            const rect = trigger.getBoundingClientRect();
+            options.style.top   = (rect.bottom + 4) + 'px';
+            options.style.left  = rect.left + 'px';
             options.style.width = rect.width + 'px';
-
             wrapper.classList.toggle('open');
         });
 
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('#customSelectDisciplina')) {
-                document.getElementById('customSelectDisciplina').classList.remove('open');
-            }
+            if (!e.target.closest('#customSelectDisciplina')) wrapper.classList.remove('open');
         });
+
+        // ── Guarda disciplinas para uso posterior (filtros) ──
+        window._disciplinasCache = disciplinas;
 
     } catch (erro) {
         console.error('Erro ao carregar disciplinas:', erro);
@@ -125,7 +181,6 @@ async function carregarMinhasDuvidas() {
         todasDuvidas = todas.filter(d => d.utilizador?.id == ID_ALUNO_LOGADO);
 
         const idsRespondidos = new Set(respostas.map(r => r.idDuvida));
-
         todasDuvidas = todasDuvidas.map(d => ({
             ...d,
             statusDuvida: idsRespondidos.has(d.idDuvida) ? 'Respondida' : 'Aberta'
@@ -150,10 +205,10 @@ async function carregarMinhasDuvidas() {
     }
 }
 
+// ============================================================
+//  POPULAR FILTRO DE DISCIPLINAS (custom select padrão)
+// ============================================================
 function popularFiltroDisciplinas() {
-    const select = document.getElementById('disciplinaFilter');
-    if (!select) return;
-
     const idsVistos = new Set();
     const disciplinasUnicas = [];
 
@@ -165,12 +220,32 @@ function popularFiltroDisciplinas() {
         }
     });
 
-    select.innerHTML = '<option value="">Todas as disciplinas</option>';
-    disciplinasUnicas.forEach(disc => {
-        const option = document.createElement('option');
-        option.value = disc.id;
-        option.textContent = disc.nome;
-        select.appendChild(option);
+    montarCustomSelect({
+        wrapperId:  'filterSelectDisciplina',
+        optionsId:  'filterDisciplinaOptions',
+        textId:     'filterDisciplinaText',
+        hiddenId:   'disciplinaFilter',
+        items:      disciplinasUnicas.map(d => ({ value: String(d.id), label: d.nome })),
+        placeholder: 'Todas as disciplinas',
+        onChange:   () => { paginaAtual = 1; filterDuvidas(); }
+    });
+}
+
+// ============================================================
+//  INICIALIZAR FILTRO DE STATUS (custom select padrão)
+// ============================================================
+function inicializarFiltroStatus() {
+    montarCustomSelect({
+        wrapperId:  'filterSelectStatus',
+        optionsId:  'filterStatusOptions',
+        textId:     'filterStatusText',
+        hiddenId:   'statusFilter',
+        items: [
+            { value: 'Aberta',     label: 'Aberta' },
+            { value: 'Respondida', label: 'Respondida' },
+        ],
+        placeholder: 'Todos os status',
+        onChange:   () => { paginaAtual = 1; filterDuvidas(); }
     });
 }
 
@@ -195,7 +270,6 @@ function renderizarDuvidas(duvidas) {
         return;
     }
 
-    // Paginação
     const totalPaginas = Math.ceil(duvidas.length / ITENS_POR_PAGINA);
     if (paginaAtual > totalPaginas) paginaAtual = 1;
 
@@ -203,9 +277,9 @@ function renderizarDuvidas(duvidas) {
     const paginada = duvidas.slice(inicio, inicio + ITENS_POR_PAGINA);
 
     container.innerHTML = paginada.map(duvida => {
-        const titulo    = duvida.titulo    || 'Sem título';
-        const descricao = duvida.descricao || 'Sem descrição';
-        const status    = duvida.statusDuvida || 'Aberta';
+        const titulo     = duvida.titulo    || 'Sem título';
+        const descricao  = duvida.descricao || 'Sem descrição';
+        const status     = duvida.statusDuvida || 'Aberta';
         const disciplina = duvida.disciplina?.nome || 'Sem disciplina';
 
         return `
@@ -312,15 +386,6 @@ function filterDuvidas() {
     renderizarDuvidas(filtradas);
 }
 
-// Resetar página ao filtrar
-['searchDuvida', 'statusFilter', 'disciplinaFilter'].forEach(id => {
-    document.addEventListener('DOMContentLoaded', () => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', () => { paginaAtual = 1; filterDuvidas(); });
-        if (el && el.tagName === 'INPUT') el.addEventListener('input', () => { paginaAtual = 1; filterDuvidas(); });
-    });
-});
-
 // ============================================================
 //  NOVA DÚVIDA
 // ============================================================
@@ -358,6 +423,9 @@ async function submitDuvida(event) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         document.getElementById('duvidaForm').reset();
+        // Resetar texto do custom select do modal
+        document.getElementById('customSelectText').textContent = 'Selecione uma disciplina';
+        document.getElementById('disciplina').value = '';
         closeModal();
         showAlert('✅ Dúvida enviada com sucesso!', 'success');
         paginaAtual = 1;
@@ -393,9 +461,9 @@ function abrirModalResposta(idDuvida) {
 
     const duvida = todasDuvidas.find(d => d.idDuvida === idDuvida);
 
-    document.getElementById('modalRespostaTitulo').textContent   = duvida?.titulo || 'Dúvida';
-    document.getElementById('modalRespostaConteudo').textContent = resposta.conteudoResposta || 'Sem conteúdo.';
-    document.getElementById('modalRespostaData').textContent     = formatarData(resposta.momento);
+    document.getElementById('modalRespostaTitulo').textContent    = duvida?.titulo || 'Dúvida';
+    document.getElementById('modalRespostaConteudo').textContent  = resposta.conteudoResposta || 'Sem conteúdo.';
+    document.getElementById('modalRespostaData').textContent      = formatarData(resposta.momento);
     document.getElementById('modalRespostaProfessor').textContent = resposta.utilizador?.nome || 'Professor';
 
     const modal = document.getElementById('modalResposta');
@@ -463,56 +531,47 @@ async function abrirModalEditar(id, titulo, disciplinaId, descricao) {
     document.getElementById('editDescricao').value = descricao;
     document.getElementById('editDisciplina').value = disciplinaId;
 
+    const wrapper          = document.getElementById('customSelectEditDisciplina');
     const optionsContainer = document.getElementById('customSelectEditOptions');
 
+    // Carrega disciplinas se ainda não carregou
     if (optionsContainer.children.length === 0) {
         try {
-            const response = await fetch(`${API_URL}/disciplinas`);
-            const disciplinas = await response.json();
+            const disciplinas = window._disciplinasCache || (await fetch(`${API_URL}/disciplinas`).then(r => r.json()));
+            window._disciplinasCache = disciplinas;
 
             disciplinas.forEach(d => {
-                const option = document.createElement('div');
-                option.className = 'custom-option';
-                option.dataset.value = d.id;
-                option.textContent = d.nome;
-
-                option.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    document.getElementById('editDisciplina').value = d.id;
-                    document.getElementById('customSelectEditText').textContent = d.nome;
-
-                    optionsContainer.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
-                    option.classList.add('selected');
-
-                    document.getElementById('customSelectEditDisciplina').classList.remove('open');
-                });
-
-                optionsContainer.appendChild(option);
+                optionsContainer.appendChild(
+                    criarOpcao(d.nome, d.id, optionsContainer, 'customSelectEditText', 'editDisciplina', wrapper, null)
+                );
             });
         } catch (e) {
             console.error('Erro ao carregar disciplinas no editar:', e);
         }
     }
 
+    // Marca a disciplina atual como selecionada
     optionsContainer.querySelectorAll('.custom-option').forEach(o => {
         o.classList.remove('selected');
-        if (o.dataset.value == disciplinaId) {
+        if (String(o.dataset.value) === String(disciplinaId)) {
             o.classList.add('selected');
             document.getElementById('customSelectEditText').textContent = o.textContent;
         }
     });
 
-    const trigger = document.querySelector('#customSelectEditDisciplina .custom-select-trigger');
-    trigger.onclick = () => {
-        const wrapper = document.getElementById('customSelectEditDisciplina');
-        const rect = trigger.getBoundingClientRect();
+    // Trigger de abertura
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+    // Remove listener antigo para não duplicar
+    const novoTrigger = trigger.cloneNode(true);
+    trigger.parentNode.replaceChild(novoTrigger, trigger);
 
+    novoTrigger.addEventListener('click', () => {
+        const rect = novoTrigger.getBoundingClientRect();
         optionsContainer.style.top   = (rect.bottom + 4) + 'px';
         optionsContainer.style.left  = rect.left + 'px';
         optionsContainer.style.width = rect.width + 'px';
-
         wrapper.classList.toggle('open');
-    };
+    });
 
     const modal = document.getElementById('modalEditar');
     modal.style.display = 'block';
@@ -523,6 +582,7 @@ function fecharModalEditar() {
     duvidaIdParaEditar = null;
     document.getElementById('modalEditar').style.display = 'none';
     document.getElementById('editarForm').reset();
+    document.getElementById('customSelectEditText').textContent = 'Selecione uma disciplina';
     document.body.style.overflow = 'auto';
 }
 
@@ -530,8 +590,8 @@ async function salvarEdicao(event) {
     event.preventDefault();
     if (!duvidaIdParaEditar) return;
 
-    const titulo      = document.getElementById('editTitulo').value.trim();
-    const descricao   = document.getElementById('editDescricao').value.trim();
+    const titulo       = document.getElementById('editTitulo').value.trim();
+    const descricao    = document.getElementById('editDescricao').value.trim();
     const disciplinaId = document.getElementById('editDisciplina').value;
 
     const submitBtn = document.querySelector('#editarForm .btn-submit');
@@ -582,6 +642,8 @@ function closeModal() {
     if (modal) {
         modal.style.display = 'none';
         document.getElementById('duvidaForm').reset();
+        document.getElementById('customSelectText').textContent = 'Selecione uma disciplina';
+        document.getElementById('disciplina').value = '';
         document.body.style.overflow = 'auto';
     }
 }

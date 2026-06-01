@@ -50,7 +50,7 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* era space-between */
+    justify-content: flex-start;
     box-shadow: 5px 0 20px var(--shadow-color);
     z-index: 1000;
     transition: width 0.3s ease;
@@ -81,13 +81,17 @@ body {
     padding: 0;
 }
 
+/* DEPOIS */
 .sidebar-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin-bottom: 30px;
-    height: 40px;
+    justify-content: flex-start;  /* ← troca */
+    gap: 12px;                    /* ← adiciona */
+    padding: 20px;
+    height: 60px;
+    flex-shrink: 0;
+    background-color: #0D0D0D;
+    margin-bottom: 0;
 }
 
 .logo-text {
@@ -95,7 +99,7 @@ body {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
-    margin-left: 10px;
+    /* margin-left removido */
 }
 
 .menu-icon {
@@ -280,58 +284,137 @@ body {
 /* ========== FILTROS ========== */
 .filters-container {
     display: flex;
+    align-items: center;
     gap: 15px;
     margin-bottom: 30px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+}
+
+.filters-container .search-box {
+    flex: 1;
+    min-width: 0;
 }
 
 .search-box {
-    flex: 1;
     position: relative;
-    min-width: 250px;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 10px 20px;
 }
 
 .search-box i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
+    color: var(--primary-color);
+    margin-right: 10px;
 }
 
 .search-box input {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    outline: none;
+    flex: 1;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+}
+
+.search-box input::placeholder {
+    color: var(--text-muted);
+}
+
+/* ========== CUSTOM SELECT — PADRÃO COMUNICADOS ========== */
+
+/* Wrapper relativo (usado nos modais) */
+.custom-select-wrapper {
+    position: relative;
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-light);
-    font-family: var(--font-main);
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
 }
 
-.search-box input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 10px rgba(187, 134, 252, 0.2);
+/* Elemento raiz do select — tanto nos filtros quanto nos modais */
+.custom-select {
+    position: relative;
+    width: 100%;
 }
 
-.filter-select {
-    padding: 12px 20px;
-    background-color: var(--bg-card);
+/* Trigger: aparência de pill arredondado nos filtros */
+.custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-light);
-    font-family: var(--font-main);
-    font-size: 0.9rem;
+    border-radius: 30px;
+    background-color: var(--bg-card);
     cursor: pointer;
-    transition: all 0.3s ease;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    color: var(--text-light);
+    transition: border-color 0.2s;
+    white-space: nowrap;
+    user-select: none;
 }
 
-.filter-select:focus {
-    outline: none;
+.custom-select-trigger:hover,
+.custom-select.open .custom-select-trigger {
     border-color: var(--primary-color);
+}
+
+.custom-select-arrow {
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+    color: var(--primary-color);
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.custom-select.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown flutuante — fixed para não ser cortado por overflow */
+.custom-select-options {
+    display: none;
+    position: fixed;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow-y: auto;
+    max-height: 200px;
+    z-index: 99999;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.custom-select-options::-webkit-scrollbar { width: 6px; }
+.custom-select-options::-webkit-scrollbar-track { background: var(--bg-card); }
+.custom-select-options::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
+
+.custom-select.open .custom-select-options {
+    display: block;
+}
+
+.custom-option {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    transition: background 0.15s;
+}
+
+.custom-option:hover {
+    background: rgba(187, 134, 252, 0.2);
+}
+
+.custom-option.selected {
+    background: rgba(187, 134, 252, 0.1);
+    color: var(--primary-color);
+}
+
+/* Trigger nos modais: borda quadrada em vez de pill */
+.custom-select-wrapper .custom-select-trigger {
+    border-radius: 10px;
+    font-size: 0.9rem;
 }
 
 /* ========== DÚVIDAS GRID ========== */
@@ -348,6 +431,7 @@ body {
     padding: 20px;
     transition: all 0.3s ease;
     animation: fadeInUp 0.4s ease;
+    position: relative;
 }
 
 .duvida-card:hover {
@@ -371,7 +455,6 @@ body {
     font-size: 0.9rem;
     line-height: 1.5;
     margin-bottom: 15px;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -426,6 +509,45 @@ body {
     color: var(--text-muted);
 }
 
+/* Card respondida */
+.card-respondida {
+    cursor: pointer;
+    border-left: 4px solid var(--primary-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-respondida:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Botões de ação no card */
+.card-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.btn-card-action {
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: transform 0.15s;
+}
+
+.btn-editar  { background: #7c3aed; color: #fff; }
+.btn-deletar { background: #dc2626; color: #fff; }
+.btn-editar:hover,
+.btn-deletar:hover { transform: scale(1.12); }
+
 /* ========== LOADING & EMPTY STATES ========== */
 .loading-state,
 .empty-state {
@@ -475,7 +597,6 @@ body {
     max-width: 550px;
     border: 1px solid var(--border-color);
     animation: slideIn 0.3s ease;
-    
 }
 
 .modal-header {
@@ -580,6 +701,31 @@ body {
     box-shadow: 0 5px 20px rgba(187, 134, 252, 0.4);
 }
 
+/* ========== MODAL CONFIRM DELETE ========== */
+#modalConfirmDelete {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+#modalConfirmDelete.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#modalConfirmDelete .modal-content {
+    margin: 0;
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+#modalConfirmDelete.active .modal-content {
+    transform: scale(1);
+}
+
 /* ========== ALERTAS ========== */
 .alert {
     position: fixed;
@@ -610,302 +756,48 @@ body {
 /* ========== ANIMAÇÕES ========== */
 @keyframes fadeIn {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
 }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+    from { transform: translateY(-50px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
 }
 
 @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
 }
 
 /* ========== SCROLLBAR ========== */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--secondary-color);
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--secondary-color); }
 
 /* ========== RESPONSIVIDADE ========== */
 @media (max-width: 1024px) {
-    .dashboard-content {
-        padding: 20px;
-    }
-    
-    .stats-row {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-    }
-    
-    .duvidas-grid {
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    }
+    .dashboard-content { padding: 20px; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .duvidas-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        transform: translateX(-250px);
-    }
-    
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    
-    .dashboard-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px;
-    }
-    
-    .stats-row {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    
-    .duvidas-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .filters-container {
-        flex-direction: column;
-    }
-    
-    .page-title h1 {
-        font-size: 1.5rem;
-    }
-    
-    .modal-content {
-        margin: 20% auto;
-        width: 95%;
-    }
-}
-.duvida-card {
-    position: relative;
+    .sidebar { transform: translateX(-250px); }
+    .sidebar.active { transform: translateX(0); }
+    .dashboard-content { margin-left: 0; width: 100%; padding: 20px; }
+    .stats-row { grid-template-columns: 1fr; gap: 15px; }
+    .duvidas-grid { grid-template-columns: 1fr; }
+    .filters-container { flex-wrap: wrap; }
+    .page-title h1 { font-size: 1.5rem; }
+    .modal-content { margin: 20% auto; width: 95%; }
 }
 
-/* Botões no canto superior direito */
-.card-actions {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 6px;
-}
-
-.btn-card-action {
-    width: 26px;
-    height: 26px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    opacity: 0;
-    transition: opacity 0.2s, transform 0.15s;
-}
-
-/* Aparece ao passar o mouse no card */
-.btn-card-action {
-    opacity: 1;
-    transition: transform 0.15s;
-}
-
-.btn-editar {
-    background: #7c3aed;
-    color: #fff;
-}
-.btn-editar:hover {
-    transform: scale(1.12);
-}
-
-.btn-deletar {
-    background: #dc2626;
-    color: #fff;
-}
-.btn-deletar:hover {
-    transform: scale(1.12);
-}
-
-#modalConfirmDelete {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-#modalConfirmDelete.active {
-    opacity: 1;
-    pointer-events: all;
-}
-
-#modalConfirmDelete .modal-content {
-    margin: 0;
-    transform: scale(0.95);
-    transition: transform 0.2s ease;
-}
-
-#modalConfirmDelete.active .modal-content {
-    transform: scale(1);
-}
-
-#disciplina {
-    width: 100%;
-    padding: 10px 14px;
-    background-color: transparent;
-    color: var(--text-color, #fff);
-    border: 1px solid #3f3f5a;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-family: 'Poppins', sans-serif;
-    cursor: pointer;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 32px;
-}
-
-#disciplina:focus {
-    border-color: var(--primary-color);
-}
-
-.card-respondida {
-    cursor: pointer;
-    border-left: 4px solid var(--primary-color);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.card-respondida:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
-
-.custom-select-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.custom-select-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border: 1px solid #3f3f5a;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.95rem;
-    color: var(--text-color, #fff);
-    transition: border-color 0.2s;
-}
-
-.custom-select-trigger:hover,
-.custom-select.open .custom-select-trigger {
-    border-color: var(--primary-color);
-}
-
-.custom-select-arrow {
-    font-size: 0.75rem;
-    transition: transform 0.2s;
-    color: #888;
-}
-
-.custom-select.open .custom-select-arrow {
-    transform: rotate(180deg);
-}
-
-.custom-select-options {
-    display: none;
-    position: fixed;
-    background: #2a2a3d;
-    border: 1px solid #3f3f5a;
-    border-radius: 8px;
-    overflow-y: auto;
-    max-height: 200px;
-    z-index: 99999;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-}
-
-.custom-select-options::-webkit-scrollbar {
-    width: 6px;
-}
-
-.custom-select-options::-webkit-scrollbar-track {
-    background: #2a2a3d;
-}
-
-.custom-select-options::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 3px;
-}
-
-.custom-select.open .custom-select-options {
-    display: block;
-}
-
-.custom-option {
-    padding: 10px 14px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--text-color, #fff);
-    transition: background 0.15s;
-}
-
-.custom-option:hover {
-    background: var(--primary-color);
-}
-
-.custom-option.selected {
-    background: rgba(150, 80, 200, 0.3);
-}
-
-/* ========== MOBILE MENU TOGGLE ========== */
 @media (min-width: 769px) {
-    .menu-icon {
-        cursor: pointer;
-    }
+    .menu-icon { cursor: pointer; }
 }

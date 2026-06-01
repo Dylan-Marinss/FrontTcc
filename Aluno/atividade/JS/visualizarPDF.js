@@ -8,15 +8,12 @@ if (!idAtividade) {
 
 async function carregarPDF() {
     try {
-        // Carrega título da atividade
         const resAtividade = await fetch(`${API_URL}/atividades/${idAtividade}`);
         if (resAtividade.ok) {
             const atividade = await resAtividade.json();
-            document.getElementById('tituloAtividade').innerHTML =
-                `<i class="fas fa-file-pdf"></i> ${atividade.titulo}`;
+            document.title = `EstudeX | ${atividade.titulo}`;
         }
 
-        // Carrega o PDF
         const response = await fetch(`${API_URL}/atividadeconteudo/${idAtividade}/arquivo`);
         if (!response.ok) throw new Error('PDF não encontrado');
 
@@ -38,8 +35,10 @@ async function carregarPDF() {
     }
 }
 
-document.getElementById('btnIrAtividade').addEventListener('click', function () {
-    window.location.href = `responderAtividade.html?id=${idAtividade}`;
-});
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btnIrAtividade').addEventListener('click', () => {
+        window.location.href = `responderAtividade.html?id=${idAtividade}`;
+    });
 
-carregarPDF();
+    carregarPDF();
+});

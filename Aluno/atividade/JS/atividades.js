@@ -1,8 +1,12 @@
-// Configuração
+// ============================================================
+//  CONFIGURAÇÃO
+// ============================================================
 const API_URL = 'http://localhost:8080';
 const ID_ALUNO_LOGADO = 1;
 
-// Estado global
+// ============================================================
+//  ESTADO GLOBAL
+// ============================================================
 let todasAtividades = [];
 let atividadesRespondidas = [];
 let dadosAluno = null;
@@ -10,29 +14,145 @@ let atividadeAtual = null;
 let perguntasAtuais = [];
 let respostasTextuais = {};
 
-// Inicialização
+// ============================================================
+//  INICIALIZAÇÃO
+// ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarDadosAluno();
     await carregarAtividades();
-    await popularFiltros();
     await carregarAtividadesRespondidas();
+    popularFiltros();           // monta os custom selects após dados carregados
     renderizarAtividades();
+
+    // Busca em tempo real
+    document.getElementById('searchAtividade')?.addEventListener('input', () => {
+        paginaAtual = 1;
+        renderizarAtividades();
+    });
 });
 
-// Carregar dados do aluno
+// ============================================================
+//  UTILITÁRIO: montar um custom select genérico
+// ============================================================
+function montarCustomSelect({ wrapperId, optionsId, textId, hiddenId, items, placeholder, onChange }) {
+    const wrapper = document.getElementById(wrapperId);
+    const optionsContainer = document.getElementById(optionsId);
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+
+    optionsContainer.innerHTML = '';
+
+    // Opção placeholder (valor vazio)
+    const placeholderOpt = criarOpcao(placeholder, '', optionsContainer, textId, hiddenId, wrapper, onChange);
+    placeholderOpt.classList.add('selected');
+    optionsContainer.appendChild(placeholderOpt);
+
+    // Demais opções
+    items.forEach(({ value, label }) => {
+        optionsContainer.appendChild(
+            criarOpcao(label, value, optionsContainer, textId, hiddenId, wrapper, onChange)
+        );
+    });
+
+    // Abrir/fechar
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Fecha todos os outros abertos
+        document.querySelectorAll('.custom-select.open').forEach(el => {
+            if (el.id !== wrapperId) el.classList.remove('open');
+        });
+        const rect = trigger.getBoundingClientRect();
+        optionsContainer.style.top   = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left  = rect.left + 'px';
+        optionsContainer.style.width = rect.width + 'px';
+        wrapper.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#' + wrapperId)) wrapper.classList.remove('open');
+    });
+}
+
+function criarOpcao(label, value, container, textId, hiddenId, wrapper, onChange) {
+    const option = document.createElement('div');
+    option.className = 'custom-option';
+    option.textContent = label;
+    option.dataset.value = value;
+
+    option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById(hiddenId).value = value;
+        document.getElementById(textId).textContent = label;
+        container.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        wrapper.classList.remove('open');
+        if (onChange) onChange(value);
+    });
+
+    return option;
+}
+
+// ============================================================
+//  POPULAR FILTROS — custom selects padrão comunicados
+// ============================================================
+function popularFiltros() {
+    // ── Status ──
+    montarCustomSelect({
+        wrapperId:  'filterSelectStatus',
+        optionsId:  'filterStatusOptions',
+        textId:     'filterStatusText',
+        hiddenId:   'statusFilter',
+        items: [
+            { value: 'pendente',  label: 'Pendentes' },
+            { value: 'concluida', label: 'Concluídas' }
+        ],
+        placeholder: 'Todas',
+        onChange: () => { paginaAtual = 1; renderizarAtividades(); }
+    });
+
+    // ── Dificuldade ──
+    const dificuldades = [...new Set(
+        todasAtividades.map(a => a.nivelDificuldade?.nome).filter(Boolean)
+    )];
+
+    montarCustomSelect({
+        wrapperId:  'filterSelectDificuldade',
+        optionsId:  'filterDificuldadeOptions',
+        textId:     'filterDificuldadeText',
+        hiddenId:   'dificuldadeFilter',
+        items:      dificuldades.map(d => ({ value: d, label: d })),
+        placeholder: 'Dificuldade',
+        onChange: () => { paginaAtual = 1; renderizarAtividades(); }
+    });
+
+    // ── Disciplina ──
+    const disciplinas = [...new Set(
+        todasAtividades.map(a => a.disciplina?.nome).filter(Boolean)
+    )];
+
+    montarCustomSelect({
+        wrapperId:  'filterSelectDisciplina',
+        optionsId:  'filterDisciplinaOptions',
+        textId:     'filterDisciplinaText',
+        hiddenId:   'disciplinaFilter',
+        items:      disciplinas.map(d => ({ value: d, label: d })),
+        placeholder: 'Disciplina',
+        onChange: () => { paginaAtual = 1; renderizarAtividades(); }
+    });
+}
+
+// ============================================================
+//  DADOS
+// ============================================================
 async function carregarDadosAluno() {
     try {
         const response = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
         if (!response.ok) throw new Error('Erro ao carregar aluno');
-
         dadosAluno = await response.json();
-
     } catch (error) {
         console.error('Erro ao carregar aluno:', error);
     }
 }
 
-// Carregar todas as atividades
 async function carregarAtividades() {
     const container = document.getElementById('atividadesList');
     container.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-pulse"></i><p>Carregando atividades...</p></div>';
@@ -40,35 +160,26 @@ async function carregarAtividades() {
     try {
         const response = await fetch(`${API_URL}/atividades`);
         if (!response.ok) throw new Error('Erro ao carregar atividades');
-
         todasAtividades = await response.json();
         document.getElementById('totalAtividades').textContent = todasAtividades.length;
-
-
     } catch (error) {
         console.error('Erro:', error);
         container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar atividades</p></div>';
     }
 }
 
-// Carregar atividades já respondidas pelo aluno
 async function carregarAtividadesRespondidas() {
     try {
         const response = await fetch(`${API_URL}/atividadesrespostas`);
         if (response.ok) {
             atividadesRespondidas = await response.json();
 
-            // Filtra apenas as do aluno logado
-            const minhasRespostas = atividadesRespondidas.filter(r =>
-                r.aluno?.id === ID_ALUNO_LOGADO
-            );
-
+            const minhasRespostas = atividadesRespondidas.filter(r => r.aluno?.id === ID_ALUNO_LOGADO);
             document.getElementById('atividadesConcluidas').textContent = minhasRespostas.length;
 
             if (minhasRespostas.length > 0) {
                 const soma = minhasRespostas.reduce((acc, r) => acc + (r.pontuacao || 0), 0);
                 const media = (soma / minhasRespostas.length).toFixed(1);
-                // só atualiza se o elemento existir
                 const el = document.getElementById('mediaGeral');
                 if (el) el.textContent = media;
             }
@@ -78,16 +189,21 @@ async function carregarAtividadesRespondidas() {
     }
 }
 
-// Renderizar lista de atividades
+// ============================================================
+//  PAGINAÇÃO
+// ============================================================
 const ITENS_POR_PAGINA = 12;
 let paginaAtual = 1;
 
+// ============================================================
+//  RENDERIZAR ATIVIDADES
+// ============================================================
 function renderizarAtividades() {
     const container = document.getElementById('atividadesList');
-    const filtroStatus = document.getElementById('statusFilter')?.value || '';
-    const busca = document.getElementById('searchAtividade')?.value.toLowerCase() || '';
+    const filtroStatus      = document.getElementById('statusFilter')?.value      || '';
+    const busca             = document.getElementById('searchAtividade')?.value.toLowerCase() || '';
     const filtroDificuldade = document.getElementById('dificuldadeFilter')?.value || '';
-    const filtroDisciplina = document.getElementById('disciplinaFilter')?.value || '';
+    const filtroDisciplina  = document.getElementById('disciplinaFilter')?.value  || '';
 
     let atividadesFiltradas = [...todasAtividades];
 
@@ -122,10 +238,11 @@ function renderizarAtividades() {
                 <p>Nenhuma atividade encontrada.</p>
             </div>
         `;
+        const paginacaoEl = document.getElementById('paginacao');
+        if (paginacaoEl) paginacaoEl.innerHTML = '';
         return;
     }
 
-    // Paginação
     const totalPaginas = Math.ceil(atividadesFiltradas.length / ITENS_POR_PAGINA);
     if (paginaAtual > totalPaginas) paginaAtual = 1;
 
@@ -165,58 +282,42 @@ function renderizarAtividades() {
         `;
     }).join('');
 
-    // Paginação HTML
-    if (totalPaginas > 1) {
-        container.insertAdjacentHTML('afterend', '');
-        let paginacaoEl = document.getElementById('paginacao');
-        if (!paginacaoEl) {
-            paginacaoEl = document.createElement('div');
-            paginacaoEl.id = 'paginacao';
-            container.insertAdjacentElement('afterend', paginacaoEl);
-        }
+    renderizarPaginacao(totalPaginas);
+}
 
-        paginacaoEl.innerHTML = `
-            <div style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 15px;
-                margin-top: 30px;
-                font-family: var(--font-main);
-            ">
-                <button onclick="mudarPagina(${paginaAtual - 1})" 
-                    ${paginaAtual === 1 ? 'disabled' : ''}
-                    style="
-                        background: ${paginaAtual === 1 ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
-                        color: ${paginaAtual === 1 ? 'var(--text-muted)' : '#000'};
-                        border: none; padding: 10px 20px; border-radius: 30px;
-                        cursor: ${paginaAtual === 1 ? 'not-allowed' : 'pointer'};
-                        font-weight: 700; transition: all 0.3s;
-                    ">
-                    <i class="fas fa-chevron-left"></i> Anterior
-                </button>
-
-                <span style="color: var(--text-muted); font-size: 0.9rem;">
-                    Página <strong style="color: var(--primary-color);">${paginaAtual}</strong> de <strong style="color: var(--primary-color);">${totalPaginas}</strong>
-                </span>
-
-                <button onclick="mudarPagina(${paginaAtual + 1})"
-                    ${paginaAtual === totalPaginas ? 'disabled' : ''}
-                    style="
-                        background: ${paginaAtual === totalPaginas ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
-                        color: ${paginaAtual === totalPaginas ? 'var(--text-muted)' : '#000'};
-                        border: none; padding: 10px 20px; border-radius: 30px;
-                        cursor: ${paginaAtual === totalPaginas ? 'not-allowed' : 'pointer'};
-                        font-weight: 700; transition: all 0.3s;
-                    ">
-                    Próxima <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        `;
-    } else {
-        const paginacaoEl = document.getElementById('paginacao');
-        if (paginacaoEl) paginacaoEl.innerHTML = '';
+function renderizarPaginacao(totalPaginas) {
+    let paginacaoEl = document.getElementById('paginacao');
+    if (!paginacaoEl) {
+        paginacaoEl = document.createElement('div');
+        paginacaoEl.id = 'paginacao';
+        document.getElementById('atividadesList').insertAdjacentElement('afterend', paginacaoEl);
     }
+
+    if (totalPaginas <= 1) { paginacaoEl.innerHTML = ''; return; }
+
+    const btnStyle = (dis) => `
+        background: ${dis ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
+        color: ${dis ? 'var(--text-muted)' : '#000'};
+        border: none; padding: 10px 20px; border-radius: 30px;
+        cursor: ${dis ? 'not-allowed' : 'pointer'};
+        font-weight: 700; font-size: 0.75rem;
+        transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;
+    `;
+
+    paginacaoEl.innerHTML = `
+        <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-top:30px;">
+            <button onclick="mudarPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''} style="${btnStyle(paginaAtual === 1)}">
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span style="color:var(--text-muted); font-size:0.9rem;">
+                Página <strong style="color:#BB86FC;">${paginaAtual}</strong>
+                de <strong style="color:#BB86FC;">${totalPaginas}</strong>
+            </span>
+            <button onclick="mudarPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''} style="${btnStyle(paginaAtual === totalPaginas)}">
+                Próxima <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    `;
 }
 
 function mudarPagina(novaPagina) {
@@ -225,20 +326,23 @@ function mudarPagina(novaPagina) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Verificar se atividade foi concluída
+// ============================================================
+//  FILTRAR (chamado apenas por busca — selects usam onChange)
+// ============================================================
+function filterAtividades() {
+    paginaAtual = 1;
+    renderizarAtividades();
+}
+
+// ============================================================
+//  ABRIR ATIVIDADE
+// ============================================================
 function isAtividadeConcluida(idAtividade) {
     return atividadesRespondidas.some(
         r => r.atividade?.idAtividade === idAtividade && r.aluno?.id === ID_ALUNO_LOGADO
     );
 }
 
-// Filtrar atividades
-function filterAtividades() {
-    paginaAtual = 1;
-    renderizarAtividades();
-}
-
-// Abrir atividade para responder
 async function abrirAtividade(idAtividade) {
     atividadeAtual = todasAtividades.find(a => a.idAtividade === idAtividade);
     if (!atividadeAtual) return;
@@ -263,7 +367,9 @@ async function abrirAtividade(idAtividade) {
     }
 }
 
-// Carregar perguntas da atividade
+// ============================================================
+//  CARREGAR PERGUNTAS
+// ============================================================
 async function carregarPerguntas(idAtividade) {
     try {
         const response = await fetch(`${API_URL}/atividadesPergunta`);
@@ -280,49 +386,42 @@ async function carregarPerguntas(idAtividade) {
         respostasTextuais = {};
 
         document.getElementById('modalTitulo').textContent = atividadeAtual.titulo;
-
         document.getElementById('modalInfoAtividade').innerHTML = `
-    <div class="atividade-info-box">
-        <div class="atividade-info-item">
-            <i class="fas fa-book"></i>
-            <div>
-                <span>Disciplina</span>
-                <strong>${atividadeAtual.disciplina?.nome || 'Não definida'}</strong>
+            <div class="atividade-info-box">
+                <div class="atividade-info-item">
+                    <i class="fas fa-book"></i>
+                    <div>
+                        <span>Disciplina</span>
+                        <strong>${atividadeAtual.disciplina?.nome || 'Não definida'}</strong>
+                    </div>
+                </div>
+                <div class="atividade-info-item">
+                    <i class="fas fa-layer-group"></i>
+                    <div>
+                        <span>Dificuldade</span>
+                        <strong>${atividadeAtual.nivelDificuldade?.nome || 'Não definida'}</strong>
+                    </div>
+                </div>
+                <div class="atividade-info-item">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <span>Pontuação</span>
+                        <strong>${atividadeAtual.pontuacaoMaxima || 0} pts</strong>
+                    </div>
+                </div>
+                <div class="atividade-info-item">
+                    <i class="fas fa-calendar"></i>
+                    <div>
+                        <span>Criada em</span>
+                        <strong>${formatarData(atividadeAtual.dataCriacao)}</strong>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <div class="atividade-info-item">
-            <i class="fas fa-layer-group"></i>
-            <div>
-                <span>Dificuldade</span>
-                <strong>${atividadeAtual.nivelDificuldade?.nome || 'Não definida'}</strong>
-            </div>
-        </div>
-
-        <div class="atividade-info-item">
-            <i class="fas fa-star"></i>
-            <div>
-                <span>Pontuação</span>
-                <strong>${atividadeAtual.pontuacaoMaxima || 0} pts</strong>
-            </div>
-        </div>
-
-        <div class="atividade-info-item">
-            <i class="fas fa-calendar"></i>
-            <div>
-                <span>Criada em</span>
-                <strong>${formatarData(atividadeAtual.dataCriacao)}</strong>
-            </div>
-        </div>
-    </div>
-`;
+        `;
 
         document.getElementById('perguntasContainer').innerHTML = renderizarPerguntas();
-
         document.getElementById('modalAtividade').style.display = 'block';
         document.body.style.overflow = 'hidden';
-
-
 
     } catch (error) {
         console.error('Erro ao carregar perguntas:', error);
@@ -330,7 +429,6 @@ async function carregarPerguntas(idAtividade) {
     }
 }
 
-// Renderizar perguntas no modal
 function renderizarPerguntas() {
     if (perguntasAtuais.length === 0) {
         return '<div class="empty-state">Nenhuma pergunta encontrada</div>';
@@ -341,10 +439,10 @@ function renderizarPerguntas() {
             <div class="pergunta-texto">
                 <strong>${idx + 1}.</strong> ${escapeHtml(pergunta.enunciado)}
             </div>
-            <textarea 
-                class="resposta-textarea" 
-                id="resposta_${pergunta.id}" 
-                rows="4" 
+            <textarea
+                class="resposta-textarea"
+                id="resposta_${pergunta.id}"
+                rows="4"
                 placeholder="Digite sua resposta aqui..."
                 oninput="salvarResposta(${pergunta.id}, this.value)"
             >${respostasTextuais[pergunta.id] || ''}</textarea>
@@ -352,30 +450,25 @@ function renderizarPerguntas() {
     `).join('');
 }
 
-// Salvar resposta textual
 function salvarResposta(idPergunta, valor) {
     respostasTextuais[idPergunta] = valor;
 }
 
-const XP_POR_DIFICULDADE = {
-    'Fácil':  50,
-    'Médio':  100,
-    'Difícil': 200
-};
+// ============================================================
+//  XP
+// ============================================================
+const XP_POR_DIFICULDADE = { 'Fácil': 50, 'Médio': 100, 'Difícil': 200 };
 
 async function concederXP(atividade) {
     try {
         const nomeDificuldade = atividade.nivelDificuldade?.nome;
         const xpGanho = XP_POR_DIFICULDADE[nomeDificuldade] || 50;
 
-        // Busca dados atuais do aluno
         const resAluno = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`);
         if (!resAluno.ok) throw new Error();
         const aluno = await resAluno.json();
-
         const novoXP = (aluno.xp || 0) + xpGanho;
 
-        // Atualiza o XP via PUT
         const resPut = await fetch(`${API_URL}/alunos/${ID_ALUNO_LOGADO}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -383,17 +476,16 @@ async function concederXP(atividade) {
         });
 
         if (!resPut.ok) throw new Error();
-
         console.log(`[XP] +${xpGanho} XP (${nomeDificuldade}) → Total: ${novoXP}`);
-
     } catch (e) {
         console.error('[XP] Erro ao conceder XP:', e);
     }
 }
 
-// Enviar respostas
+// ============================================================
+//  ENVIAR RESPOSTAS
+// ============================================================
 async function enviarRespostas() {
-    // Verificar se todas as perguntas foram respondidas
     const totalPerguntas = perguntasAtuais.length;
     const respondidas = Object.keys(respostasTextuais).filter(key => respostasTextuais[key]?.trim()).length;
 
@@ -408,13 +500,12 @@ async function enviarRespostas() {
     submitBtn.disabled = true;
 
     try {
-        // Montar objeto da resposta (como o professor vai corrigir, a pontuação começa como null)
         const respostaData = {
             idAluno: ID_ALUNO_LOGADO,
             idAtividade: atividadeAtual.idAtividade,
             momentoInicio: new Date().toISOString(),
             momentoFim: new Date().toISOString(),
-            pontuacao: null, // Aguardando correção do professor
+            pontuacao: null,
             respostas: respostasTextuais
         };
 
@@ -425,10 +516,9 @@ async function enviarRespostas() {
         });
 
         if (!response.ok) throw new Error('Erro ao salvar respostas');
-        
-        await concederXP(atividadeAtual);
 
-        showAlert(`✅ Atividade enviada! Aguarde a correção do professor.`, 'success');
+        await concederXP(atividadeAtual);
+        showAlert('✅ Atividade enviada! Aguarde a correção do professor.', 'success');
 
         closeModalAtividade();
         await carregarAtividadesRespondidas();
@@ -443,9 +533,9 @@ async function enviarRespostas() {
     }
 }
 
-
-
-// Fechar modal
+// ============================================================
+//  MODAL
+// ============================================================
 function closeModalAtividade() {
     document.getElementById('modalAtividade').style.display = 'none';
     document.body.style.overflow = 'auto';
@@ -453,19 +543,18 @@ function closeModalAtividade() {
     respostasTextuais = {};
 }
 
-// Formatar data
+// ============================================================
+//  UTILITÁRIOS
+// ============================================================
 function formatarData(dataString) {
     if (!dataString) return 'Data não disponível';
     try {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
         return data.toLocaleDateString('pt-BR');
-    } catch {
-        return dataString;
-    }
+    } catch { return dataString; }
 }
 
-// Escape HTML
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -473,13 +562,11 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Mostrar alerta
 function showAlert(message, type) {
     const alert = document.createElement('div');
     alert.className = `alert alert-${type}`;
     alert.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
     document.body.appendChild(alert);
-
     setTimeout(() => {
         alert.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => alert.remove(), 300);
@@ -500,37 +587,7 @@ const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeOut {
         from { opacity: 1; transform: translateX(0); }
-        to { opacity: 0; transform: translateX(100%); }
+        to   { opacity: 0; transform: translateX(100%); }
     }
 `;
 document.head.appendChild(style);
-
-function popularFiltros() {
-    const dificuldades = [...new Set(
-        todasAtividades
-            .map(a => a.nivelDificuldade?.nome)
-            .filter(Boolean)
-    )];
-
-    const disciplinas = [...new Set(
-        todasAtividades
-            .map(a => a.disciplina?.nome)
-            .filter(Boolean)
-    )];
-
-    const difSelect = document.getElementById('dificuldadeFilter');
-    dificuldades.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        difSelect.appendChild(opt);
-    });
-
-    const discSelect = document.getElementById('disciplinaFilter');
-    disciplinas.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = d;
-        discSelect.appendChild(opt);
-    });
-}

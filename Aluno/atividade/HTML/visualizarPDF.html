@@ -14,30 +14,24 @@
 </head>
 
 <body>
-    <div class="pdf-page">
 
-        <div class="pdf-header">
-            <a href="atividades-Estudex.html" class="btn-voltar">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </a>
+    <!-- Botão Voltar — canto superior esquerdo -->
+    <a href="atividades-Estudex.html" class="btn-voltar">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
 
-            <span class="pdf-titulo" id="tituloAtividade">
-                <i class="fas fa-file-pdf"></i> Material de Apoio
-            </span>
-
-            <button class="btn-ir-atividade" id="btnIrAtividade">
-                Ir para atividade <i class="fas fa-arrow-right"></i>
-            </button>
+    <!-- PDF ocupa toda a tela -->
+    <div class="pdf-viewer" id="pdfViewer">
+        <div class="loading-pdf">
+            <i class="fas fa-spinner fa-pulse"></i>
+            <p>Carregando material...</p>
         </div>
-
-        <div class="pdf-viewer" id="pdfViewer">
-            <div class="loading-pdf">
-                <i class="fas fa-spinner fa-pulse"></i>
-                <p>Carregando material...</p>
-            </div>
-        </div>
-
     </div>
+
+    <!-- Botão Ir para atividade — canto inferior direito -->
+    <button class="btn-ir-atividade" id="btnIrAtividade">
+        Ir para atividade <i class="fas fa-arrow-right"></i>
+    </button>
 
     <script src="../JS/visualizarPDF.js"></script>
 </body>

@@ -17,7 +17,7 @@
 <body>
 
     <section class="user-dashboard">
-        <!-- SIDEBAR (Menu Lateral) -->
+        <!-- SIDEBAR -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
@@ -67,7 +67,6 @@
                         <strong class="stat-value" id="totalAtividades">0</strong>
                     </div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-icon">✅</div>
                     <div class="stat-info">
@@ -79,25 +78,41 @@
 
             <!-- Filtros -->
             <div class="filters-container">
+                <!-- Busca -->
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
-                        onkeyup="filterAtividades()">
+                    <input type="text" id="searchAtividade" placeholder="Buscar atividades...">
                 </div>
 
-                <select id="statusFilter" class="filter-select" onchange="filterAtividades()">
-                    <option value="">Todas</option>
-                    <option value="pendente">Pendentes</option>
-                    <option value="concluida">Concluídas</option>
-                </select>
+                <!-- Filtro Status -->
+                <div class="custom-select" id="filterSelectStatus" style="width:170px; flex-shrink:0;">
+                    <div class="custom-select-trigger">
+                        <span id="filterStatusText">Todas</span>
+                        <span class="custom-select-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="filterStatusOptions"></div>
+                </div>
+                <input type="hidden" id="statusFilter">
 
-                <select id="dificuldadeFilter" class="filter-select" onchange="filterAtividades()">
-                    <option value="">Dificuldade</option>
-                </select>
+                <!-- Filtro Dificuldade -->
+                <div class="custom-select" id="filterSelectDificuldade" style="width:180px; flex-shrink:0;">
+                    <div class="custom-select-trigger">
+                        <span id="filterDificuldadeText">Dificuldade</span>
+                        <span class="custom-select-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="filterDificuldadeOptions"></div>
+                </div>
+                <input type="hidden" id="dificuldadeFilter">
 
-                <select id="disciplinaFilter" class="filter-select" onchange="filterAtividades()">
-                    <option value="">Disciplina</option>
-                </select>
+                <!-- Filtro Disciplina -->
+                <div class="custom-select" id="filterSelectDisciplina" style="width:190px; flex-shrink:0;">
+                    <div class="custom-select-trigger">
+                        <span id="filterDisciplinaText">Disciplina</span>
+                        <span class="custom-select-arrow">▼</span>
+                    </div>
+                    <div class="custom-select-options" id="filterDisciplinaOptions"></div>
+                </div>
+                <input type="hidden" id="disciplinaFilter">
             </div>
 
             <!-- Lista de Atividades -->
@@ -119,7 +134,6 @@
                     <i class="fas fa-edit"></i>
                     <span id="modalTitulo">Responder Atividade</span>
                 </h2>
-
                 <span class="close" onclick="closeModalAtividade()">&times;</span>
             </div>
 
@@ -127,9 +141,7 @@
             <div id="modalInfoAtividade"></div>
 
             <!-- PERGUNTAS -->
-            <div id="perguntasContainer" class="perguntas-container">
-                <!-- As perguntas serão carregadas aqui -->
-            </div>
+            <div id="perguntasContainer" class="perguntas-container"></div>
 
             <!-- FOOTER -->
             <div class="modal-footer">

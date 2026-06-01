@@ -21,122 +21,126 @@
 
 <body>
 
-   <section class="user-dashboard">
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
-            <span class="logo-text">EstudeX</span>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul>
-                <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
-                <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
-                
-                <li class="nav-item-has-submenu" id="redacoesSubmenu">
-                    <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
-                        <i class="fas fa-pen-fancy"></i> <span>Redações</span>
-                        <i class="fas fa-chevron-down submenu-arrow"></i>
-                    </a>
-                    <ul class="submenu">
-                        <li>
-                            <a href="../../redacoes/HTML/professor-redacoes.html" class="submenu-item active">
-                                <i class="fas fa-check-circle"></i> <span>Corrigir Redação</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="../../redacoes/HTML/professor-criar-redacao.html" class="submenu-item">
-                                <i class="fas fa-plus-circle"></i> <span>Criar Redação</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                
-                <li><a href="../../comunicados_professor/HTML/meusComunicados.html" class="nav-item" id="nav-comunicados"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
-                <li><a href="../../atividades/HTML/duvidas.html" class="nav-item" id="nav-duvidas"><i class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
-            </ul>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <a href="../../../Login/HTML/login.html" class="nav-item" id="logoutBtn">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sair</span>
-            </a>
-        </div>
-    </div>
+    <section class="user-dashboard">
+        <!-- SIDEBAR -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
+                <span class="logo-text">EstudeX <span class="professor-badge">Prof</span></span>
+            </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="dashboard-content">
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i
+                                class="fas fa-user"></i> <span>Perfil</span></a></li>
+                    <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i
+                                class="fas fa-tasks"></i> <span>Atividades</span></a></li>
 
-        <div class="page-title">
-            <i class="fas fa-tasks"></i>
-            <h1>Minhas Atividades</h1>
+                    <li class="nav-item-has-submenu" id="redacoesSubmenu">
+                        <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
+                            <i class="fas fa-pen-fancy"></i> <span>Redações</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="../../redacoes/HTML/professor-redacoes.html" class="submenu-item active">
+                                    <i class="fas fa-check-circle"></i> <span>Corrigir Redação</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../../redacoes/HTML/professor-criar-redacao.html" class="submenu-item">
+                                    <i class="fas fa-plus-circle"></i> <span>Criar Redação</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li><a href="../../comunicados_professor/HTML/meusComunicados.html" class="nav-item"
+                            id="nav-comunicados"><i class="fas fa-bullhorn"></i> <span>Comunicados</span></a></li>
+                    <li><a href="../../atividades/HTML/duvidas.html" class="nav-item" id="nav-duvidas"><i
+                                class="fas fa-question-circle"></i> <span>Dúvidas</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="../../../Login/HTML/login.html" class="nav-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
         </div>
 
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-icon">📋</div>
-                <div class="stat-info">
-                    <span class="stat-label">Total de Atividades</span>
-                    <strong class="stat-value" id="totalAtividades">0</strong>
+        <!-- MAIN CONTENT -->
+        <div class="dashboard-content">
+
+            <div class="page-title">
+                <i class="fas fa-tasks"></i>
+                <h1>Minhas Atividades</h1>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total de Atividades</span>
+                        <strong class="stat-value" id="totalAtividades">0</strong>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="action-bar">
+            <div class="action-bar">
 
-            <!-- BUSCA -->
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
-                    onkeyup="filtrarAtividades()">
-            </div>
-
-            <!-- FILTROS CUSTOM SELECT -->
-            <div class="filtros-box">
-
-                <!-- DISCIPLINA -->
-                <div class="custom-select" id="select-disciplina">
-                    <div class="custom-select-trigger">
-                        <span class="custom-select-label">Disciplina</span>
-                        <i class="fas fa-chevron-down custom-select-arrow"></i>
-                    </div>
-                    <div class="custom-select-options"></div>
-                    <select id="filter-disciplina" style="display:none"></select>
+                <!-- BUSCA -->
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
+                        onkeyup="filtrarAtividades()">
                 </div>
 
-                <!-- DIFICULDADE -->
-                <div class="custom-select" id="select-dificuldade">
-                    <div class="custom-select-trigger">
-                        <span class="custom-select-label">Dificuldade</span>
-                        <i class="fas fa-chevron-down custom-select-arrow"></i>
+                <!-- FILTROS CUSTOM SELECT -->
+                <div class="filtros-box">
+
+                    <!-- DISCIPLINA -->
+                    <div class="custom-select" id="select-disciplina">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-label">Disciplina</span>
+                            <i class="fas fa-chevron-down custom-select-arrow"></i>
+                        </div>
+                        <div class="custom-select-options"></div>
+                        <select id="filter-disciplina" style="display:none"></select>
                     </div>
-                    <div class="custom-select-options">
-                        <div class="custom-option selected" data-value="">Todas</div>
-                        <div class="custom-option" data-value="Fácil">Fácil</div>
-                        <div class="custom-option" data-value="Médio">Médio</div>
-                        <div class="custom-option" data-value="Difícil">Difícil</div>
+
+                    <!-- DIFICULDADE -->
+                    <div class="custom-select" id="select-dificuldade">
+                        <div class="custom-select-trigger">
+                            <span class="custom-select-label">Dificuldade</span>
+                            <i class="fas fa-chevron-down custom-select-arrow"></i>
+                        </div>
+                        <div class="custom-select-options">
+                            <div class="custom-option selected" data-value="">Todas</div>
+                            <div class="custom-option" data-value="Fácil">Fácil</div>
+                            <div class="custom-option" data-value="Médio">Médio</div>
+                            <div class="custom-option" data-value="Difícil">Difícil</div>
+                        </div>
+                        <select id="filter-dificuldade" style="display:none">
+                            <option value="">Todas</option>
+                            <option value="Fácil">Fácil</option>
+                            <option value="Médio">Médio</option>
+                            <option value="Difícil">Difícil</option>
+                        </select>
                     </div>
-                    <select id="filter-dificuldade" style="display:none">
-                        <option value="">Todas</option>
-                        <option value="Fácil">Fácil</option>
-                        <option value="Médio">Médio</option>
-                        <option value="Difícil">Difícil</option>
-                    </select>
+
                 </div>
-
             </div>
-        </div>
 
-        <div id="atividadesList" class="atividades-grid">
-            <div class="loading-state">
-                <i class="fas fa-spinner fa-pulse"></i>
-                <p>Carregando atividades...</p>
+            <div id="atividadesList" class="atividades-grid">
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                    <p>Carregando atividades...</p>
+                </div>
             </div>
-        </div>
 
-    </div>
+        </div>
 
     </section>
 
@@ -144,12 +148,14 @@
     <div id="modalConfirmDelete" class="modal" style="display:none; align-items:center; justify-content:center;">
         <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
-            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir atividade?</h2>
+            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir
+                atividade?</h2>
             <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button onclick="fecharConfirmDelete()" class="btn-primary"
                     style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
-                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary" style="background: #dc2626;">
+                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary"
+                    style="background: #dc2626;">
                     <i class="fas fa-trash"></i> Sim, excluir
                 </button>
             </div>
@@ -209,4 +215,5 @@
     <script src="../JS/menuSideBar.js"></script>
 
 </body>
+
 </html>

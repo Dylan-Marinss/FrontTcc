@@ -82,10 +82,12 @@ body {
     padding: 0;
 }
 
+/* DEPOIS */
 .sidebar-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;  /* ← troca */
+    gap: 12px;                    /* ← adiciona */
     padding: 20px;
     height: 60px;
     flex-shrink: 0;
@@ -98,7 +100,7 @@ body {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary-color);
-    margin-left: 10px;
+    /* margin-left removido */
 }
 
 .menu-icon {

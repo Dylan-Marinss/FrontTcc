@@ -343,4 +343,6 @@ async function carregarAtividadesRecentes() {
     } catch (err) {
         console.error('[EstudeX] Erro ao carregar atividades recentes:', err);
     }
+
+    
 }
