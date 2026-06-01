@@ -67,7 +67,6 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* ✅ era space-between */
   box-shadow: 5px 0 20px var(--shadow-color);
   z-index: 1000;
   transition: width var(--transition), transform var(--transition);
@@ -75,9 +74,12 @@ body {
   border-right: 1px solid rgba(187, 134, 252, 0.2);
 }
 
+.sidebar.collapsed {
+  width: 70px;
+}
+
 .sidebar-nav {
   flex: 1;
-  /* ✅ nav ocupa o meio */
   overflow-y: auto;
 }
 
@@ -85,12 +87,6 @@ body {
   padding: 20px 0 10px;
   border-top: 1px solid var(--border-color);
   margin-top: auto;
-  /* ✅ footer sempre no fundo */
-}
-
-body.sidebar-collapsed .dashboard-content {
-    margin-left: 70px;
-    width: calc(100% - 70px);
 }
 
 .sidebar.collapsed .logo-text,
@@ -217,19 +213,18 @@ body.sidebar-collapsed .dashboard-content {
 /* ========== CONTEÚDO PRINCIPAL ========== */
 .dashboard-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 70px;
   padding: 30px;
-  width: calc(100% - 250px);
+  width: calc(100% - 70px);
   transition: margin-left var(--transition), width var(--transition);
   min-height: 100vh;
   box-sizing: border-box;
   background-color: var(--bg-dark);
 }
 
-/* ✅ Corrigido: era .sidebar.collapsed ~ .dashboard-content */
-body.sidebar-collapsed .dashboard-content {
-  margin-left: 70px;
-  width: calc(100% - 70px);
+.sidebar:not(.collapsed) ~ .dashboard-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
 }
 
 /* ========== CABEÇALHO ========== */
