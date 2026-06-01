@@ -14,6 +14,12 @@ let duvidaIdParaEditar = null;
 let todasRespostas = [];
 
 // ============================================================
+//  PAGINAÇÃO
+// ============================================================
+const ITENS_POR_PAGINA = 12;
+let paginaAtual = 1;
+
+// ============================================================
 //  INICIALIZAÇÃO
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -49,7 +55,6 @@ async function carregarDisciplinas() {
         const response = await fetch(`${API_URL}/disciplinas`);
         const disciplinas = await response.json();
 
-        // Só configura o trigger, não insere options ainda
         const trigger = document.querySelector('#customSelectDisciplina .custom-select-trigger');
 
         trigger.addEventListener('click', () => {
@@ -57,7 +62,6 @@ async function carregarDisciplinas() {
             const options = document.getElementById('customSelectOptions');
             const rect = trigger.getBoundingClientRect();
 
-            // Insere as options se ainda não foram inseridas
             if (options.children.length === 0) {
                 disciplinas.forEach(d => {
                     const option = document.createElement('div');
@@ -80,7 +84,7 @@ async function carregarDisciplinas() {
                 });
             }
 
-            options.style.top = (rect.bottom + 4) + 'px';
+            options.style.top  = (rect.bottom + 4) + 'px';
             options.style.left = rect.left + 'px';
             options.style.width = rect.width + 'px';
 
@@ -120,10 +124,8 @@ async function carregarMinhasDuvidas() {
         const todas = await todasResponse.json();
         todasDuvidas = todas.filter(d => d.utilizador?.id == ID_ALUNO_LOGADO);
 
-        // Cria um Set com os idDuvida que já têm resposta
         const idsRespondidos = new Set(respostas.map(r => r.idDuvida));
 
-        // Injeta o status real em cada dúvida
         todasDuvidas = todasDuvidas.map(d => ({
             ...d,
             statusDuvida: idsRespondidos.has(d.idDuvida) ? 'Respondida' : 'Aberta'
@@ -189,86 +191,105 @@ function renderizarDuvidas(duvidas) {
                 </button>
             </div>
         `;
+        renderizarPaginacao(0);
         return;
     }
 
-    container.innerHTML = duvidas.map(duvida => {
-        const titulo = duvida.titulo || 'Sem título';
+    // Paginação
+    const totalPaginas = Math.ceil(duvidas.length / ITENS_POR_PAGINA);
+    if (paginaAtual > totalPaginas) paginaAtual = 1;
+
+    const inicio   = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const paginada = duvidas.slice(inicio, inicio + ITENS_POR_PAGINA);
+
+    container.innerHTML = paginada.map(duvida => {
+        const titulo    = duvida.titulo    || 'Sem título';
         const descricao = duvida.descricao || 'Sem descrição';
-        const status = duvida.statusDuvida || 'Aberta';
+        const status    = duvida.statusDuvida || 'Aberta';
         const disciplina = duvida.disciplina?.nome || 'Sem disciplina';
 
         return `
-        <div class="duvida-card ${status === 'Respondida' ? 'card-respondida' : ''}" 
-        id="card-${duvida.idDuvida}"
-        ${status === 'Respondida' ? `onclick="abrirModalResposta(${duvida.idDuvida})"` : ''}>
-        <div class="card-actions">
-        ${status !== 'Respondida' ? `
-        <button class="btn-card-action btn-editar" title="Editar dúvida"
-        onclick="event.stopPropagation(); abrirModalEditar(${duvida.idDuvida}, '${escapeHtml(titulo)}', '${duvida.disciplina?.id}', '${escapeHtml(descricao)}')">
-        <i class="fas fa-pencil-alt"></i>
-        </button>` : ''}
-        <button class="btn-card-action btn-deletar" title="Excluir dúvida"
-        onclick="event.stopPropagation(); deletarDuvida(${duvida.idDuvida})">
-        <i class="fas fa-times"></i>
-        </button>
-        </div>
-        <h3>
-        <i class="fas fa-question-circle" style="color: var(--primary-color); margin-right: 8px;"></i>
-        ${escapeHtml(titulo)}
-        </h3>
-        <div class="descricao">${escapeHtml(descricao)}</div>
-        <div class="meta">
-        <span><i class="far fa-calendar-alt"></i> ${formatarData(duvida.momento)}</span>
-        <span><i class="fas fa-book"></i> ${escapeHtml(disciplina)}</span>
-        <span class="status-badge ${status}">${status}</span>
-        </div>
+        <div class="duvida-card ${status === 'Respondida' ? 'card-respondida' : ''}"
+            id="card-${duvida.idDuvida}"
+            ${status === 'Respondida' ? `onclick="abrirModalResposta(${duvida.idDuvida})"` : ''}>
+            <div class="card-actions">
+                ${status !== 'Respondida' ? `
+                <button class="btn-card-action btn-editar" title="Editar dúvida"
+                    onclick="event.stopPropagation(); abrirModalEditar(${duvida.idDuvida}, '${escapeHtml(titulo)}', '${duvida.disciplina?.id}', '${escapeHtml(descricao)}')">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>` : ''}
+                <button class="btn-card-action btn-deletar" title="Excluir dúvida"
+                    onclick="event.stopPropagation(); deletarDuvida(${duvida.idDuvida})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <h3>
+                <i class="fas fa-question-circle" style="color: var(--primary-color); margin-right: 8px;"></i>
+                ${escapeHtml(titulo)}
+            </h3>
+            <div class="descricao">${escapeHtml(descricao)}</div>
+            <div class="meta">
+                <span><i class="far fa-calendar-alt"></i> ${formatarData(duvida.momento)}</span>
+                <span><i class="fas fa-book"></i> ${escapeHtml(disciplina)}</span>
+                <span class="status-badge ${status}">${status}</span>
+            </div>
         </div>
         `;
     }).join('');
+
+    renderizarPaginacao(totalPaginas);
 }
 
-async function carregarRespostas() {
-    try {
-        const response = await fetch(`${API_URL}/respostasDuvidas`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        todasRespostas = await response.json();
-        return todasRespostas;
-    } catch (error) {
-        console.error('Erro ao carregar respostas:', error);
-        todasRespostas = [];
-        return [];
+// ============================================================
+//  PAGINAÇÃO - RENDER
+// ============================================================
+function renderizarPaginacao(totalPaginas) {
+    let paginacaoEl = document.getElementById('paginacao');
+    if (!paginacaoEl) {
+        paginacaoEl = document.createElement('div');
+        paginacaoEl.id = 'paginacao';
+        document.getElementById('duvidasList').insertAdjacentElement('afterend', paginacaoEl);
     }
+
+    if (totalPaginas <= 1) { paginacaoEl.innerHTML = ''; return; }
+
+    const btnStyle = (dis) => `
+        background: ${dis ? 'rgba(187,134,252,0.1)' : 'linear-gradient(135deg, #BB86FC, #a21fa2)'};
+        color: ${dis ? 'var(--text-muted)' : '#000'};
+        border: none; padding: 10px 20px; border-radius: 30px;
+        cursor: ${dis ? 'not-allowed' : 'pointer'};
+        font-weight: 700; font-size: 0.75rem;
+        transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;
+    `;
+
+    paginacaoEl.innerHTML = `
+        <div style="display:flex; justify-content:center; align-items:center; gap:15px; margin-top:30px;">
+            <button onclick="mudarPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''} style="${btnStyle(paginaAtual === 1)}">
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span style="color:var(--text-muted, #9E9E9E); font-size:0.9rem;">
+                Página <strong style="color:#BB86FC;">${paginaAtual}</strong>
+                de <strong style="color:#BB86FC;">${totalPaginas}</strong>
+            </span>
+            <button onclick="mudarPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''} style="${btnStyle(paginaAtual === totalPaginas)}">
+                Próxima <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    `;
 }
 
-function abrirModalResposta(idDuvida) {
-    const resposta = todasRespostas.find(r => r.idDuvida === idDuvida);
-    if (!resposta) return showAlert('Resposta não encontrada.', 'error');
-
-    const duvida = todasDuvidas.find(d => d.idDuvida === idDuvida);
-
-    document.getElementById('modalRespostaTitulo').textContent = duvida?.titulo || 'Dúvida';
-    document.getElementById('modalRespostaConteudo').textContent = resposta.conteudoResposta || 'Sem conteúdo.';
-    document.getElementById('modalRespostaData').textContent = formatarData(resposta.momento);
-    document.getElementById('modalRespostaProfessor').textContent = resposta.utilizador?.nome || 'Professor';
-
-    const modal = document.getElementById('modalResposta');
-    modal.style.display = 'flex';
-    requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('active')));
-}
-
-function fecharModalResposta() {
-    const modal = document.getElementById('modalResposta');
-    modal.classList.remove('active');
-    setTimeout(() => modal.style.display = 'none', 200);
+function mudarPagina(novaPagina) {
+    paginaAtual = novaPagina;
+    filterDuvidas();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================================
 //  FILTROS
 // ============================================================
 function filterDuvidas() {
-    const searchTerm = document.getElementById('searchDuvida')?.value.toLowerCase() || '';
-    const statusFilter = document.getElementById('statusFilter')?.value || '';
+    const searchTerm       = document.getElementById('searchDuvida')?.value.toLowerCase() || '';
+    const statusFilter     = document.getElementById('statusFilter')?.value || '';
     const disciplinaFilter = document.getElementById('disciplinaFilter')?.value || '';
 
     let filtradas = [...todasDuvidas];
@@ -291,13 +312,22 @@ function filterDuvidas() {
     renderizarDuvidas(filtradas);
 }
 
+// Resetar página ao filtrar
+['searchDuvida', 'statusFilter', 'disciplinaFilter'].forEach(id => {
+    document.addEventListener('DOMContentLoaded', () => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', () => { paginaAtual = 1; filterDuvidas(); });
+        if (el && el.tagName === 'INPUT') el.addEventListener('input', () => { paginaAtual = 1; filterDuvidas(); });
+    });
+});
+
 // ============================================================
 //  NOVA DÚVIDA
 // ============================================================
 async function submitDuvida(event) {
     event.preventDefault();
 
-    const titulo = document.getElementById('titulo').value.trim();
+    const titulo    = document.getElementById('titulo').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
     const idDisciplinaSelecionada = document.getElementById('disciplina').value;
 
@@ -330,6 +360,7 @@ async function submitDuvida(event) {
         document.getElementById('duvidaForm').reset();
         closeModal();
         showAlert('✅ Dúvida enviada com sucesso!', 'success');
+        paginaAtual = 1;
         await carregarMinhasDuvidas();
     } catch (error) {
         console.error('Erro:', error);
@@ -338,6 +369,44 @@ async function submitDuvida(event) {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
+}
+
+// ============================================================
+//  RESPOSTAS
+// ============================================================
+async function carregarRespostas() {
+    try {
+        const response = await fetch(`${API_URL}/respostasDuvidas`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        todasRespostas = await response.json();
+        return todasRespostas;
+    } catch (error) {
+        console.error('Erro ao carregar respostas:', error);
+        todasRespostas = [];
+        return [];
+    }
+}
+
+function abrirModalResposta(idDuvida) {
+    const resposta = todasRespostas.find(r => r.idDuvida === idDuvida);
+    if (!resposta) return showAlert('Resposta não encontrada.', 'error');
+
+    const duvida = todasDuvidas.find(d => d.idDuvida === idDuvida);
+
+    document.getElementById('modalRespostaTitulo').textContent   = duvida?.titulo || 'Dúvida';
+    document.getElementById('modalRespostaConteudo').textContent = resposta.conteudoResposta || 'Sem conteúdo.';
+    document.getElementById('modalRespostaData').textContent     = formatarData(resposta.momento);
+    document.getElementById('modalRespostaProfessor').textContent = resposta.utilizador?.nome || 'Professor';
+
+    const modal = document.getElementById('modalResposta');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('active')));
+}
+
+function fecharModalResposta() {
+    const modal = document.getElementById('modalResposta');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 200);
 }
 
 // ============================================================
@@ -365,25 +434,16 @@ async function confirmarDelete() {
     btnConfirmar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
 
     try {
-        const response = await fetch(`${API_URL}/duvidas/${duvidaIdParaDeletar}`, {
-            method: 'DELETE'
-        });
-
+        const response = await fetch(`${API_URL}/duvidas/${duvidaIdParaDeletar}`, { method: 'DELETE' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const card = document.getElementById(`card-${duvidaIdParaDeletar}`);
-        if (card) {
-            card.style.transition = 'opacity 0.3s, transform 0.3s';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.9)';
-            setTimeout(() => card.remove(), 300);
-        }
 
         todasDuvidas = todasDuvidas.filter(d => d.idDuvida !== duvidaIdParaDeletar);
         document.getElementById('totalMinhasDuvidas').textContent = todasDuvidas.length;
 
         fecharConfirmDelete();
         showAlert('✅ Dúvida excluída com sucesso!', 'success');
+        filterDuvidas();
+
     } catch (error) {
         console.error('Erro ao excluir:', error);
         showAlert('❌ Erro ao excluir a dúvida.', 'error');
@@ -399,7 +459,7 @@ async function confirmarDelete() {
 async function abrirModalEditar(id, titulo, disciplinaId, descricao) {
     duvidaIdParaEditar = id;
 
-    document.getElementById('editTitulo').value = titulo;
+    document.getElementById('editTitulo').value    = titulo;
     document.getElementById('editDescricao').value = descricao;
     document.getElementById('editDisciplina').value = disciplinaId;
 
@@ -434,7 +494,6 @@ async function abrirModalEditar(id, titulo, disciplinaId, descricao) {
         }
     }
 
-    // Marca a disciplina atual
     optionsContainer.querySelectorAll('.custom-option').forEach(o => {
         o.classList.remove('selected');
         if (o.dataset.value == disciplinaId) {
@@ -443,14 +502,13 @@ async function abrirModalEditar(id, titulo, disciplinaId, descricao) {
         }
     });
 
-    // Trigger abrir/fechar
     const trigger = document.querySelector('#customSelectEditDisciplina .custom-select-trigger');
     trigger.onclick = () => {
         const wrapper = document.getElementById('customSelectEditDisciplina');
         const rect = trigger.getBoundingClientRect();
 
-        optionsContainer.style.top = (rect.bottom + 4) + 'px';
-        optionsContainer.style.left = rect.left + 'px';
+        optionsContainer.style.top   = (rect.bottom + 4) + 'px';
+        optionsContainer.style.left  = rect.left + 'px';
         optionsContainer.style.width = rect.width + 'px';
 
         wrapper.classList.toggle('open');
@@ -472,8 +530,8 @@ async function salvarEdicao(event) {
     event.preventDefault();
     if (!duvidaIdParaEditar) return;
 
-    const titulo = document.getElementById('editTitulo').value.trim();
-    const descricao = document.getElementById('editDescricao').value.trim();
+    const titulo      = document.getElementById('editTitulo').value.trim();
+    const descricao   = document.getElementById('editDescricao').value.trim();
     const disciplinaId = document.getElementById('editDisciplina').value;
 
     const submitBtn = document.querySelector('#editarForm .btn-submit');
@@ -512,14 +570,11 @@ async function salvarEdicao(event) {
 }
 
 // ============================================================
-//  MODAIS — abrir / fechar
+//  MODAIS
 // ============================================================
 function openModal() {
     const modal = document.getElementById('modal');
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
+    if (modal) { modal.style.display = 'block'; document.body.style.overflow = 'hidden'; }
 }
 
 function closeModal() {
@@ -540,14 +595,8 @@ function formatarData(dataString) {
         const data = new Date(dataString);
         if (isNaN(data.getTime())) return dataString;
         return data.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) + ' ' +
-               data.toLocaleTimeString('pt-BR', { 
-                   hour: '2-digit', 
-                   minute: '2-digit',
-                   timeZone: 'America/Sao_Paulo'
-               });
-    } catch {
-        return dataString;
-    }
+               data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+    } catch { return dataString; }
 }
 
 function escapeHtml(text) {
@@ -562,16 +611,12 @@ function showAlert(message, type) {
     alert.className = `alert alert-${type}`;
     alert.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
     document.body.appendChild(alert);
-
     setTimeout(() => {
         alert.style.animation = 'fadeOut 0.3s ease';
         setTimeout(() => alert.remove(), 300);
     }, 4000);
 }
 
-// ============================================================
-//  INICIALIZAÇÕES AUXILIARES
-// ============================================================
 function inicializarSidebar() {
     const menuToggle = document.getElementById('menu-toggle');
     if (menuToggle) {
@@ -584,9 +629,9 @@ function inicializarSidebar() {
 function inicializarFechamentoModais() {
     window.onclick = function (event) {
         if (event.target === document.getElementById('modalConfirmDelete')) fecharConfirmDelete();
-        if (event.target === document.getElementById('modalEditar')) fecharModalEditar();
-        if (event.target === document.getElementById('modal')) closeModal();
-        if (event.target === document.getElementById('modalResposta')) fecharModalResposta();
+        if (event.target === document.getElementById('modalEditar'))        fecharModalEditar();
+        if (event.target === document.getElementById('modal'))              closeModal();
+        if (event.target === document.getElementById('modalResposta'))      fecharModalResposta();
     };
 }
 
@@ -600,4 +645,3 @@ function injetarAnimacoes() {
     `;
     document.head.appendChild(style);
 }
-

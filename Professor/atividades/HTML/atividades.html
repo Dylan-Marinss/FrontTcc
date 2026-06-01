@@ -6,26 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EstudeX | Professor - Criar Atividade</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="../CSS/themes.css">
     <link rel="stylesheet" href="../CSS/atividadeProfessor.css">
     <link rel="stylesheet" href="../../perfil/CSS/professorSidebar.css">
 
-    <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
-        rel="stylesheet">
-
-    <!-- Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
 
     <section class="user-dashboard">
-    <!-- SIDEBAR - COM SUBMENU -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
@@ -37,7 +30,6 @@
                 <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
                 <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
                 
-                <!-- Item com submenu -->
                 <li class="nav-item-has-submenu" id="redacoesSubmenu">
                     <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
                         <i class="fas fa-pen-fancy"></i> <span>Redações</span>
@@ -70,11 +62,9 @@
         </div>
     </div>
 
-        <!-- MAIN CONTENT -->
         <div class="main-content">
             <div class="atividade-container">
 
-                <!-- Cabeçalho da página -->
                 <div class="atividade-card header-card">
                     <h1 class="page-title">
                         <i class="fas fa-plus-circle"></i> Criar Nova Atividade
@@ -84,16 +74,14 @@
                     </p>
                 </div>
 
-                <!-- Card Principal - Criar Atividade -->
                 <div class="atividade-card create-card">
 
-                    <!-- Informações Básicas da Atividade -->
                     <div class="form-section">
                         <h2 class="section-title">
                             <i class="fas fa-info-circle"></i> Informações Básicas
                         </h2>
 
-                        <div class="form-row">
+                        <div class="form-row form-row-3">
                             <div class="form-group">
                                 <label for="tipoAtividade"><i class="fas fa-tag"></i> Tipo de Atividade *</label>
                                 <select id="tipoAtividade" class="form-control" required>
@@ -104,54 +92,28 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="dificuldade"><i class="fas fa-chart-line"></i> Dificuldade</label>
+                                <label for="dificuldadeQuestao"><i class="fas fa-chart-line"></i> Dificuldade</label>
                                 <select id="dificuldadeQuestao" class="form-control">
                                     <option value="">Carregando dificuldades...</option>
-                                </select>
-                            </div>
-
-
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="serie"><i class="fas fa-users"></i> Turma *</label>
-                                <select id="serie" class="form-control" required>
-                                    <option value="">Carregando turmas...</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="disciplina"><i class="fas fa-book"></i> Disciplina *</label>
                                 <select id="disciplina" class="form-control" required>
-                                    <option value="">Selecione a disciplina</option>
-                                    <option value="matematica">Matemática</option>
-                                    <option value="portugues">Português</option>
-                                    <option value="historia">História</option>
-                                    <option value="geografia">Geografia</option>
-                                    <option value="ciencias">Ciências</option>
-                                    <option value="fisica">Física</option>
-                                    <option value="quimica">Química</option>
-                                    <option value="biologia">Biologia</option>
-                                    <option value="ingles">Inglês</option>
-                                    <option value="redacao">Redação</option>
+                                    <option value="">Carregando disciplinas...</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
-
-
-                    <!-- Botões de Ação -->
                     <div class="form-actions">
-                        <button type="button" id="btnConsultarAtividade" class="btn-primary"
-                            onclick="window.location.href='minhasAtividades.html'">
+                        <button type="button" id="btnConsultarAtividade" class="btn-primary">
                             <i class="fas fa-tasks"></i> Minhas Atividades
                         </button>
                         <button type="button" id="btnSalvarAtividade" class="btn-primary">
                             <i class="fas fa-save"></i> Criar Atividade
                         </button>
-
                     </div>
                 </div>
             </div>
@@ -188,8 +150,5 @@
     <script src="../JS/atividadeProfessor.js"></script>
     <script src="../../perfil/JS/menuSideBar.js"></script>
 
-
-
 </body>
-
 </html>

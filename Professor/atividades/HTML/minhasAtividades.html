@@ -22,7 +22,7 @@
 <body>
 
    <section class="user-dashboard">
-    <!-- SIDEBAR - COM SUBMENU -->
+    <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bars menu-icon" id="menu-toggle"></i>
@@ -34,7 +34,6 @@
                 <li><a href="../../perfil/HTML/professorPerfil.html" class="nav-item" id="nav-perfil"><i class="fas fa-user"></i> <span>Perfil</span></a></li>
                 <li><a href="../../atividades/HTML/atividades.html" class="nav-item" id="nav-atividades"><i class="fas fa-tasks"></i> <span>Atividades</span></a></li>
                 
-                <!-- Item com submenu -->
                 <li class="nav-item-has-submenu" id="redacoesSubmenu">
                     <a href="javascript:void(0)" class="nav-item active" id="nav-redacoes">
                         <i class="fas fa-pen-fancy"></i> <span>Redações</span>
@@ -66,69 +65,91 @@
             </a>
         </div>
     </div>
-        <!-- MAIN CONTENT -->
-        <div class="dashboard-content">
 
-            <div class="page-title">
-                <i class="fas fa-tasks"></i>
-                <h1>Minhas Atividades</h1>
-            </div>
+    <!-- MAIN CONTENT -->
+    <div class="dashboard-content">
 
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon">📋</div>
-                    <div class="stat-info">
-                        <span class="stat-label">Total de Atividades</span>
-                        <strong class="stat-value" id="totalAtividades">0</strong>
-                    </div>
-                </div>
-            </div>
-
-            <div class="action-bar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
-                        onkeyup="filtrarAtividades()">
-                </div>
-            </div>
-
-            <div id="atividadesList" class="atividades-grid">
-                <div class="loading-state">
-                    <i class="fas fa-spinner fa-pulse"></i>
-                    <p>Carregando atividades...</p>
-                </div>
-            </div>
-
+        <div class="page-title">
+            <i class="fas fa-tasks"></i>
+            <h1>Minhas Atividades</h1>
         </div>
 
-<<<<<<< HEAD
-        <!-- Modal Confirmar Delete -->
-        <div id="modalConfirmDelete" class="modal" style="display:none; align-items:center; justify-content:center;">
-            <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
-                <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir atividade?</h2>
-                <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="fecharConfirmDelete()" class="btn-primary"
-                        style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
-                    <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary" style="background: #dc2626;">
-                        <i class="fas fa-trash"></i> Sim, excluir
-                    </button>
-=======
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <span class="stat-label">Total de Atividades</span>
+                    <strong class="stat-value" id="totalAtividades">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+
+            <!-- BUSCA -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchAtividade" placeholder="Buscar atividades..."
+                    onkeyup="filtrarAtividades()">
+            </div>
+
+            <!-- FILTROS CUSTOM SELECT -->
+            <div class="filtros-box">
+
+                <!-- DISCIPLINA -->
+                <div class="custom-select" id="select-disciplina">
+                    <div class="custom-select-trigger">
+                        <span class="custom-select-label">Disciplina</span>
+                        <i class="fas fa-chevron-down custom-select-arrow"></i>
+                    </div>
+                    <div class="custom-select-options"></div>
+                    <select id="filter-disciplina" style="display:none"></select>
+                </div>
+
+                <!-- DIFICULDADE -->
+                <div class="custom-select" id="select-dificuldade">
+                    <div class="custom-select-trigger">
+                        <span class="custom-select-label">Dificuldade</span>
+                        <i class="fas fa-chevron-down custom-select-arrow"></i>
+                    </div>
+                    <div class="custom-select-options">
+                        <div class="custom-option selected" data-value="">Todas</div>
+                        <div class="custom-option" data-value="Fácil">Fácil</div>
+                        <div class="custom-option" data-value="Médio">Médio</div>
+                        <div class="custom-option" data-value="Difícil">Difícil</div>
+                    </div>
+                    <select id="filter-dificuldade" style="display:none">
+                        <option value="">Todas</option>
+                        <option value="Fácil">Fácil</option>
+                        <option value="Médio">Médio</option>
+                        <option value="Difícil">Difícil</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="atividadesList" class="atividades-grid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-pulse"></i>
+                <p>Carregando atividades...</p>
+            </div>
+        </div>
+
+    </div>
+
     </section>
 
     <!-- Modal Confirmar Delete -->
     <div id="modalConfirmDelete" class="modal" style="display:none; align-items:center; justify-content:center;">
         <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
-            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir
-                atividade?</h2>
+            <h2 style="margin-bottom: 8px; font-family: var(--font-futuristic); color: var(--primary-color);">Excluir atividade?</h2>
             <p style="color: #9ca3af; margin-bottom: 24px;">Essa ação não pode ser desfeita.</p>
             <div style="display: flex; gap: 10px; justify-content: center;">
                 <button onclick="fecharConfirmDelete()" class="btn-primary"
                     style="background: transparent; border: 1px solid #3f3f5a; color: var(--text-light);">Cancelar</button>
-                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary"
-                    style="background: #dc2626;">
+                <button id="btnConfirmarDelete" onclick="confirmarDelete()" class="btn-primary" style="background: #dc2626;">
                     <i class="fas fa-trash"></i> Sim, excluir
                 </button>
             </div>
@@ -144,7 +165,8 @@
     <!-- Modal Respostas da Atividade -->
     <div id="modalRespostas" class="modal" style="display:none; align-items:center; justify-content:center;">
         <div class="modal-content" style="max-width: 700px; width: 90%; padding: 30px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <h2 style="font-family: var(--font-futuristic); color: var(--primary-color); font-size:1.1rem;">
                     <i class="fas fa-chart-bar"></i> Respostas da Atividade
                 </h2>
@@ -153,69 +175,35 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <p id="modalRespostasTitulo" style="color:#9ca3af; margin-bottom:20px; font-size:0.9rem;"></p>
-            <div id="modalRespostasBody">
-                <div style="text-align:center; padding:30px; color:#9ca3af;">
-                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;"></i>
-                    <p style="margin-top:10px;">Carregando respostas...</p>
->>>>>>> 0baa68835783a105ad0774fb8d89789ecaeed503
-                </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                <p id="modalRespostasTitulo" style="color:#9ca3af; font-size:0.9rem; margin:0;"></p>
+                <select id="filtroSerie" onchange="aplicarFiltroSerie()" style="
+                    background: #252538;
+                    border: 1px solid rgba(187,134,252,0.3);
+                    border-radius: 10px;
+                    color: #E0E0E0;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 0.82rem;
+                    padding: 7px 32px 7px 12px;
+                    cursor: pointer;
+                    outline: none;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23BB86FC%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E');
+                    background-repeat: no-repeat;
+                    background-position: right 10px center;
+                    min-width: 160px;
+                    flex-shrink: 0;
+                ">
+                    <option value="">Todas as turmas</option>
+                </select>
             </div>
+
+            <div id="modalRespostasBody"></div>
+
         </div>
-
-        <!-- Toast -->
-        <div id="toast" class="toast">
-            <i class="fas fa-circle-check" id="toast-icon"></i>
-            <span id="toast-msg"></span>
-        </div>
-
-        <!-- Modal Respostas da Atividade -->
-        <div id="modalRespostas" class="modal" style="display:none; align-items:center; justify-content:center;">
-            <div class="modal-content" style="max-width: 700px; width: 90%; padding: 30px;">
-
-                <!-- Cabeçalho -->
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                    <h2 style="font-family: var(--font-futuristic); color: var(--primary-color); font-size:1.1rem;">
-                        <i class="fas fa-chart-bar"></i> Respostas da Atividade
-                    </h2>
-                    <button onclick="fecharModalRespostas()"
-                        style="background:transparent; border:none; color:#9ca3af; font-size:1.4rem; cursor:pointer;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <!-- Nome da atividade + filtro -->
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-                    <p id="modalRespostasTitulo" style="color:#9ca3af; font-size:0.9rem; margin:0;"></p>
-                    <select id="filtroSerie" onchange="aplicarFiltroSerie()" style="
-                        background: #252538;
-                        border: 1px solid rgba(187,134,252,0.3);
-                        border-radius: 10px;
-                        color: #E0E0E0;
-                        font-family: 'Poppins', sans-serif;
-                        font-size: 0.82rem;
-                        padding: 7px 32px 7px 12px;
-                        cursor: pointer;
-                        outline: none;
-                        appearance: none;
-                        -webkit-appearance: none;
-                        background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23BB86FC%22 stroke-width=%222%22%3E%3Cpolyline points=%226 9 12 15 18 9%22%3E%3C/polyline%3E%3C/svg%3E');
-                        background-repeat: no-repeat;
-                        background-position: right 10px center;
-                        min-width: 160px;
-                        flex-shrink: 0;
-                    ">
-                        <option value="">Todas as turmas</option>
-                    </select>
-                </div>
-
-                <!-- Tabela -->
-                <div id="modalRespostasBody"></div>
-
-            </div>
-        </div>
-
-    </section>
+    </div>
 
     <script src="../JS/minhasAtividades.js"></script>
     <script src="../JS/menuSideBar.js"></script>
