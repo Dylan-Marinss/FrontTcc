@@ -624,27 +624,37 @@ body {
     color: var(--text-light);
 }
 
-.nota-slider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
+/* Input de nota estilizado */
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 14px 15px;
+    background-color: #252525;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
 }
 
-.nota-slider input {
-    flex: 1;
-    height: 4px;
-    background: var(--border-color);
-    border-radius: 5px;
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(187, 134, 252, 0.2);
 }
 
-.nota-slider input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
+.form-group input[type="number"]::placeholder {
+    color: var(--text-muted);
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
 }
 
 .form-group textarea {

@@ -1,10 +1,12 @@
 // professor-criar-redacao.js
 
 const API_URL = 'http://localhost:8080';
-const ID_PROFESSOR_LOGADO = 1;
+const ID_PROFESSOR_LOGADO = 6;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await carregarRedacoesCriadas();
+let redacaoSelecionada = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    carregarRedacoesCriadas();
     inicializarEventos();
 });
 
@@ -31,13 +33,13 @@ async function carregarRedacoesCriadas() {
         }
         
         container.innerHTML = redacoes.map(red => `
-            <div class="redacao-criada-item">
+            <div class="redacao-criada-item" onclick="verDetalhesRedacao(${red.idRedacao})">
                 <div class="redacao-criada-titulo">
                     <span>${escapeHtml(red.titulo)}</span>
-                    <span class="redacao-criada-data"><i class="fas fa-calendar"></i> Entrega: ${formatarData(red.dataEntrega)}</span>
                 </div>
-                <div class="redacao-criada-turma"><i class="fas fa-users"></i> Turma ${red.turmaId || '?'}</div>
-                <div class="redacao-criada-tema"><i class="fas fa-tag"></i> ${escapeHtml(red.tema)}</div>
+                <div class="redacao-criada-tema">
+                    <i class="fas fa-tag"></i> ${escapeHtml(red.tema)}
+                </div>
             </div>
         `).join('');
         
@@ -46,9 +48,66 @@ async function carregarRedacoesCriadas() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>Erro ao carregar redações. Verifique se o backend está rodando.</p>
+                <p>Erro ao carregar redações.</p>
             </div>
         `;
+    }
+}
+
+// ============================================================
+//  VER DETALHES DA REDAÇÃO (MODAL)
+// ============================================================
+async function verDetalhesRedacao(idRedacao) {
+    try {
+        const response = await fetch(`${API_URL}/redacoes/${idRedacao}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar detalhes');
+        }
+        
+        const redacao = await response.json();
+        redacaoSelecionada = redacao;
+        
+        // Preencher modal
+        document.getElementById('modalTitulo').textContent = redacao.titulo;
+        document.getElementById('modalTema').textContent = redacao.tema;
+        document.getElementById('modalDescricao').textContent = redacao.textoRedacao || 'Sem descrição adicional';
+        
+        // Mostrar modal
+        document.getElementById('modal-redacao').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarToast('Erro ao carregar detalhes da redação', 'error');
+    }
+}
+
+function fecharModalRedacao() {
+    document.getElementById('modal-redacao').style.display = 'none';
+    redacaoSelecionada = null;
+}
+
+async function excluirRedacao() {
+    if (!redacaoSelecionada) return;
+    
+    if (confirm(`Tem certeza que deseja excluir a redação "${redacaoSelecionada.titulo}"?`)) {
+        try {
+            const response = await fetch(`${API_URL}/redacoes/${redacaoSelecionada.idRedacao}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao excluir');
+            }
+            
+            mostrarToast('✅ Redação excluída com sucesso!', 'success');
+            fecharModalRedacao();
+            await carregarRedacoesCriadas();
+            
+        } catch (error) {
+            console.error('Erro:', error);
+            mostrarToast('❌ Erro ao excluir redação', 'error');
+        }
     }
 }
 
@@ -56,29 +115,24 @@ async function criarRedacao(event) {
     event.preventDefault();
     
     const titulo = document.getElementById('titulo').value.trim();
-    const dataEntrega = document.getElementById('dataEntrega').value;
-    const turmaId = document.getElementById('turma').value;
     const tema = document.getElementById('tema').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
     
-    if (!titulo || !dataEntrega || !turmaId || !tema) {
-        mostrarNotificacao('Preencha todos os campos obrigatórios.', 'error');
+    if (!titulo || !tema) {
+        mostrarToast('Preencha título e tema.', 'error');
         return;
     }
     
     const submitBtn = document.getElementById('criarBtn');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Criando...';
     submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Criando...';
     
     try {
         const redacaoData = {
             titulo: titulo,
             tema: tema,
-            descricao: descricao,
-            dataEntrega: dataEntrega,
-            turmaId: parseInt(turmaId),
-            dataCriacao: new Date().toISOString()
+            textoRedacao: descricao || ''
         };
         
         const response = await fetch(`${API_URL}/redacoes/professor`, {
@@ -87,66 +141,58 @@ async function criarRedacao(event) {
             body: JSON.stringify(redacaoData)
         });
         
-        if (!response.ok) throw new Error('Erro ao criar');
+        if (!response.ok) {
+            throw new Error('Erro ao criar');
+        }
         
-        document.getElementById('confirmModal').style.display = 'block';
+        mostrarToast('✅ Redação criada com sucesso!', 'success');
         
-        // Limpar formulário
         document.getElementById('titulo').value = '';
-        document.getElementById('dataEntrega').value = '';
-        document.getElementById('turma').value = '';
         document.getElementById('tema').value = '';
         document.getElementById('descricao').value = '';
         
         await carregarRedacoesCriadas();
-        mostrarNotificacao('✅ Redação criada com sucesso!', 'success');
         
     } catch (error) {
         console.error('Erro:', error);
-        mostrarNotificacao('❌ Erro ao criar redação.', 'error');
+        mostrarToast('❌ Erro ao criar redação.', 'error');
     } finally {
-        submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 }
 
 function limparFormulario() {
     if (confirm('Limpar formulário?')) {
         document.getElementById('titulo').value = '';
-        document.getElementById('dataEntrega').value = '';
-        document.getElementById('turma').value = '';
         document.getElementById('tema').value = '';
         document.getElementById('descricao').value = '';
-        mostrarNotificacao('Formulário limpo!', 'info');
+        mostrarToast('Formulário limpo!', 'info');
     }
 }
 
-function mostrarNotificacao(mensagem, tipo) {
-    const notification = document.createElement('div');
-    notification.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : tipo === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i> ${mensagem}`;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: ${tipo === 'success' ? 'rgba(0,230,118,0.2)' : tipo === 'error' ? 'rgba(255,61,0,0.2)' : 'rgba(187,134,252,0.2)'};
-        border: 1px solid ${tipo === 'success' ? '#00E676' : tipo === 'error' ? '#FF3D00' : '#BB86FC'};
-        color: ${tipo === 'success' ? '#00E676' : tipo === 'error' ? '#FF3D00' : '#BB86FC'};
-        padding: 12px 20px;
-        border-radius: 8px;
-        z-index: 3000;
-        animation: slideInRight 0.3s ease;
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
-}
+function mostrarToast(msg, tipo = 'success') {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    const msgEl = document.getElementById('toast-msg');
+    if (!toast || !icon || !msgEl) return;
 
-function formatarData(dataString) {
-    if (!dataString) return '-';
-    try {
-        return new Date(dataString).toLocaleDateString('pt-BR');
-    } catch {
-        return dataString;
+    msgEl.textContent = msg;
+    toast.className = 'toast';
+
+    if (tipo === 'error') {
+        toast.classList.add('error');
+        icon.className = 'fas fa-circle-xmark';
+    } else if (tipo === 'info') {
+        toast.classList.add('info');
+        icon.className = 'fas fa-info-circle';
+    } else {
+        icon.className = 'fas fa-circle-check';
     }
+
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
 function escapeHtml(text) {
@@ -163,16 +209,9 @@ function inicializarEventos() {
     document.getElementById('criarRedacaoForm')?.addEventListener('submit', criarRedacao);
     document.getElementById('limparBtn')?.addEventListener('click', limparFormulario);
     document.getElementById('refreshRedacoesBtn')?.addEventListener('click', () => carregarRedacoesCriadas());
-    
-    const closeModal = document.getElementById('closeConfirmModal');
-    const okBtn = document.getElementById('okConfirmBtn');
-    const modal = document.getElementById('confirmModal');
-    
-    if (closeModal) closeModal.onclick = () => modal.style.display = 'none';
-    if (okBtn) okBtn.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 }
 
-const style = document.createElement('style');
-style.textContent = `@keyframes slideInRight { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }`;
-document.head.appendChild(style);
+// Expor funções globalmente
+window.verDetalhesRedacao = verDetalhesRedacao;
+window.fecharModalRedacao = fecharModalRedacao;
+window.excluirRedacao = excluirRedacao;

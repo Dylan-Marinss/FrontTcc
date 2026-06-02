@@ -172,6 +172,43 @@
     </div>
 </div>
 
+<!-- Toast de notificação -->
+<div id="toast" class="toast">
+    <i id="toast-icon" class="fas fa-circle-check"></i>
+    <span id="toast-msg"></span>
+</div>
+
+<div id="modal-redacao" class="modal-redacao" style="display: none;">
+    <div class="modal-redacao-content">
+        <div class="modal-redacao-header">
+            <h3><i class="fas fa-file-alt"></i> Detalhes da Redação</h3>
+            <button class="modal-redacao-close" onclick="fecharModalRedacao()">&times;</button>
+        </div>
+        <div class="modal-redacao-body">
+            <div class="detalhe-item">
+                <label><i class="fas fa-heading"></i> Título</label>
+                <p id="modalTitulo">---</p>
+            </div>
+            <div class="detalhe-item">
+                <label><i class="fas fa-tag"></i> Tema</label>
+                <p id="modalTema">---</p>
+            </div>
+            <div class="detalhe-item">
+                <label><i class="fas fa-align-left"></i> Descrição</label>
+                <p id="modalDescricao">---</p>
+            </div>
+        </div>
+        <div class="modal-redacao-footer">
+            <button class="btn-excluir" onclick="excluirRedacao()">
+                <i class="fas fa-trash-alt"></i> Excluir
+            </button>
+            <button class="btn-fechar" onclick="fecharModalRedacao()">
+                <i class="fas fa-times"></i> Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="../JS/criarRedacao.js"></script>
 <script src="../../../global/JS/menuSideBar.js"></script>
 
