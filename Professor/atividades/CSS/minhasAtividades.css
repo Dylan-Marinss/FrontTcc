@@ -192,7 +192,8 @@ body {
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%);
+    /* ✅ CORRIGIDO: substituído #1a1a2e hardcoded por variável do tema */
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--card-gradient-to) 100%);
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 20px;
@@ -312,7 +313,7 @@ body {
 .custom-select-options {
     display: none;
     position: fixed;
-    background: #1e1e1e;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow-y: auto;

@@ -1,17 +1,4 @@
-/* ==========================================================================
-   THEME.CSS — Sistema Global de Tematização — EstudeX
-   
-   ✅ Arquivo ÚNICO para todo o projeto.
-   ✅ Substitui TODOS os themes.css locais (Aluno, Home, Inicio, Professor…).
-   ✅ Compatível com as variáveis já usadas nos CSS existentes.
-   ✅ Tema escuro como padrão, tema claro via html.light.
-   ✅ Suporte a prefers-color-scheme e transição suave.
-   ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   1. TRANSIÇÃO SUAVE GLOBAL
-      Aplicada antes de qualquer regra para garantir a troca fluida.
-   -------------------------------------------------------------------------- */
 *,
 *::before,
 *::after {
