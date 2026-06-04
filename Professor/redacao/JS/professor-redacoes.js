@@ -109,7 +109,7 @@ function filtrarRedacoes() {
     
     if (searchTerm) {
         filtradas = filtradas.filter(red => {
-            const nomeAluno = red.aluno?.nome?.toLowerCase() || '';
+            const nomeAluno = (red.aluno?.nome || '').toLowerCase();
             const titulo = (red.titulo || '').toLowerCase();
             const tema = (red.tema || '').toLowerCase();
             return nomeAluno.includes(searchTerm) || titulo.includes(searchTerm) || tema.includes(searchTerm);
@@ -135,7 +135,7 @@ async function abrirModalCorrecao(idRedacao) {
         document.getElementById('modalData').textContent = redacaoAtual.dataEnvio ? new Date(redacaoAtual.dataEnvio).toLocaleDateString('pt-BR') : 'Data não disponível';
         document.getElementById('modalTexto').textContent = redacaoAtual.textoRedacao || 'Texto não disponível';
         
-        // Preencher nota se já existir (apenas input, sem slider)
+        // Preencher nota se já existir
         const nota = redacaoAtual.pontuacaoObtida || '';
         const notaInput = document.getElementById('notaInput');
         if (notaInput) notaInput.value = nota;
@@ -181,7 +181,7 @@ function calcularNotaPorCompetencias() {
     }
 }
 
-// ========== SALVAR CORREÇÃO ==========
+// ========== SALVAR CORREÇÃO (COM ID ÚNICO) ==========
 async function salvarCorrecao() {
     if (!redacaoAtual) return;
     
@@ -199,39 +199,55 @@ async function salvarCorrecao() {
     btnSalvar.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Salvando...';
     
     try {
-        // 1. Atualizar nota
+        // 1. Atualizar nota da redação
         const responseNota = await fetch(`${API_URL}/redacoes/${redacaoAtual.idRedacao}/pontuacao?pontuacaoObtida=${nota}`, {
             method: 'PATCH'
         });
         
-        if (!responseNota.ok) throw new Error('Erro ao salvar nota');
+        if (!responseNota.ok) {
+            const error = await responseNota.text();
+            throw new Error('Erro ao salvar nota: ' + error);
+        }
         
-        // 2. Atualizar comentários
+        // 2. Atualizar comentários da redação
         const responseComentario = await fetch(`${API_URL}/redacoes/${redacaoAtual.idRedacao}/comentarios?comentarios=${encodeURIComponent(comentario)}`, {
             method: 'PATCH'
         });
         
-        if (!responseComentario.ok) throw new Error('Erro ao salvar comentários');
+        if (!responseComentario.ok) {
+            const error = await responseComentario.text();
+            throw new Error('Erro ao salvar comentários: ' + error);
+        }
         
-        // 3. Registrar correção
-        const correcao = {
+        // 3. Gerar ID único baseado em timestamp
+        const timestamp = Date.now();
+        const novoId = parseInt(timestamp.toString().slice(-8)); // Pega os últimos 8 dígitos
+        
+        console.log('Novo ID da correção (timestamp):', novoId);
+        
+        // 4. Registrar correção
+        const correcaoData = {
+            idCorrecaoRedacao: novoId,
             redacao: { idRedacao: redacaoAtual.idRedacao },
             utilizador: { id: ID_PROFESSOR_LOGADO },
             pontuacaoObtida: nota,
             dataResposta: new Date().toISOString()
         };
         
-        await fetch(`${API_URL}/correcoes-redacao`, {
+        console.log('Registrando correção:', correcaoData);
+        
+        const responseCorrecao = await fetch(`${API_URL}/correcoes-redacao`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(correcao)
+            body: JSON.stringify(correcaoData)
         });
         
-        mostrarToast('✅ Redação corrigida com sucesso!', 'success');
+        if (!responseCorrecao.ok) {
+            const error = await responseCorrecao.text();
+            throw new Error('Erro ao registrar correção: ' + error);
+        }
         
-        // Atualizar dados locais
-        redacaoAtual.pontuacaoObtida = nota;
-        redacaoAtual.comentarios = comentario;
+        mostrarToast('✅ Redação corrigida com sucesso!', 'success');
         
         // Recarregar lista
         await carregarRedacoes();
@@ -240,7 +256,7 @@ async function salvarCorrecao() {
         
     } catch (error) {
         console.error('Erro:', error);
-        mostrarToast('❌ Erro ao salvar correção', 'error');
+        mostrarToast('❌ Erro ao salvar correção: ' + error.message, 'error');
     } finally {
         btnSalvar.disabled = false;
         btnSalvar.innerHTML = originalText;
@@ -338,7 +354,7 @@ function inicializarEventos() {
     }
 }
 
-// Adicionar botão de calcular no modal
+// Adicionar botão de calcular no modal se não existir
 document.addEventListener('DOMContentLoaded', () => {
     const competenciasDiv = document.querySelector('.competencias');
     if (competenciasDiv && !document.getElementById('calcularCompetencias')) {

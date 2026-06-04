@@ -1,19 +1,39 @@
-// enviar-redacao.js - Com escolha entre Professor e IA
+// enviar-redacao.js - Página do Aluno para Envio de Redações
 
+// ========== CONFIGURAÇÕES ==========
 const MICRO_API_URL = 'http://localhost:3001/api/redacao';
 const API_URL = 'http://localhost:8080';
-const ID_ALUNO_LOGADO = 1;
+const ID_ALUNO_LOGADO = 1; // Miguel Santana
 
+// Variáveis globais
 let tipoSelecionado = null;
 let temaAtual = null;
-let temaProfessorAtual = null;
+let propostasProfessor = [];
 
+// ========== INICIALIZAÇÃO ==========
 document.addEventListener('DOMContentLoaded', async () => {
-    await carregarTemaProfessor();
+    await carregarPropostasProfessor();
     await carregarHistoricoRedacoes();
     inicializarEventos();
     inicializarNotificacoes();
 });
+
+// ========== CARREGAR PROPOSTAS DO PROFESSOR ==========
+async function carregarPropostasProfessor() {
+    try {
+        const response = await fetch(`${API_URL}/redacoes`);
+        
+        if (response.ok) {
+            const todasRedacoes = await response.json();
+            // Filtrar propostas do professor (aluno.id = 6)
+            propostasProfessor = todasRedacoes.filter(red => red.aluno?.id === 6);
+            console.log('Propostas do professor:', propostasProfessor);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar propostas:', error);
+        propostasProfessor = [];
+    }
+}
 
 // ========== SELECIONAR TIPO ==========
 function selecionarTipo(tipo) {
@@ -23,12 +43,26 @@ function selecionarTipo(tipo) {
     const optionIA = document.getElementById('optionIA');
     const temaProfessorArea = document.getElementById('temaProfessorArea');
     const temaIArea = document.getElementById('temaIArea');
+    const temaSelecionadoArea = document.getElementById('temaSelecionadoArea');
     
     if (tipo === 'professor') {
         optionProfessor.classList.add('selected');
         optionIA.classList.remove('selected');
         temaProfessorArea.style.display = 'block';
         temaIArea.style.display = 'none';
+        if (temaSelecionadoArea) temaSelecionadoArea.style.display = 'none';
+        
+        if (propostasProfessor.length > 0) {
+            carregarPropostasCards();
+        } else {
+            document.getElementById('propostasList').innerHTML = `
+                <div class="propostas-empty">
+                    <i class="fas fa-inbox"></i>
+                    <p>Nenhuma proposta de redação disponível no momento.</p>
+                    <p>Seu professor ainda não criou nenhuma proposta. Tente novamente mais tarde!</p>
+                </div>
+            `;
+        }
     } else {
         optionIA.classList.add('selected');
         optionProfessor.classList.remove('selected');
@@ -38,25 +72,64 @@ function selecionarTipo(tipo) {
     }
 }
 
-// ========== CARREGAR TEMA DO PROFESSOR ==========
-async function carregarTemaProfessor() {
-    const temaContainer = document.getElementById('temaProfessorTexto');
+// ========== CARREGAR PROPOSTAS COMO CARDS ==========
+function carregarPropostasCards() {
+    const propostasContainer = document.getElementById('propostasList');
     
-    try {
-        const response = await fetch(`${API_URL}/temas-redacao/ativo`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            temaProfessorAtual = data.tema;
-            temaContainer.innerHTML = escapeHtml(data.tema);
-        } else {
-            temaProfessorAtual = "Aguardando tema do professor. Volte em breve!";
-            temaContainer.innerHTML = temaProfessorAtual;
-        }
-    } catch (error) {
-        temaProfessorAtual = "Tema indisponível no momento. Tente novamente mais tarde.";
-        temaContainer.innerHTML = temaProfessorAtual;
+    propostasContainer.innerHTML = propostasProfessor.map(prop => `
+        <div class="proposta-card" onclick="selecionarPropostaCard(${prop.idRedacao})" data-id="${prop.idRedacao}">
+            <div class="proposta-header">
+                <span class="proposta-titulo">${escapeHtml(prop.titulo)}</span>
+                <span class="proposta-data"><i class="fas fa-calendar-alt"></i> ${formatarData(prop.dataEntrega) || 'Data a definir'}</span>
+            </div>
+            <div class="proposta-tema">
+                <i class="fas fa-quote-left" style="font-size: 0.7rem; opacity: 0.5; margin-right: 5px;"></i>
+                ${escapeHtml(prop.tema)}
+                <i class="fas fa-quote-right" style="font-size: 0.7rem; opacity: 0.5; margin-left: 5px;"></i>
+            </div>
+            <div class="proposta-footer">
+                <span><i class="fas fa-clock"></i> Proposta pelo professor</span>
+                <button class="btn-selecionar-proposta" onclick="event.stopPropagation(); selecionarPropostaCard(${prop.idRedacao})">
+                    Selecionar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function selecionarPropostaCard(idRedacao) {
+    const proposta = propostasProfessor.find(p => p.idRedacao == idRedacao);
+    if (!proposta) return;
+    
+    // Remover seleção de outros cards
+    document.querySelectorAll('.proposta-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Marcar card como selecionado
+    const cardSelecionado = document.querySelector(`.proposta-card[data-id="${idRedacao}"]`);
+    if (cardSelecionado) {
+        cardSelecionado.classList.add('selected');
     }
+    
+    temaAtual = proposta.tema;
+    
+    // Mostrar área de tema selecionado
+    const temaSelecionadoArea = document.getElementById('temaSelecionadoArea');
+    const temaSelecionadoTexto = document.getElementById('temaSelecionadoTexto');
+    const propostaDataEntrega = document.getElementById('propostaDataEntrega');
+    
+    temaSelecionadoTexto.innerHTML = `<i class="fas fa-tag"></i> ${escapeHtml(proposta.tema)}`;
+    propostaDataEntrega.textContent = formatarData(proposta.dataEntrega) || 'Data a definir';
+    temaSelecionadoArea.style.display = 'block';
+    
+    // Preencher título automaticamente
+    document.getElementById('titulo').value = proposta.titulo;
+    
+    // Scroll suave até o tema selecionado
+    temaSelecionadoArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    mostrarNotificacao('✅ Tema selecionado! Agora escreva sua redação.', 'success');
 }
 
 // ========== CARREGAR TEMA IA ==========
@@ -108,43 +181,74 @@ async function carregarTemaIA() {
     }
 }
 
-// ========== CARREGAR HISTÓRICO ==========
+// ========== CARREGAR HISTÓRICO DO ALUNO ==========
 async function carregarHistoricoRedacoes() {
     const container = document.getElementById('historicoList');
     
     try {
-        const response = await fetch(`${API_URL}/redacoes/aluno/${ID_ALUNO_LOGADO}`);
+        const response = await fetch(`${API_URL}/redacoes`);
         if (!response.ok) throw new Error('Erro ao carregar histórico');
         
-        const redacoes = await response.json();
+        const todasRedacoes = await response.json();
+        // Filtrar redações do aluno logado (id = 1) e que não são do professor (id != 6)
+        const minhasRedacoes = todasRedacoes.filter(red => 
+            (red.aluno?.id === ID_ALUNO_LOGADO) && 
+            red.aluno?.id !== 6
+        );
         
-        if (redacoes.length === 0) {
-            container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Você ainda não enviou nenhuma redação.</p></div>`;
+        console.log('Minhas redações:', minhasRedacoes);
+        
+        if (minhasRedacoes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>Você ainda não enviou nenhuma redação.</p>
+                    <p>Escreva sua primeira redação acima!</p>
+                </div>
+            `;
             return;
         }
         
-        container.innerHTML = redacoes.map(redacao => {
-            const dataEnvio = formatarData(redacao.dataEnvio);
-            const isCorrigida = redacao.pontuacaoObtida !== null;
+        container.innerHTML = minhasRedacoes.map(red => {
+            const dataEnvio = red.dataEnvio ? new Date(red.dataEnvio).toLocaleDateString('pt-BR') : 'Data não disponível';
+            const isCorrigida = red.pontuacaoObtida !== null && red.pontuacaoObtida !== undefined;
+            const nota = red.pontuacaoObtida || 0;
+            
             return `
-                <div class="redacao-item" onclick="verDetalhesRedacao(${redacao.idRedacao})">
+                <div class="redacao-item" onclick="verDetalhesRedacao(${red.idRedacao})">
                     <div class="redacao-titulo">
-                        <span>${escapeHtml(redacao.titulo || 'Sem título')}</span>
+                        <span>${escapeHtml(red.titulo || 'Sem título')}</span>
                         <span class="redacao-data">${dataEnvio}</span>
                     </div>
-                    <div class="redacao-tema-mini"><i class="fas fa-tag"></i> ${escapeHtml((redacao.tema || '').substring(0, 60))}...</div>
-                    <div><span class="redacao-status ${isCorrigida ? 'status-corrigida' : 'status-pendente'}">
-                        ${isCorrigida ? `✅ Corrigida - Nota: ${redacao.pontuacaoObtida}/1000` : '⏳ Aguardando correção'}
-                    </span></div>
+                    <div class="redacao-tema-mini">
+                        <i class="fas fa-tag"></i> ${escapeHtml((red.tema || '').substring(0, 60))}...
+                    </div>
+                    <div>
+                        <span class="redacao-status ${isCorrigida ? 'status-corrigida' : 'status-pendente'}">
+                            ${isCorrigida ? `✅ Corrigida - Nota: ${nota}/1000` : '⏳ Aguardando correção'}
+                        </span>
+                    </div>
+                    ${red.comentarios && isCorrigida ? `
+                        <div class="redacao-observacao">
+                            <i class="fas fa-comment"></i> ${escapeHtml(red.comentarios.substring(0, 80))}...
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }).join('');
+        
     } catch (error) {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erro ao carregar histórico.</p></div>`;
+        console.error('Erro ao carregar histórico:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar histórico. Tente novamente.</p>
+            </div>
+        `;
     }
 }
 
-// ========== ENVIAR REDAÇÃO ==========
+// ========== ENVIAR REDAÇÃO (COM ID MANUAL) ==========
 async function enviarRedacao(event) {
     event.preventDefault();
     
@@ -168,110 +272,281 @@ async function enviarRedacao(event) {
         return;
     }
     
-    let temaEscolhido;
-    if (tipoSelecionado === 'professor') {
-        temaEscolhido = temaProfessorAtual;
-        if (!temaEscolhido || temaEscolhido.includes('Aguardando')) {
-            mostrarNotificacao('Aguarde o professor definir um tema.', 'error');
-            return;
-        }
-    } else {
-        temaEscolhido = temaAtual;
-        if (!temaEscolhido) {
-            mostrarNotificacao('Aguarde o tema ser gerado.', 'error');
-            return;
-        }
+    if (!temaAtual) {
+        mostrarNotificacao('Aguarde o tema ser carregado.', 'error');
+        return;
     }
     
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
     submitBtn.disabled = true;
     
     try {
+        // Buscar o maior ID atual para gerar o próximo
+        const responseRedacoes = await fetch(`${API_URL}/redacoes`);
+        const todasRedacoes = await responseRedacoes.json();
+        
+        // Calcular o próximo ID (maior ID + 1)
+        let maiorId = 0;
+        todasRedacoes.forEach(red => {
+            if (red.idRedacao > maiorId) maiorId = red.idRedacao;
+        });
+        const novoId = maiorId + 1;
+        
+        console.log('Próximo ID:', novoId);
+        
         const redacaoData = {
-            aluno: { idUtilizador: ID_ALUNO_LOGADO },
-            tema: temaEscolhido,
+            idRedacao: novoId,
+            aluno: {
+                id: ID_ALUNO_LOGADO
+            },
+            tema: temaAtual,
             titulo: titulo,
-            textoRedacao: conteudo,
-            dataEnvio: new Date().toISOString(),
-            pontuacaoObtida: null,
-            comentarios: null
+            textoRedacao: conteudo
         };
+        
+        console.log('Enviando dados:', redacaoData);
         
         const response = await fetch(`${API_URL}/redacoes`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(redacaoData)
         });
         
-        if (!response.ok) throw new Error('Erro ao enviar');
+        const responseText = await response.text();
+        console.log('Resposta:', response.status, responseText);
         
-        mostrarNotificacao('✅ Redação enviada com sucesso! Aguarde a correção.', 'success');
+        if (!response.ok) {
+            throw new Error(responseText || 'Erro ao enviar redação');
+        }
+        
+        mostrarNotificacao('✅ Redação enviada com sucesso! Aguarde a correção do professor.', 'success');
+        
+        // Limpar formulário
         document.getElementById('titulo').value = '';
         document.getElementById('conteudo').value = '';
+        
+        // Limpar seleção de proposta
+        document.querySelectorAll('.proposta-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        const temaSelecionadoArea = document.getElementById('temaSelecionadoArea');
+        if (temaSelecionadoArea) temaSelecionadoArea.style.display = 'none';
+        
+        // Se for IA, gerar novo tema
+        if (tipoSelecionado === 'ia') {
+            await carregarTemaIA();
+        } else {
+            temaAtual = null;
+        }
+        
+        // Recarregar histórico
         await carregarHistoricoRedacoes();
         
-        if (tipoSelecionado === 'ia') await carregarTemaIA();
-        
     } catch (error) {
-        mostrarNotificacao('❌ Erro ao enviar redação. Tente novamente.', 'error');
+        console.error('Erro ao enviar:', error);
+        mostrarNotificacao('❌ Erro ao enviar redação: ' + error.message, 'error');
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
 }
 
-// ========== VER DETALHES ==========
+// ========== VER DETALHES DA REDAÇÃO ==========
 async function verDetalhesRedacao(idRedacao) {
     try {
         const response = await fetch(`${API_URL}/redacoes/${idRedacao}`);
-        if (!response.ok) throw new Error('Erro');
-        const red = await response.json();
-        alert(`📝 ${red.titulo}\n\n📅 Enviado: ${formatarData(red.dataEnvio)}\n📌 Tema: ${red.tema}\n\n📄 ${red.textoRedacao.substring(0, 500)}...\n\n${red.pontuacaoObtida ? `⭐ Nota: ${red.pontuacaoObtida}/1000\n💬 ${red.comentarios}` : '⏳ Aguardando correção'}`);
+        if (!response.ok) throw new Error('Erro ao carregar detalhes');
+        
+        const redacao = await response.json();
+        const dataEnvio = redacao.dataEnvio ? new Date(redacao.dataEnvio).toLocaleDateString('pt-BR') : 'Data não disponível';
+        const isCorrigida = redacao.pontuacaoObtida !== null && redacao.pontuacaoObtida !== undefined;
+        
+        let mensagem = `📝 ${redacao.titulo}\n\n`;
+        mensagem += `📅 Enviado: ${dataEnvio}\n`;
+        mensagem += `📌 Tema: ${redacao.tema}\n\n`;
+        mensagem += `📄 Conteúdo:\n${redacao.textoRedacao}\n\n`;
+        
+        if (isCorrigida) {
+            mensagem += `⭐ NOTA: ${redacao.pontuacaoObtida}/1000\n\n`;
+            if (redacao.comentarios) {
+                mensagem += `💬 COMENTÁRIOS DO PROFESSOR:\n${redacao.comentarios}`;
+            }
+        } else {
+            mensagem += `⏳ Status: Aguardando correção do professor.`;
+        }
+        
+        alert(mensagem);
+        
     } catch (error) {
-        mostrarNotificacao('Erro ao carregar detalhes', 'error');
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro ao carregar detalhes da redação', 'error');
     }
 }
 
+// ========== LIMPAR FORMULÁRIO ==========
 function limparFormulario() {
-    if (confirm('Limpar formulário?')) {
+    if (confirm('Tem certeza que deseja limpar o formulário? Todo o texto será perdido.')) {
         document.getElementById('titulo').value = '';
         document.getElementById('conteudo').value = '';
         mostrarNotificacao('Formulário limpo!', 'info');
     }
 }
 
+// ========== NOTIFICAÇÕES ==========
 function inicializarNotificacoes() {
-    const icon = document.getElementById('notificationsIcon');
+    const notificationIcon = document.getElementById('notificationsIcon');
     const modal = document.getElementById('notificationsModal');
-    const close = document.querySelector('.close-modal');
-    if (icon && modal) icon.onclick = () => modal.style.display = 'block';
-    if (close && modal) close.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => { if (modal && e.target === modal) modal.style.display = 'none'; };
+    const closeModal = document.querySelector('.close-modal');
+    
+    if (notificationIcon && modal) {
+        notificationIcon.addEventListener('click', () => {
+            modal.style.display = 'block';
+            const badge = document.querySelector('.notification-badge');
+            if (badge) badge.style.display = 'none';
+        });
+    }
+    
+    if (closeModal && modal) {
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    
+    window.addEventListener('click', (e) => {
+        if (modal && e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
 }
 
-function mostrarNotificacao(msg, type) {
-    const n = document.createElement('div');
-    n.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${msg}`;
-    n.style.cssText = `position:fixed; bottom:20px; right:20px; background:${type === 'success' ? 'rgba(0,230,118,0.2)' : 'rgba(255,61,0,0.2)'}; border:1px solid ${type === 'success' ? '#00E676' : '#FF3D00'}; color:${type === 'success' ? '#00E676' : '#FF3D00'}; padding:12px 20px; border-radius:8px; z-index:3000; animation:slideInRight 0.3s ease;`;
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
+function mostrarNotificacao(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification-toast notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: ${type === 'success' ? 'rgba(0, 230, 118, 0.2)' : type === 'error' ? 'rgba(255, 61, 0, 0.2)' : 'rgba(187, 134, 252, 0.2)'};
+        border: 1px solid ${type === 'success' ? '#00E676' : type === 'error' ? '#FF3D00' : '#BB86FC'};
+        color: ${type === 'success' ? '#00E676' : type === 'error' ? '#FF3D00' : '#BB86FC'};
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 3000;
+        animation: slideInRight 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
 }
 
+// ========== EVENTOS ==========
 function inicializarEventos() {
-    document.getElementById('redacaoForm')?.addEventListener('submit', enviarRedacao);
-    document.getElementById('clearBtn')?.addEventListener('click', limparFormulario);
-    document.getElementById('refreshHistorico')?.addEventListener('click', () => carregarHistoricoRedacoes());
-    const logout = document.getElementById('logoutBtn');
-    if (logout) logout.onclick = (e) => { e.preventDefault(); if (confirm('Sair?')) window.location.href = '../../../Login/HTML/login.html'; };
+    const form = document.getElementById('redacaoForm');
+    if (form) {
+        form.addEventListener('submit', enviarRedacao);
+    }
+    
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', limparFormulario);
+    }
+    
+    const refreshBtn = document.getElementById('refreshHistorico');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            carregarHistoricoRedacoes();
+            mostrarNotificacao('Histórico atualizado!', 'info');
+        });
+    }
+    
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.clear();
+                window.location.href = '../../../Login/HTML/login.html';
+            }
+        });
+    }
 }
 
-function formatarData(str) { if (!str) return '-'; try { return new Date(str).toLocaleDateString('pt-BR'); } catch { return '-'; } }
-function escapeHtml(t) { if (!t) return ''; return t.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+// ========== FUNÇÕES UTILITÁRIAS ==========
+function formatarData(dataString) {
+    if (!dataString) return 'Data não disponível';
+    try {
+        const data = new Date(dataString);
+        if (isNaN(data.getTime())) return dataString;
+        return data.toLocaleDateString('pt-BR');
+    } catch {
+        return dataString;
+    }
+}
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Adicionar estilos para animações
 const style = document.createElement('style');
-style.textContent = `@keyframes slideInRight { from { opacity:0; transform:translateX(100%); } to { opacity:1; transform:translateX(0); } }`;
+style.textContent = `
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(100%); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(100%); }
+    }
+    .redacao-tema-mini {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin: 5px 0;
+    }
+    .redacao-tema-mini i {
+        color: var(--primary-color);
+        margin-right: 4px;
+    }
+    .proposta-select {
+        width: 100%;
+        padding: 12px;
+        background-color: #252525;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-light);
+        margin-bottom: 15px;
+        cursor: pointer;
+    }
+    .proposta-select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+    .proposta-tema {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(187, 134, 252, 0.05);
+        border-radius: 8px;
+    }
+`;
 document.head.appendChild(style);
 
-window.carregarTemaIA = carregarTemaIA;
+// Expor funções globalmente
 window.selecionarTipo = selecionarTipo;
+window.carregarTemaIA = carregarTemaIA;
+window.selecionarPropostaCard = selecionarPropostaCard;
 window.verDetalhesRedacao = verDetalhesRedacao;

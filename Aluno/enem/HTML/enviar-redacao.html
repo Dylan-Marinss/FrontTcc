@@ -94,17 +94,32 @@
                 </div>
                 
                 <div class="tema-container" id="temaContainer">
-                    <!-- Tema Professor (vem da API) -->
+                    <!-- Tema Professor (Cards de propostas) -->
                     <div id="temaProfessorArea" style="display: none;">
                         <div class="tema-semana">
                             <div class="tema-titulo">
-                                <i class="fas fa-star"></i> Tema Proposto pelo Professor
+                                <i class="fas fa-chalkboard-user"></i> Redações Propostas pelo Professor
+                                <span class="professor-badge">Professor</span>
                             </div>
-                            <div class="tema-conteudo" id="temaProfessorTexto">Carregando...</div>
+                            <div id="propostasList" class="propostas-container">
+                                <div class="propostas-loading">
+                                    <i class="fas fa-spinner fa-pulse"></i>
+                                    <p>Carregando propostas...</p>
+                                </div>
+                            </div>
+                            <div id="temaSelecionadoArea" class="tema-selecionado-area" style="display: none;">
+                                <div class="tema-selecionado-titulo">
+                                    <i class="fas fa-check-circle"></i> Tema Selecionado
+                                </div>
+                                <div class="tema-selecionado-texto" id="temaSelecionadoTexto"></div>
+                                <div class="tema-selecionado-info">
+                                    <span><i class="fas fa-calendar"></i> Data de entrega: <span id="propostaDataEntrega">--</span></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Tema IA (gerado localmente) -->
+                    <!-- Tema IA -->
                     <div id="temaIArea" style="display: none;">
                         <div class="tema-semana" id="temaSemana">
                             <div class="tema-titulo">
@@ -191,5 +206,6 @@
 
 <script src="../JS/enviar-redacao.js"></script>
 <script src="../JS/menuSideBar.js"></script>
+
 </body>
 </html>
