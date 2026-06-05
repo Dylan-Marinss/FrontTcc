@@ -1,136 +1,160 @@
+// historico-enem.js - Histórico de Redações
 
-// historico-enem.js
-let desempenhoChart;
+const API_URL = 'http://localhost:8080';
+const ID_ALUNO_LOGADO = 1;
 
-// Função para carregar redações do localStorage
-function carregarRedacoes() {
-    const redacoes = RedacaoStorage.getTodasRedacoes();
-    const historicoList = document.getElementById('historicoRedacoes');
+// Variáveis globais
+let todasRedacoes = [];
+let desempenhoChart = null;
+let periodoAtual = 6;
+
+// ========== INICIALIZAÇÃO ==========
+document.addEventListener('DOMContentLoaded', async () => {
+    await carregarHistorico();
+    inicializarEventos();
+    inicializarNotificacoes();
+});
+
+// ========== CARREGAR HISTÓRICO ==========
+async function carregarHistorico() {
+    const container = document.getElementById('redacoesList');
     
-    if (!historicoList) return;
+    try {
+        const response = await fetch(`${API_URL}/redacoes`);
+        
+        if (!response.ok) {
+            throw new Error('Erro ao carregar histórico');
+        }
+        
+        const todas = await response.json();
+        
+        // Filtrar redações do aluno (excluir as do professor com idAluno = 6)
+        todasRedacoes = todas.filter(red => red.aluno?.id === ID_ALUNO_LOGADO);
+        
+        // Ordenar por data (mais recente primeiro)
+        todasRedacoes.sort((a, b) => {
+            const dataA = a.dataEnvio ? new Date(a.dataEnvio) : new Date(0);
+            const dataB = b.dataEnvio ? new Date(b.dataEnvio) : new Date(0);
+            return dataB - dataA;
+        });
+        
+        atualizarEstatisticas();
+        renderizarGrafico();
+        renderizarLista();
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar histórico. Tente novamente.</p>
+            </div>
+        `;
+    }
+}
+
+function atualizarEstatisticas() {
+    const total = todasRedacoes.length;
+    const corrigidas = todasRedacoes.filter(r => r.pontuacaoObtida !== null && r.pontuacaoObtida !== undefined).length;
+    const aguardando = total - corrigidas;
     
-    historicoList.innerHTML = '';
+    let somaNotas = 0;
+    let countNotas = 0;
+    todasRedacoes.forEach(r => {
+        if (r.pontuacaoObtida !== null && r.pontuacaoObtida !== undefined) {
+            somaNotas += r.pontuacaoObtida;
+            countNotas++;
+        }
+    });
+    const media = countNotas > 0 ? (somaNotas / countNotas).toFixed(0) : 0;
     
-    if (redacoes.length === 0) {
-        historicoList.innerHTML = '<li class="empty-state">Nenhuma redação encontrada. Escreva sua primeira redação!</li>';
+    document.getElementById('totalRedacoes').textContent = total;
+    document.getElementById('corrigidas').textContent = corrigidas;
+    document.getElementById('aguardando').textContent = aguardando;
+    document.getElementById('mediaNotas').textContent = media;
+}
+
+function renderizarLista() {
+    const container = document.getElementById('redacoesList');
+    
+    if (todasRedacoes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Você ainda não enviou nenhuma redação.</p>
+                <p>Escreva sua primeira redação na página principal!</p>
+            </div>
+        `;
         return;
     }
     
-    // Ordenar por data (mais recente primeiro)
-    redacoes.sort((a, b) => new Date(b.dataEnvio) - new Date(a.dataEnvio));
-    
-    redacoes.forEach(redacao => {
-        const data = new Date(redacao.dataEnvio).toLocaleDateString('pt-BR');
-        const statusClass = redacao.status === 'corrigida' ? 'status-corrigida' : 'status-aguardando';
-        const statusText = redacao.status === 'corrigida' ? 'Corrigida' : 'Aguardando';
-        const notaText = redacao.nota ? `Nota: ${redacao.nota.toFixed(1)}` : 'Nota: -';
+    container.innerHTML = todasRedacoes.map(red => {
+        const isCorrigida = red.pontuacaoObtida !== null && red.pontuacaoObtida !== undefined;
+        const nota = red.pontuacaoObtida || 0;
+        const data = red.dataEnvio ? new Date(red.dataEnvio).toLocaleDateString('pt-BR') : 'Data não disponível';
         
-        const li = document.createElement('li');
-        li.className = 'redacao-item';
-        li.dataset.id = redacao.id;
-        li.innerHTML = `
-            <div class="redacao-info">
-                <strong>${redacao.titulo || 'Sem título'}</strong>
-                <small>${data}</small>
-            </div>
-            <div class="redacao-status ${statusClass}">
-                <span class="status-badge">${statusText}</span>
-                <span class="nota-preview">${notaText}</span>
+        return `
+            <div class="redacao-item" onclick="abrirModal(${red.idRedacao})">
+                <div class="redacao-header">
+                    <span class="redacao-titulo">${escapeHtml(red.titulo || 'Sem título')}</span>
+                    <span class="redacao-data"><i class="fas fa-calendar-alt"></i> ${data}</span>
+                </div>
+                <div class="redacao-tema">
+                    <i class="fas fa-tag"></i> ${escapeHtml(red.tema || 'Tema não definido').substring(0, 80)}${red.tema?.length > 80 ? '...' : ''}
+                </div>
+                <div class="redacao-footer">
+                    <span class="redacao-status ${isCorrigida ? 'status-corrigida' : 'status-pendente'}">
+                        ${isCorrigida ? '✅ Corrigida' : '⏳ Aguardando correção'}
+                    </span>
+                    ${isCorrigida ? `<span class="redacao-nota"><i class="fas fa-star"></i> ${nota}/1000</span>` : ''}
+                </div>
             </div>
         `;
-        
-        li.addEventListener('click', () => abrirModalRedacao(redacao));
-        historicoList.appendChild(li);
-    });
+    }).join('');
 }
 
-// Função para atualizar estatísticas
-function atualizarEstatisticas() {
-    const stats = RedacaoStorage.getEstatisticas();
+// ========== GRÁFICO ==========
+function renderizarGrafico() {
+    const dadosPorMes = processarDadosPorMes();
     
-    document.getElementById('totalRedacoes').textContent = stats.total;
-    document.getElementById('corrigidas').textContent = stats.corrigidas;
-    document.getElementById('aguardando').textContent = stats.aguardando;
-    document.getElementById('mediaNotas').textContent = stats.media;
-}
-
-// Função para abrir modal com detalhes da redação
-function abrirModalRedacao(redacao) {
-    const modal = document.getElementById('modalRedacao');
-    if (!modal) return;
+    const labels = dadosPorMes.map(d => d.mes);
+    const notas = dadosPorMes.map(d => d.media);
     
-    document.getElementById('modalTema').textContent = redacao.tema || 'Tema não definido';
-    document.getElementById('modalStatus').textContent = redacao.status === 'corrigida' ? 'Corrigida' : 'Aguardando correção';
-    document.getElementById('modalNota').textContent = redacao.nota ? redacao.nota.toFixed(1) : '-';
-    document.getElementById('modalFeedback').textContent = redacao.feedback || 'Aguardando correção...';
-    document.getElementById('modalTexto').textContent = redacao.texto;
-    
-    modal.classList.add('show');
-    
-    // Configurar fechar modal
-    const closeBtn = document.getElementById('closeModal');
-    closeBtn.onclick = () => modal.classList.remove('show');
-    
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.classList.remove('show');
-        }
-    };
-}
-
-// Função para inicializar o gráfico
-function initChart(periodo = 6) {
-    const canvas = document.getElementById('desempenhoChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
+    const ctx = document.getElementById('desempenhoChart').getContext('2d');
     
     if (desempenhoChart) {
         desempenhoChart.destroy();
     }
     
-    // Pegar dados reais do localStorage
-    const dados = RedacaoStorage.getDadosMensais(periodo);
-    
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(187, 134, 252, 0.8)');
-    gradient.addColorStop(1, 'rgba(162, 31, 162, 0.1)');
-    
     desempenhoChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: dados.labels,
+            labels: labels,
             datasets: [{
                 label: 'Nota Média',
-                data: dados.notas,
+                data: notas,
                 borderColor: '#BB86FC',
-                backgroundColor: gradient,
-                tension: 0.4,
-                fill: true,
+                backgroundColor: 'rgba(187, 134, 252, 0.1)',
+                borderWidth: 3,
                 pointBackgroundColor: '#a21fa2',
                 pointBorderColor: '#BB86FC',
-                pointHoverBackgroundColor: '#FF3D00',
-                pointHoverBorderColor: '#FFFFFF',
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                tension: 0.3,
+                fill: true
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: {
+                    labels: { color: '#E0E0E0' }
+                },
                 tooltip: {
-                    backgroundColor: '#1E1E1E',
-                    titleColor: '#BB86FC',
-                    bodyColor: '#E0E0E0',
-                    borderColor: '#BB86FC',
-                    borderWidth: 1,
                     callbacks: {
-                        label: (context) => `Nota: ${context.raw.toFixed(1)}`,
-                        afterLabel: (context) => {
-                            const quantidade = dados.quantidades[context.dataIndex];
-                            return `Redações: ${quantidade}`;
+                        label: function(context) {
+                            return `Nota média: ${context.raw} pontos`;
                         }
                     }
                 }
@@ -138,104 +162,218 @@ function initChart(periodo = 6) {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 10,
-                    grid: { color: 'rgba(187, 134, 252, 0.1)' },
-                    ticks: {
-                        color: '#9E9E9E',
-                        callback: (value) => value.toFixed(1)
+                    max: 1000,
+                    grid: { color: '#2a2a2a' },
+                    title: {
+                        display: true,
+                        text: 'Nota (0-1000)',
+                        color: '#9E9E9E'
                     }
                 },
                 x: {
-                    grid: { display: false },
-                    ticks: { color: '#9E9E9E' }
+                    grid: { color: '#2a2a2a' },
+                    title: {
+                        display: true,
+                        text: 'Mês',
+                        color: '#9E9E9E'
+                    }
                 }
             }
         }
     });
     
     // Atualizar estatísticas do gráfico
-    atualizarEstatisticasGrafico(dados);
-}
-
-function atualizarEstatisticasGrafico(dados) {
-    const elementos = {
-        melhorNota: document.getElementById('melhorNota'),
-        mediaPeriodo: document.getElementById('mediaPeriodo'),
-        totalPeriodo: document.getElementById('totalPeriodo'),
-        evolucao: document.getElementById('evolucao')
-    };
-    
-    const notasValidas = dados.notas.filter(n => n > 0);
-    
-    if (elementos.melhorNota) {
-        const melhorNota = notasValidas.length > 0 ? Math.max(...notasValidas) : 0;
-        elementos.melhorNota.textContent = melhorNota.toFixed(1);
-    }
-    
-    if (elementos.mediaPeriodo) {
-        const media = notasValidas.length > 0 
-            ? notasValidas.reduce((a, b) => a + b, 0) / notasValidas.length 
-            : 0;
-        elementos.mediaPeriodo.textContent = media.toFixed(1);
-    }
-    
-    if (elementos.totalPeriodo) {
-        const total = dados.quantidades.reduce((a, b) => a + b, 0);
-        elementos.totalPeriodo.textContent = total;
-    }
-    
-    if (elementos.evolucao && notasValidas.length >= 2) {
-        const primeiro = dados.notas.find(n => n > 0) || 0;
-        const ultimo = [...dados.notas].reverse().find(n => n > 0) || 0;
+    const todasNotas = todasRedacoes.filter(r => r.pontuacaoObtida !== null).map(r => r.pontuacaoObtida);
+    if (todasNotas.length > 0) {
+        const melhor = Math.max(...todasNotas);
+        const pior = Math.min(...todasNotas);
+        const media = todasNotas.reduce((a, b) => a + b, 0) / todasNotas.length;
+        const primeira = todasNotas[0] || 0;
+        const ultima = todasNotas[todasNotas.length - 1] || 0;
+        const evolucao = primeira > 0 ? ((ultima - primeira) / primeira * 100).toFixed(0) : 0;
         
-        if (primeiro > 0 && ultimo > 0) {
-            const evolucao = ((ultimo - primeiro) / primeiro * 100).toFixed(1);
-            const icone = evolucao >= 0 ? 
-                '<i class="fas fa-arrow-up" style="color: #00E676;"></i>' : 
-                '<i class="fas fa-arrow-down" style="color: #FF3D00;"></i>';
-            elementos.evolucao.innerHTML = `${Math.abs(evolucao)}% ${icone}`;
-        } else {
-            elementos.evolucao.innerHTML = '0%';
-        }
+        document.getElementById('melhorNota').textContent = melhor;
+        document.getElementById('piorNota').textContent = pior;
+        document.getElementById('mediaPeriodo').textContent = media.toFixed(0);
+        document.getElementById('evolucao').innerHTML = `${evolucao >= 0 ? '+' : ''}${evolucao}% <i class="fas fa-arrow-${evolucao >= 0 ? 'up' : 'down'}" style="color: ${evolucao >= 0 ? '#00E676' : '#FF3D00'};"></i>`;
     }
 }
 
-function setupFilters() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
+function processarDadosPorMes() {
+    const meses = {};
     
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.remove('active');
-            });
-            
-            this.classList.add('active');
-            
-            const periodo = parseInt(this.dataset.period);
-            if (!isNaN(periodo)) {
-                initChart(periodo);
-            }
-        });
+    todasRedacoes.forEach(red => {
+        if (!red.dataEnvio) return;
+        
+        const data = new Date(red.dataEnvio);
+        const mesAno = `${data.getMonth() + 1}/${data.getFullYear()}`;
+        
+        if (!meses[mesAno]) {
+            meses[mesAno] = { soma: 0, count: 0 };
+        }
+        
+        if (red.pontuacaoObtida !== null && red.pontuacaoObtida !== undefined) {
+            meses[mesAno].soma += red.pontuacaoObtida;
+            meses[mesAno].count++;
+        }
+    });
+    
+    const resultado = Object.entries(meses).map(([mes, dados]) => ({
+        mes: mes,
+        media: dados.count > 0 ? (dados.soma / dados.count).toFixed(0) : 0
+    }));
+    
+    resultado.sort((a, b) => {
+        const [mesA, anoA] = a.mes.split('/');
+        const [mesB, anoB] = b.mes.split('/');
+        return new Date(anoA, mesA - 1) - new Date(anoB, mesB - 1);
+    });
+    
+    return resultado.slice(-periodoAtual);
+}
+
+function filtrarGrafico(periodo) {
+    periodoAtual = periodo === 'all' ? 999 : parseInt(periodo);
+    renderizarGrafico();
+    
+    // Atualizar botões ativos
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.period == periodo) {
+            btn.classList.add('active');
+        }
     });
 }
 
-// Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se RedacaoStorage existe
-    if (typeof RedacaoStorage === 'undefined') {
-        console.error('RedacaoStorage não encontrado!');
-        return;
+// ========== MODAL ==========
+async function abrirModal(idRedacao) {
+    try {
+        const response = await fetch(`${API_URL}/redacoes/${idRedacao}`);
+        if (!response.ok) throw new Error('Erro ao carregar detalhes');
+        
+        const red = await response.json();
+        
+        const isCorrigida = red.pontuacaoObtida !== null && red.pontuacaoObtida !== undefined;
+        const data = red.dataEnvio ? new Date(red.dataEnvio).toLocaleDateString('pt-BR') : 'Data não disponível';
+        
+        document.getElementById('modalTitulo').textContent = red.titulo || 'Sem título';
+        document.getElementById('modalTema').textContent = red.tema || 'Tema não definido';
+        document.getElementById('modalData').textContent = data;
+        document.getElementById('modalNota').innerHTML = isCorrigida ? `${red.pontuacaoObtida}/1000` : '<span style="color: #FFC107;">Aguardando correção</span>';
+        document.getElementById('modalComentario').textContent = red.comentarios || 'Nenhum comentário ainda.';
+        document.getElementById('modalConteudo').textContent = red.textoRedacao || 'Texto não disponível';
+        
+        document.getElementById('redacaoModal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarToast('Erro ao carregar detalhes da redação', 'error');
+    }
+}
+
+function fecharModal() {
+    document.getElementById('redacaoModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// ========== NOTIFICAÇÕES ==========
+function inicializarNotificacoes() {
+    const notificationIcon = document.getElementById('notificationsIcon');
+    const modal = document.getElementById('notificationsModal');
+    const closeModal = document.querySelector('.close-modal');
+    
+    if (notificationIcon && modal) {
+        notificationIcon.addEventListener('click', () => {
+            modal.style.display = 'block';
+            const badge = document.querySelector('.notification-badge');
+            if (badge) badge.style.display = 'none';
+        });
     }
     
-    // Carregar dados
-    carregarRedacoes();
-    atualizarEstatisticas();
-    
-    // Inicializar gráfico se existir
-    if (document.getElementById('desempenhoChart')) {
-        initChart(6);
-        setupFilters();
+    if (closeModal && modal) {
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
     }
-});
+    
+    window.addEventListener('click', (e) => {
+        if (modal && e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+
+function mostrarToast(mensagem, tipo = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `<i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${mensagem}`;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: ${tipo === 'success' ? 'rgba(0,230,118,0.2)' : 'rgba(255,61,0,0.2)'};
+        border: 1px solid ${tipo === 'success' ? '#00E676' : '#FF3D00'};
+        color: ${tipo === 'success' ? '#00E676' : '#FF3D00'};
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 3000;
+        animation: slideInRight 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// ========== EVENTOS ==========
+function inicializarEventos() {
+    // Refresh
+    const refreshBtn = document.getElementById('refreshHistorico');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            carregarHistorico();
+            mostrarToast('Histórico atualizado!', 'success');
+        });
+    }
+    
+    // Filtros do gráfico
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            filtrarGrafico(btn.dataset.period);
+        });
+    });
+    
+    // Modal
+    const closeBtn = document.getElementById('closeModalBtn');
+    const fecharBtn = document.getElementById('fecharModalBtn');
+    
+    if (closeBtn) closeBtn.onclick = fecharModal;
+    if (fecharBtn) fecharBtn.onclick = fecharModal;
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('redacaoModal');
+        if (event.target === modal) fecharModal();
+    };
+    
+    // Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.onclick = function(e) {
+            e.preventDefault();
+            if (confirm('Deseja realmente sair?')) {
+                localStorage.clear();
+                window.location.href = '../../../Login/HTML/login.html';
+            }
+        };
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Expor funções globalmente
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;

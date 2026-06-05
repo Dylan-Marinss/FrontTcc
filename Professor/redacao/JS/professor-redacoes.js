@@ -1,7 +1,7 @@
-// professor-redacoes.js - Correção de Redações
+// professor-redacoes.js - Correção de Redações (Versão Simplificada)
 
 const API_URL = 'http://localhost:8080';
-const ID_PROFESSOR_LOGADO = 6; // ID do professor Carlos Eduardo Silva
+const ID_PROFESSOR_LOGADO = 6;
 
 // Variáveis globais
 let todasRedacoes = [];
@@ -34,7 +34,6 @@ async function carregarRedacoes() {
                 <div class="empty-state">
                     <i class="fas fa-inbox"></i>
                     <p>Nenhuma redação encontrada.</p>
-                    <p>As redações enviadas pelos alunos aparecerão aqui.</p>
                 </div>
             `;
             return;
@@ -47,7 +46,7 @@ async function carregarRedacoes() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>Erro ao carregar redações. Verifique o backend.</p>
+                <p>Erro ao carregar redações.</p>
             </div>
         `;
     }
@@ -137,9 +136,7 @@ async function abrirModalCorrecao(idRedacao) {
         
         // Preencher nota se já existir
         const nota = redacaoAtual.pontuacaoObtida || '';
-        const notaInput = document.getElementById('notaInput');
-        if (notaInput) notaInput.value = nota;
-        
+        document.getElementById('notaInput').value = nota;
         document.getElementById('comentarioInput').value = redacaoAtual.comentarios || '';
         
         // Reset competências
@@ -171,17 +168,14 @@ function calcularNotaPorCompetencias() {
     });
     
     if (count === 5) {
-        const notaInput = document.getElementById('notaInput');
-        if (notaInput) {
-            notaInput.value = total;
-            mostrarToast(`Nota calculada: ${total}/1000`, 'success');
-        }
+        document.getElementById('notaInput').value = total;
+        mostrarToast(`Nota calculada: ${total}/1000`, 'success');
     } else {
-        mostrarToast(`Selecione todas as 5 competências para calcular a nota automática.`, 'info');
+        mostrarToast(`Selecione todas as 5 competências.`, 'info');
     }
 }
 
-// ========== SALVAR CORREÇÃO (COM ID ÚNICO) ==========
+// ========== SALVAR CORREÇÃO (SÓ NA REDAÇÃO) ==========
 async function salvarCorrecao() {
     if (!redacaoAtual) return;
     
@@ -205,8 +199,7 @@ async function salvarCorrecao() {
         });
         
         if (!responseNota.ok) {
-            const error = await responseNota.text();
-            throw new Error('Erro ao salvar nota: ' + error);
+            throw new Error('Erro ao salvar nota');
         }
         
         // 2. Atualizar comentários da redação
@@ -215,43 +208,17 @@ async function salvarCorrecao() {
         });
         
         if (!responseComentario.ok) {
-            const error = await responseComentario.text();
-            throw new Error('Erro ao salvar comentários: ' + error);
-        }
-        
-        // 3. Gerar ID único baseado em timestamp
-        const timestamp = Date.now();
-        const novoId = parseInt(timestamp.toString().slice(-8)); // Pega os últimos 8 dígitos
-        
-        console.log('Novo ID da correção (timestamp):', novoId);
-        
-        // 4. Registrar correção
-        const correcaoData = {
-            idCorrecaoRedacao: novoId,
-            redacao: { idRedacao: redacaoAtual.idRedacao },
-            utilizador: { id: ID_PROFESSOR_LOGADO },
-            pontuacaoObtida: nota,
-            dataResposta: new Date().toISOString()
-        };
-        
-        console.log('Registrando correção:', correcaoData);
-        
-        const responseCorrecao = await fetch(`${API_URL}/correcoes-redacao`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(correcaoData)
-        });
-        
-        if (!responseCorrecao.ok) {
-            const error = await responseCorrecao.text();
-            throw new Error('Erro ao registrar correção: ' + error);
+            throw new Error('Erro ao salvar comentários');
         }
         
         mostrarToast('✅ Redação corrigida com sucesso!', 'success');
         
+        // Atualizar dados localmente
+        redacaoAtual.pontuacaoObtida = nota;
+        redacaoAtual.comentarios = comentario;
+        
         // Recarregar lista
         await carregarRedacoes();
-        
         fecharModal();
         
     } catch (error) {
@@ -269,7 +236,6 @@ function fecharModal() {
     redacaoAtual = null;
 }
 
-// ========== TOAST ==========
 function mostrarToast(mensagem, tipo = 'success') {
     const toast = document.getElementById('toast');
     if (!toast) {
@@ -283,8 +249,7 @@ function mostrarToast(mensagem, tipo = 'success') {
     const toastEl = document.getElementById('toast');
     const icon = document.getElementById('toast-icon');
     const msgEl = document.getElementById('toast-msg');
-    
-    if (!toastEl || !icon || !msgEl) return;
+    if (!toastEl) return;
     
     msgEl.textContent = mensagem;
     toastEl.className = 'toast';
@@ -300,8 +265,7 @@ function mostrarToast(mensagem, tipo = 'success') {
     }
     
     toastEl.classList.add('show');
-    clearTimeout(toastEl._timer);
-    toastEl._timer = setTimeout(() => toastEl.classList.remove('show'), 3500);
+    setTimeout(() => toastEl.classList.remove('show'), 3000);
 }
 
 function escapeHtml(text) {
@@ -336,9 +300,7 @@ function inicializarEventos() {
     // Fechar modal ao clicar fora
     window.onclick = function(event) {
         const modal = document.getElementById('correcaoModal');
-        if (event.target === modal) {
-            fecharModal();
-        }
+        if (event.target === modal) fecharModal();
     };
     
     // Logout
@@ -363,30 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCalcular.className = 'btn-calcular-competencias';
         btnCalcular.innerHTML = '<i class="fas fa-calculator"></i> Calcular nota pelas competências';
         competenciasDiv.appendChild(btnCalcular);
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            .btn-calcular-competencias {
-                background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-                border: none;
-                color: var(--bg-dark);
-                padding: 10px 20px;
-                border-radius: 30px;
-                margin-top: 15px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .btn-calcular-competencias:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(187, 134, 252, 0.4);
-            }
-        `;
-        document.head.appendChild(style);
-        
         btnCalcular.addEventListener('click', calcularNotaPorCompetencias);
     }
 });
