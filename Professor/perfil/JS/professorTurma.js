@@ -1,12 +1,12 @@
 // professorTurma.js
 
-const API_BASE = 'http://localhost:8080';
+const API_URL = 'https://apiestudex-b0angcajf4fdgugt.eastus2-01.azurewebsites.net';
 const PROFESSOR_ID = 6;
 
 // ─── Utilitários ─────────────────────────────────────────────────────────────
 
 async function apiFetch(endpoint) {
-    const response = await fetch(`${API_BASE}${endpoint}`);
+    const response = await fetch(`${API_URL}${endpoint}`);
     if (!response.ok) throw new Error(`HTTP ${response.status} em ${endpoint}`);
     return response.json();
 }
